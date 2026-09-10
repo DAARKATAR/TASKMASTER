@@ -4,27 +4,24 @@ name: taskmaster-app
 services:
   - name: taskmaster-service
     type: web
-    image: koyeb/taskmaster:latest
+    git:
+      repository: github.com/DAARKATAR/TASKMASTER
+      branch: produccion
+      buildpack: dockerfile
     instance_type: free
     regions:
       - fra
     ports:
       - port: 3000
         path: /
+    routes:
+      - path: /
+        port: 3000
     env:
       - key: PORT
         value: "3000"
       - key: NODE_ENV
         value: "production"
-      # Configurar en secrets de Koyeb:
-      # - key: DATABASE_URL
-      #   value: @neon-database-url
-      # - key: UPSTASH_REDIS_REST_URL
-      #   value: @upstash-url
-      # - key: UPSTASH_REDIS_REST_TOKEN
-      #   value: @upstash-token
-      # - key: BETTER_STACK_SOURCE_TOKEN
-      #   value: @better-stack-token
     health_checks:
       - path: /health
         port: 3000
