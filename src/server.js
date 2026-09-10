@@ -6,6 +6,7 @@ import soapRoutes from './routes/soapRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import { apiLimiter } from './middleware/rateLimiter.js';
 import { logAccess, logError, getLogsSummary } from './services/auditLogger.js';
+import { getDefaultProducts } from './config/defaultProducts.js';
 
 dotenv.config();
 
@@ -136,6 +137,27 @@ app.post('/api/tenants', async (req, res) => {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
 
+      CREATE TABLE IF NOT EXISTS "${schemaName}".factura_detalles (
+        id SERIAL PRIMARY KEY,
+        factura_id INT NOT NULL REFERENCES "${schemaName}".facturas(id) ON DELETE CASCADE,
+        producto_id INT,
+        nombre_producto VARCHAR(150) NOT NULL,
+        cantidad INT NOT NULL DEFAULT 1,
+        precio_unitario NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
+        subtotal NUMERIC(15, 2) NOT NULL DEFAULT 0.00
+      );
+
+      CREATE TABLE IF NOT EXISTS "${schemaName}".productos (
+        id SERIAL PRIMARY KEY,
+        nombre VARCHAR(150) NOT NULL,
+        precio NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
+        rubro VARCHAR(100) NOT NULL DEFAULT 'General',
+        emoji VARCHAR(20) DEFAULT '📦',
+        descripcion TEXT,
+        stock INT NOT NULL DEFAULT 100,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+
       CREATE TABLE IF NOT EXISTS "${schemaName}".usuarios (
         id SERIAL PRIMARY KEY,
         email VARCHAR(150) NOT NULL UNIQUE,
@@ -147,6 +169,15 @@ app.post('/api/tenants', async (req, res) => {
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `);
+
+    // Poblar catálogo de productos inicial
+    const defaultProds = getDefaultProducts();
+    for (const p of defaultProds) {
+      await client.query(`
+        INSERT INTO "${schemaName}".productos (nombre, precio, rubro, emoji, stock, descripcion)
+        VALUES ($1, $2, $3, $4, $5, $6);
+      `, [p.nombre, p.precio, p.rubro, p.emoji, p.stock, p.descripcion]);
+    }
 
     await client.query('COMMIT');
 
@@ -175,6 +206,55 @@ app.post('/api/tenants', async (req, res) => {
   }
 });
 
+// Endpoint para obtener el catálogo real de productos del tenant desde Neon DB
+app.get('/api/tenants/:tenantId/products', async (req, res) => {
+  const { tenantId } = req.params;
+  const cleanId = tenantId.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+  const schemaName = `tenant_${cleanId}`;
+
+  try {
+    const { rows } = await pool.query(`
+      SELECT id, nombre, precio, rubro, emoji, descripcion, stock, created_at
+      FROM "${schemaName}".productos
+      ORDER BY id ASC
+    `);
+    res.json(rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Endpoint para registrar un nuevo producto en el catálogo del tenant
+app.post('/api/tenants/:tenantId/products', async (req, res) => {
+  const { tenantId } = req.params;
+  const cleanId = tenantId.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+  const schemaName = `tenant_${cleanId}`;
+  const { nombre, precio, rubro, emoji, stock, descripcion } = req.body;
+
+  if (!nombre || precio === undefined) {
+    return res.status(400).json({ error: 'El nombre y el precio del producto son obligatorios.' });
+  }
+
+  try {
+    const { rows } = await pool.query(`
+      INSERT INTO "${schemaName}".productos (nombre, precio, rubro, emoji, stock, descripcion)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING *;
+    `, [
+      nombre.trim(),
+      parseFloat(precio) || 0,
+      (rubro || 'General').trim(),
+      (emoji || '📦').trim(),
+      parseInt(stock, 10) || 50,
+      (descripcion || '').trim()
+    ]);
+
+    res.status(201).json({ success: true, product: rows[0] });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Endpoint para obtener las facturas reales del tenant desde Neon DB
 app.get('/api/tenants/:tenantId/invoices', async (req, res) => {
   const { tenantId } = req.params;
@@ -193,47 +273,91 @@ app.get('/api/tenants/:tenantId/invoices', async (req, res) => {
   }
 });
 
-// Endpoint para registrar una venta real y emitir comprobante en Neon DB
+// Endpoint para obtener los renglones / detalles de una factura específica
+app.get('/api/tenants/:tenantId/invoices/:invoiceId/details', async (req, res) => {
+  const { tenantId, invoiceId } = req.params;
+  const cleanId = tenantId.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+  const schemaName = `tenant_${cleanId}`;
+
+  try {
+    const { rows } = await pool.query(`
+      SELECT id, factura_id, producto_id, nombre_producto, cantidad, precio_unitario, subtotal
+      FROM "${schemaName}".factura_detalles
+      WHERE factura_id = $1
+      ORDER BY id ASC
+    `, [invoiceId]);
+    res.json(rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Endpoint para registrar una venta real, guardar factura con renglones y actualizar inventario
 app.post('/api/tenants/:tenantId/invoices', async (req, res) => {
   const { tenantId } = req.params;
   const cleanId = tenantId.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
   const schemaName = `tenant_${cleanId}`;
-  const { cliente, subtotal, impuestos, total, items_count, metodo_pago } = req.body;
+  const { cliente, subtotal, impuestos, total, items_count, metodo_pago, items } = req.body;
 
   const clientName = (cliente || 'Cliente General').trim();
   const subtotalNum = parseFloat(subtotal) || 0;
   const impuestosNum = parseFloat(impuestos) || 0;
   const totalNum = parseFloat(total) || (subtotalNum + impuestosNum);
-  const itemsCount = parseInt(items_count, 10) || 1;
+  const itemsCount = parseInt(items_count, 10) || (Array.isArray(items) ? items.reduce((acc, i) => acc + (i.qty || 1), 0) : 1);
   const paymentMethod = (metodo_pago || 'Efectivo').trim();
 
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
 
-    // Obtener el siguiente consecutivo real
+    // 1. Obtener consecutivo real
     const countRes = await client.query(`SELECT COALESCE(MAX(id), 1000) + 1 AS next_id FROM "${schemaName}".facturas`);
     const nextId = countRes.rows[0].next_id;
     const prefix = cleanId === 'tortasysnacks' ? 'REC' : 'FAC';
     const numeroFactura = `${prefix}-${nextId}`;
     const cufe = `CUFE-${cleanId.toUpperCase()}-${Date.now().toString(36).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
 
+    // 2. Insertar cabecera de la factura
     const insertRes = await client.query(`
       INSERT INTO "${schemaName}".facturas (id, numero_factura, cliente, subtotal, impuestos, total, estado, folio_fiscal, items_count, metodo_pago, created_at)
       VALUES ($1, $2, $3, $4, $5, $6, 'TIMBRADA / APROBADA', $7, $8, $9, NOW())
       RETURNING *;
     `, [nextId, numeroFactura, clientName, subtotalNum, impuestosNum, totalNum, cufe, itemsCount, paymentMethod]);
 
+    // 3. Insertar detalle por cada producto y descontar stock
+    if (Array.isArray(items) && items.length > 0) {
+      for (const item of items) {
+        const itemQty = parseInt(item.qty || 1, 10);
+        const itemPrice = parseFloat(item.price || item.precio || 0);
+        const itemSubtotal = itemPrice * itemQty;
+        const itemName = (item.name || item.nombre || 'Artículo POS').trim();
+        const prodId = item.id && Number.isInteger(Number(item.id)) ? Number(item.id) : null;
+
+        await client.query(`
+          INSERT INTO "${schemaName}".factura_detalles (factura_id, producto_id, nombre_producto, cantidad, precio_unitario, subtotal)
+          VALUES ($1, $2, $3, $4, $5, $6);
+        `, [nextId, prodId, itemName, itemQty, itemPrice, itemSubtotal]);
+
+        if (prodId) {
+          await client.query(`
+            UPDATE "${schemaName}".productos 
+            SET stock = GREATEST(0, stock - $1)
+            WHERE id = $2;
+          `, [itemQty, prodId]);
+        }
+      }
+    }
+
     await client.query('COMMIT');
 
     res.status(201).json({
       success: true,
-      message: 'Venta registrada y comprobante emitido exitosamente',
+      message: 'Venta registrada, inventario actualizado y comprobante emitido exitosamente',
       invoice: insertRes.rows[0]
     });
   } catch (error) {
     await client.query('ROLLBACK');
-    console.error('Error registrando factura:', error);
+    console.error('Error registrando venta:', error);
     res.status(500).json({ error: error.message });
   } finally {
     client.release();

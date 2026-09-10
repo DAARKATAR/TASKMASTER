@@ -4,6 +4,7 @@ import pool from '../config/database.js';
 import { signJwt, authenticateJwt } from '../middleware/auth.js';
 import { authLimiter } from '../middleware/rateLimiter.js';
 import { logAudit } from '../services/auditLogger.js';
+import { getDefaultProducts } from '../config/defaultProducts.js';
 
 const router = express.Router();
 
@@ -106,9 +107,41 @@ router.post('/register-tenant', authLimiter, async (req, res) => {
         metodo_pago VARCHAR(50) DEFAULT 'Efectivo',
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
+
+      -- Detalle de líneas de producto por factura
+      CREATE TABLE IF NOT EXISTS "${schemaName}".factura_detalles (
+        id SERIAL PRIMARY KEY,
+        factura_id INT NOT NULL REFERENCES "${schemaName}".facturas(id) ON DELETE CASCADE,
+        producto_id INT,
+        nombre_producto VARCHAR(150) NOT NULL,
+        cantidad INT NOT NULL DEFAULT 1,
+        precio_unitario NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
+        subtotal NUMERIC(15, 2) NOT NULL DEFAULT 0.00
+      );
+
+      -- Catálogo e inventario real de productos
+      CREATE TABLE IF NOT EXISTS "${schemaName}".productos (
+        id SERIAL PRIMARY KEY,
+        nombre VARCHAR(150) NOT NULL,
+        precio NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
+        rubro VARCHAR(100) NOT NULL DEFAULT 'General',
+        emoji VARCHAR(20) DEFAULT '📦',
+        descripcion TEXT,
+        stock INT NOT NULL DEFAULT 100,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
     `);
 
-    // 9. Crear tabla usuarios aislada dentro del esquema del tenant
+    // 9. Poblar catálogo inicial según el rubro comercial
+    const defaultProds = getDefaultProducts(finalType);
+    for (const p of defaultProds) {
+      await client.query(`
+        INSERT INTO "${schemaName}".productos (nombre, precio, rubro, emoji, stock, descripcion)
+        VALUES ($1, $2, $3, $4, $5, $6);
+      `, [p.nombre, p.precio, p.rubro, p.emoji, p.stock, p.descripcion]);
+    }
+
+    // 10. Crear tabla usuarios aislada dentro del esquema del tenant
     await client.query(`
       CREATE TABLE IF NOT EXISTS "${schemaName}".usuarios (
         id SERIAL PRIMARY KEY,
@@ -122,7 +155,7 @@ router.post('/register-tenant', authLimiter, async (req, res) => {
       );
     `);
 
-    // 10. Insertar usuario administrador dentro del esquema del tenant
+    // 11. Insertar usuario administrador dentro del esquema del tenant
     const { rows: userRows } = await client.query(`
       INSERT INTO "${schemaName}".usuarios (email, password_hash, nombre, role)
       VALUES ($1, $2, $3, 'admin')

@@ -215,7 +215,8 @@ export default function App() {
         folio_fiscal: newInv.folio_fiscal,
         items_count: newInv.items_count,
         metodo_pago: newInv.metodo_pago,
-        emisor: currentTenant.nombre
+        emisor: currentTenant.nombre,
+        items: orderData.items || []
       };
 
       setInvoiceData(formatted);
