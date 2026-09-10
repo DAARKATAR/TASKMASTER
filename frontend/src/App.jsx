@@ -10,6 +10,7 @@ import SoapConsole from './components/SoapConsole';
 import ArchitectureView from './components/ArchitectureView';
 import ThemeCustomizerModal from './components/ThemeCustomizerModal';
 import { Cake, FileText, TrendingUp, Sparkles, ArrowLeft, Settings, Sliders } from 'lucide-react';
+import { API_BASE_URL } from './config/api';
 
 export default function App() {
   // Navegación de nivel superior: 'landing' | 'auth' | 'wizard' | 'pos'
@@ -112,7 +113,7 @@ export default function App() {
 </soapenv:Envelope>`.trim();
 
     try {
-      const res = await fetch(`/ws/${currentTenant.id}`, {
+      const res = await fetch(`${API_BASE_URL}/ws/${currentTenant.id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'text/xml; charset=utf-8',

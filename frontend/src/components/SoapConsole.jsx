@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Send, Copy, Check, ChevronDown, ChevronUp, FileCode, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { API_BASE_URL } from '../config/api';
 
 export default function SoapConsole({ 
   tenant, 
@@ -33,7 +34,7 @@ export default function SoapConsole({
 
   useEffect(() => {
     if (showWsdl && tenant) {
-      fetch(`/ws/${tenant.id}?wsdl`)
+      fetch(`${API_BASE_URL}/ws/${tenant.id}?wsdl`)
         .then(r => r.text())
         .then(t => setWsdlText(t))
         .catch(err => setWsdlText(`Error cargando WSDL: ${err.message}`));
@@ -251,7 +252,7 @@ export default function SoapConsole({
                 <span>{wsdlCopied ? '¡Copiado!' : 'Copiar WSDL'}</span>
               </button>
               <a
-                href={`/ws/${tenant?.id}?wsdl`}
+                href={`${API_BASE_URL}/ws/${tenant?.id}?wsdl`}
                 target="_blank"
                 rel="noreferrer"
                 className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-pink-600 text-white hover:bg-pink-700 shadow-sm"

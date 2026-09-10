@@ -19,8 +19,31 @@ app.use(express.text({
 }));
 app.use(express.json());
 
-// Servir archivos estáticos de la interfaz web
-app.use(express.static('public'));
+// Middleware CORS para permitir peticiones desde Cloudflare Pages, Vercel o cualquier cliente
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, SOAPAction, x-tenant-id');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
+// Endpoint raíz informativo del Backend
+app.get('/', (req, res) => {
+  res.json({
+    service: 'TaskMaster Multi-Tenant SOAP & REST API Backend',
+    status: 'online',
+    version: '1.0.0',
+    documentation: {
+      health: '/health',
+      tenants: '/api/tenants',
+      soap_endpoint: '/ws/:tenantId',
+      wsdl: '/ws/:tenantId?wsdl'
+    }
+  });
+});
 
 import { invalidateTenantCache } from './services/tenantService.js';
 

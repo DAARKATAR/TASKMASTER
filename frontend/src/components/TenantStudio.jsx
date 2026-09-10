@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Sparkles, CheckCircle, AlertCircle, Loader2, Store } from 'lucide-react';
+import { API_BASE_URL } from '../config/api';
 import PosReceiptCard from './PosReceiptCard';
 
 export default function TenantStudio({ onTenantCreated }) {
@@ -27,7 +28,7 @@ export default function TenantStudio({ onTenantCreated }) {
     setMessage(null);
 
     try {
-      const res = await fetch('/api/tenants', {
+      const res = await fetch(`${API_BASE_URL}/api/tenants`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

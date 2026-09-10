@@ -1,32 +1,17 @@
-# Multi-stage Dockerfile para TaskMaster (Backend Express + Frontend React)
-# Optimizado para Koyeb, Render o Fly.io en el tier gratuito
-
-# --- Etapa 1: Compilación del Frontend ---
-FROM node:20-alpine AS frontend-builder
-WORKDIR /app/frontend
-
-COPY frontend/package*.json ./
-RUN npm ci
-
-COPY frontend/ ./
-RUN npm run build
-
-# --- Etapa 2: Servidor Node.js de Producción ---
-FROM node:20-alpine AS runner
+# Dockerfile optimizado para Backend Puro en Render / Koyeb
+FROM node:20-alpine
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV PORT=3000
 
+# Copiar archivos de dependencias e instalar solo las de producción
 COPY package*.json ./
 RUN npm ci --only=production
 
-# Copiar código del backend
+# Copiar código del backend y scripts necesarios
 COPY src/ ./src/
 COPY scripts/ ./scripts/
-
-# Copiar bundle del frontend compilado a la carpeta public servida por Express
-COPY --from=frontend-builder /app/public ./public
 
 EXPOSE 3000
 
