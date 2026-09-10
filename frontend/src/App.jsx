@@ -377,10 +377,10 @@ export default function App() {
             🏬
           </div>
           <h3 className="text-lg font-bold font-display text-slate-900">
-            Sin Inquilinos Registrados en Neon
+            Sin Negocios Registrados
           </h3>
           <p className="text-xs text-slate-500 leading-relaxed">
-            La base de datos está limpia y lista. Registra tu primer negocio para aprovisionar su esquema PostgreSQL aislado y emitir comprobantes reales.
+            Registra tu primer negocio para comenzar a operar el punto de venta y emitir comprobantes reales.
           </p>
           <button
             onClick={() => {
@@ -397,7 +397,7 @@ export default function App() {
 
     return (
       <div className="space-y-6">
-        {/* 1. MÓDULO DE PRODUCTOS Y VENTA POS (LIMPIO, SIN SOBRECARGA) */}
+        {/* 1. MÓDULO DE PRODUCTOS Y VENTA POS */}
         {activeTab === 'pos' && (
           <PosTerminal 
             tenant={currentTenant}
@@ -407,7 +407,7 @@ export default function App() {
           />
         )}
 
-      {/* 2. MÓDULO DE HISTÓRICO DE FACTURAS (SECCIÓN DEDICADA PARA EL CLIENTE) */}
+      {/* 2. MÓDULO DE HISTÓRICO DE COMPROBANTES */}
       {activeTab === 'invoices' && (
         <LedgerTable 
           tenant={currentTenant}
@@ -427,23 +427,6 @@ export default function App() {
           loading={loadingMetrics}
           onRefresh={() => loadMetrics(currentTenant.id)}
         />
-      )}
-
-      {/* 4. MODO DESARROLLADOR / CONSOLA SOAP (OCULTA EN PRIMERA INSTANCIA) */}
-      {showDebugTools && activeTab === 'console' && (
-        <SoapConsole 
-          tenant={currentTenant}
-          onSendRequest={(xml, invNum) => executeSoapCall(invNum)}
-          lastResponse={lastResponse}
-          loading={loadingSoap}
-          latency={latency}
-          httpStatus={httpStatus}
-        />
-      )}
-
-      {/* 5. MODO DESARROLLADOR / ARQUITECTURA AISLADA (OCULTA EN PRIMERA INSTANCIA) */}
-      {showDebugTools && activeTab === 'architecture' && (
-        <ArchitectureView tenants={[currentTenant]} />
       )}
     </div>
     );
@@ -506,7 +489,7 @@ export default function App() {
             Acceso Restringido al POS
           </h3>
           <p className="text-xs text-slate-500 leading-relaxed">
-            Para operar la terminal de venta y registrar ventas debes iniciar sesión con una cuenta de negocio autenticada con JWT.
+            Para operar la terminal de venta y registrar ventas debes iniciar sesión con una cuenta de negocio autorizada.
           </p>
           <button
             onClick={() => {

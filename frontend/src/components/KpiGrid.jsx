@@ -15,7 +15,7 @@ export default function KpiGrid({ tenant, metrics, loading, onRefresh }) {
     {
       title: 'Ventas Totales Registradas',
       value: `$ ${totalVentas.toLocaleString('es-CO')} COP`,
-      change: totalComprobantes > 0 ? `${totalComprobantes} transacciones en Neon` : 'Sin ventas aún',
+      change: totalComprobantes > 0 ? `${totalComprobantes} ventas procesadas` : 'Sin ventas aún',
       icon: <DollarSign className="w-5 h-5" style={{ color: brandColor }} />,
       desc: 'Suma acumulada de comprobantes'
     },
@@ -24,7 +24,7 @@ export default function KpiGrid({ tenant, metrics, loading, onRefresh }) {
       value: `${totalComprobantes} ${totalComprobantes === 1 ? 'Comprobante' : 'Comprobantes'}`,
       change: totalComprobantes > 0 ? '100% Registradas' : 'Esperando primera orden',
       icon: <Receipt className="w-5 h-5 text-emerald-600" />,
-      desc: 'Base de datos aislada'
+      desc: 'Control de caja seguro'
     },
     {
       title: 'Ticket Promedio',
@@ -57,7 +57,7 @@ export default function KpiGrid({ tenant, metrics, loading, onRefresh }) {
             <span>Métricas Financieras y Auditoría de Ventas</span>
           </h3>
           <p className="text-xs text-slate-500 mt-1">
-            Esquema PostgreSQL: <strong className="text-slate-800 font-mono">{tenant?.schema_name || 'tenant'}</strong> · Empresa: <strong style={{ color: brandColor }}>{tenant?.nombre || 'Mi Negocio'}</strong>
+            Comercio: <strong style={{ color: brandColor }}>{tenant?.nombre || 'Mi Negocio'}</strong> · Estado: <strong className="text-emerald-700">En Línea</strong>
           </p>
         </div>
 

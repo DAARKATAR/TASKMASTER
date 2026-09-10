@@ -183,7 +183,7 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Buscar en catálogo real de Neon (ej. Café, Croissant)..."
+                placeholder="Buscar producto (ej. Café, Croissant)..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white transition-all"
@@ -233,7 +233,7 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
         {loadingProducts ? (
           <div className="py-20 text-center text-slate-400 text-xs bg-white rounded-3xl border border-slate-200 space-y-2">
             <Loader2 className="w-6 h-6 animate-spin mx-auto text-slate-700" />
-            <span>Consultando catálogo e inventario en Neon PostgreSQL...</span>
+            <span>Cargando catálogo e inventario...</span>
           </div>
         ) : filteredProducts.length === 0 ? (
           <div className="py-16 text-center text-slate-400 text-xs bg-white rounded-3xl border border-slate-200 space-y-3 p-6">
@@ -453,7 +453,7 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
                   className="mt-0.5 rounded border-amber-300 text-slate-900 focus:ring-slate-900 cursor-pointer shrink-0"
                 />
                 <span>
-                  Confirmo la emisión de este comprobante para <strong>control interno de venta</strong> en Neon PostgreSQL.
+                  Confirmo la emisión de este comprobante para <strong>control interno de venta</strong>.
                 </span>
               </label>
             </div>
@@ -471,7 +471,7 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
               {loadingSoap ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Procesando venta en Neon DB...</span>
+                  <span>Procesando venta...</span>
                 </>
               ) : (
                 <>
@@ -501,7 +501,7 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
 
       </div>
 
-      {/* MODAL: REGISTRO DE NUEVO PRODUCTO DIRECTO EN NEON DB */}
+      {/* MODAL: REGISTRO DE NUEVO PRODUCTO DIRECTO EN BD */}
       {showNewProductModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="w-full max-w-md bg-white rounded-3xl border border-slate-200 p-6 shadow-2xl space-y-4 animate-fadeIn">
@@ -512,7 +512,7 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
                 </div>
                 <div>
                   <h3 className="font-bold text-sm text-slate-900">Registrar Nuevo Producto</h3>
-                  <p className="text-[11px] text-slate-500">Se guardará en la tabla productos de Neon PostgreSQL</p>
+                  <p className="text-[11px] text-slate-500">Se agregará al catálogo de inventario de tu negocio</p>
                 </div>
               </div>
               <button

@@ -70,7 +70,7 @@ export default function LedgerTable({ tenant, invoices = [], onConsultSoap, load
             <div>
               <h3 className="font-bold text-sm text-slate-900 font-display flex items-center gap-2">
                 <FileText className="w-4 h-4" style={{ color: brandColor }} />
-                <span>Registro de Comprobantes de Venta (Neon PostgreSQL)</span>
+                <span>Registro de Comprobantes de Venta</span>
               </h3>
               <p className="text-xs text-slate-500">
                 Historial auditado de transacciones para <strong>{tenant?.nombre || 'Mi Negocio'}</strong>
@@ -89,7 +89,7 @@ export default function LedgerTable({ tenant, invoices = [], onConsultSoap, load
               </div>
               <h4 className="text-sm font-bold text-slate-800 font-display">Aún no hay comprobantes emitidos</h4>
               <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                Las ventas que registres en el <strong>Terminal POS</strong> se almacenarán en Neon DB y aparecerán aquí automáticamente en tiempo real.
+                Las ventas que registres en el <strong>Terminal POS</strong> se guardarán de forma segura y aparecerán aquí automáticamente en tiempo real.
               </p>
             </div>
           ) : filteredInvoices.length === 0 ? (
@@ -112,51 +112,46 @@ export default function LedgerTable({ tenant, invoices = [], onConsultSoap, load
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {filteredInvoices.map((inv) => {
-                    const isSelected = selectedInvoice?.id === inv.id || selectedInvoice?.numero_factura === inv.numero_factura;
-                    const dateStr = inv.created_at ? new Date(inv.created_at).toLocaleString('es-CO', {
-                      month: 'short',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    }) : 'Reciente';
-
+                    const isSelected = selectedInvoice?.numero_factura === inv.numero_factura;
                     return (
                       <tr 
                         key={inv.id || inv.numero_factura} 
-                        className="hover:bg-slate-50 transition-colors"
-                        style={isSelected ? { backgroundColor: `${brandColor}0E` } : {}}
+                        className={`hover:bg-slate-50/80 transition-colors ${isSelected ? 'bg-slate-100/70 font-semibold' : ''}`}
                       >
-                        <td className="py-3.5 font-mono font-bold" style={{ color: brandColor }}>
+                        <td className="py-3 font-mono font-bold text-slate-800">
                           {inv.numero_factura}
                         </td>
-                        <td className="py-3.5 font-medium text-slate-800">
-                          <span className="truncate max-w-[180px] block font-sans">{inv.cliente}</span>
-                          <span className="text-[10px] text-slate-400 font-mono block truncate max-w-[180px]">{inv.folio_fiscal}</span>
+                        <td className="py-3 text-slate-700">
+                          {inv.cliente}
                         </td>
-                        <td className="py-3.5 text-slate-500 whitespace-nowrap">
-                          {dateStr}
+                        <td className="py-3 text-slate-500">
+                          {new Date(inv.created_at || Date.now()).toLocaleDateString('es-CO', {
+                            day: '2-digit',
+                            month: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
                         </td>
-                        <td className="py-3.5 text-slate-600">
-                          <span className="px-2 py-0.5 rounded-md bg-slate-100 font-medium text-[11px]">
+                        <td className="py-3 text-slate-600">
+                          <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-medium text-[11px]">
                             {inv.metodo_pago || 'Efectivo'}
                           </span>
                         </td>
-                        <td className="py-3.5 text-right font-bold text-slate-900 font-mono">
+                        <td className="py-3 text-right font-mono font-bold text-slate-900">
                           ${parseFloat(inv.total || 0).toLocaleString('es-CO')}
                         </td>
-                        <td className="py-3.5 text-center">
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                            <span>{inv.estado || 'TIMBRADA'}</span>
+                        <td className="py-3 text-center">
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            {inv.estado || 'REGISTRADA'}
                           </span>
                         </td>
-                        <td className="py-3.5 text-center">
+                        <td className="py-3 text-center">
                           <button
                             onClick={() => setSelectedInvoice(inv)}
-                            className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 hover:text-white text-slate-700 transition-colors"
-                            style={isSelected ? { backgroundColor: brandColor, color: '#FFFFFF' } : {}}
+                            className="p-1 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-200 transition-colors"
+                            title="Ver Comprobante"
                           >
-                            Ver Ticket
+                            <Eye className="w-4 h-4" />
                           </button>
                         </td>
                       </tr>
@@ -167,10 +162,10 @@ export default function LedgerTable({ tenant, invoices = [], onConsultSoap, load
             </div>
           )}
 
-          <div className="p-3 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-[11px] text-amber-900 flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-amber-700 shrink-0" />
+          <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-[11px] text-slate-600 flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>
-              Comprobantes almacenados y aislados en el esquema <strong>{tenant?.schema_name || 'tenant'}</strong> de Neon PostgreSQL.
+              Comprobantes almacenados y protegidos con alta disponibilidad en tu entorno exclusivo de negocio.
             </span>
           </div>
         </div>

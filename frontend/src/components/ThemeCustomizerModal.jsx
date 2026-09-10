@@ -133,28 +133,8 @@ export default function ThemeCustomizerModal({
           </div>
         </div>
 
-        {/* 3. Opcional: Modo Diagnóstico / Herramientas SOAP */}
-        <div className="pt-2 border-t border-slate-100">
-          <label className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors">
-            <div className="flex items-center gap-2.5">
-              <Code className="w-4 h-4 text-slate-500" />
-              <div>
-                <span className="text-xs font-bold text-slate-800 block">Herramientas de Desarrollador SOAP</span>
-                <span className="text-[11px] text-slate-500 block">Consola XML cruda y arquitectura aislada</span>
-              </div>
-            </div>
-            <input 
-              type="checkbox"
-              checked={showDebugTools}
-              onChange={(e) => onToggleDebugTools && onToggleDebugTools(e.target.checked)}
-              className="w-4 h-4 rounded border-slate-300"
-              style={{ accentColor: brandColor }}
-            />
-          </label>
-        </div>
-
         {/* Botón Aplicar y Cerrar con el color de marca del usuario */}
-        <div className="pt-1">
+        <div className="pt-2">
           <button
             onClick={onClose}
             className="w-full py-2.5 rounded-xl font-bold text-xs text-white shadow-sm transition-opacity hover:opacity-90"

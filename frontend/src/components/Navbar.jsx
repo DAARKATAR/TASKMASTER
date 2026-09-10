@@ -12,20 +12,12 @@ export default function Navbar({
   onExitToLanding,
   showDebugTools = false
 }) {
-  // Pestañas esenciales para el cliente
-  const baseTabs = [
+  // Pestañas comerciales para el cliente
+  const tabs = [
     { id: 'pos', name: 'Productos & Venta POS', icon: <Cake className="w-4 h-4" /> },
     { id: 'invoices', name: 'Histórico de Comprobantes', icon: <FileText className="w-4 h-4" /> },
     { id: 'kpis', name: 'Caja & Métricas', icon: <TrendingUp className="w-4 h-4" /> },
   ];
-
-  // Pestañas técnicas de depuración (ocultas por defecto)
-  const debugTabs = showDebugTools ? [
-    { id: 'console', name: 'Consola SOAP XML', icon: <Terminal className="w-4 h-4 text-cyan-600" /> },
-    { id: 'architecture', name: 'Aislamiento de Datos', icon: <Shield className="w-4 h-4 text-emerald-600" /> },
-  ] : [];
-
-  const tabs = [...baseTabs, ...debugTabs];
 
   const brandColor = tenant?.brand_color || '#0F172A';
   const businessName = tenant?.nombre || 'Mi Negocio POS';

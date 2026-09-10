@@ -64,45 +64,51 @@ export default function OnboardingCarousel({ onComplete }) {
     },
     {
       id: 3,
-      badge: 'PASO 3 DE 4 · MOTOR SOAP & REGISTRO DE VENTA',
-      title: 'Contrato WSDL 1.1 & Emisión de Comprobante',
-      subtitle: 'Comprobantes de control interno con folio POS y código QR',
-      description: 'Cada inquilino dispone de su propio endpoint SOAP con contrato WSDL personalizado. Cada ticket genera una transacción XML para control interno de caja.',
+      badge: 'PASO 3 DE 4 · EMISIÓN RÁPIDA DE COMPROBANTES',
+      title: 'Comprobantes de Venta y Control de Caja',
+      subtitle: 'Recibos térmicos claros con folio único y código QR de validación',
+      description: 'Cada transacción genera un comprobante estructurado para control interno, con numeración consecutiva automática, desglose de impuestos y formato optimizado para impresión térmica o descarga.',
       icon: <Receipt className="w-8 h-8 text-pink-600" />,
-      tag: 'SOAP 1.1 & Registro Interno',
+      tag: 'Control Interno & Caja',
       previewContent: (
-        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-[11px] font-mono text-slate-700 space-y-1.5 shadow-flat">
-          <div className="text-pink-600 font-bold">&lt;soap:Envelope xmlns:tns=".../wsdl"&gt;</div>
-          <div className="pl-3 text-slate-500">&lt;tns:BrandContext&gt;</div>
-          <div className="pl-6 text-pink-700 font-semibold">&lt;emisor&gt;Tortas y Snacks&lt;/emisor&gt;</div>
-          <div className="pl-6 text-emerald-600">&lt;status&gt;REGISTRADO_POS_INTERNO&lt;/status&gt;</div>
-          <div className="pl-3 text-slate-500">&lt;/tns:BrandContext&gt;</div>
-          <div className="pl-3 text-pink-600">&lt;tns:ConsultarFacturaResponse&gt;</div>
-          <div className="pl-6 text-slate-900">&lt;numero&gt;TYS-1001&lt;/numero&gt;</div>
-          <div className="pl-6 text-pink-700 font-bold">&lt;total&gt;60000.00&lt;/total&gt;</div>
-          <div className="pl-3 text-pink-600">&lt;/tns:ConsultarFacturaResponse&gt;</div>
+        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-sans text-slate-700 space-y-2 shadow-flat">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+            <span className="font-bold text-slate-900 font-display">Tortas y Snacks</span>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">EMITIDO</span>
+          </div>
+          <div className="space-y-1 text-[11px] font-mono">
+            <div className="flex justify-between">
+              <span className="text-slate-500">Comprobante:</span>
+              <span className="font-bold text-slate-900">TYS-1001</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-500">Folio Interno:</span>
+              <span className="text-slate-700">POS-ROSE-2026</span>
+            </div>
+            <div className="flex justify-between pt-1 border-t border-slate-200 font-sans text-xs font-bold text-slate-900">
+              <span>Total Venta:</span>
+              <span className="text-pink-600">$60.000 COP</span>
+            </div>
+          </div>
         </div>
       )
     },
     {
       id: 4,
-      badge: 'PASO 4 DE 4 · ARQUITECTURA AISLADA DE DATOS',
-      title: 'Entorno Exclusivo por Inquilino',
-      subtitle: 'Seguridad estricta y cero riesgo de mezcla de información',
-      description: 'El sistema aísla los comprobantes y el inventario en un entorno de almacenamiento exclusivo por comercio, garantizando confidencialidad total.',
+      badge: 'PASO 4 DE 4 · PRIVACIDAD Y SEGURIDAD EMPRESARIAL',
+      title: 'Espacio Exclusivo y Privado por Negocio',
+      subtitle: 'Confidencialidad absoluta y resguardo continuo de tu información',
+      description: 'Tus productos, inventarios y ventas se resguardan en un espacio privado e independiente para tu empresa, garantizando máxima protección y disponibilidad continua.',
       icon: <Database className="w-8 h-8 text-emerald-600" />,
-      tag: 'Almacenamiento Aislado',
+      tag: 'Seguridad y Privacidad',
       previewContent: (
-        <div className="p-5 rounded-2xl bg-emerald-50/70 border border-emerald-200 text-xs font-mono space-y-2.5 shadow-flat">
+        <div className="p-5 rounded-2xl bg-emerald-50/70 border border-emerald-200 text-xs font-sans space-y-2.5 shadow-flat">
           <div className="flex items-center gap-2 text-emerald-800 font-bold">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>ENTORNO SEGURO ACTIVO</span>
+            <span>ESPACIO SEGURO Y PROTEGIDO</span>
           </div>
-          <div className="p-2 bg-white rounded-lg border border-emerald-200 text-emerald-800 text-[11px]">
-            SET LOCAL search_path TO "tenant_tortasysnacks", public;
-          </div>
-          <p className="text-[11px] text-slate-600 font-sans leading-relaxed">
-            Los comprobantes pertenecen exclusivamente al entorno aislado de la tienda.
+          <p className="text-[11px] text-slate-600 leading-relaxed">
+            Tu información comercial pertenece exclusivamente a tu empresa con respaldo constante y acceso restringido.
           </p>
         </div>
       )

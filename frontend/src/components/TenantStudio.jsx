@@ -80,11 +80,11 @@ export default function TenantStudio({ onTenantCreated }) {
         <div className="flex items-center gap-2 mb-2">
           <Store className="w-5 h-5 text-amber-400" />
           <h3 className="text-lg font-bold font-display text-white">
-            Studio Marca Blanca POS & Aprovisionador de Esquemas
+            Studio Marca Blanca POS & Personalizador de Negocio
           </h3>
         </div>
         <p className="text-xs text-slate-400 mb-6">
-          Aprovisiona una nueva marca/franquicia de software POS. Se creará automáticamente un entorno aislado con su tabla de facturas, contrato WSDL 1.1 y endpoint SOAP listos para emitir comprobantes internos.
+          Registra una nueva marca o sucursal de software POS. Se configurará automáticamente un entorno privado y listo para emitir comprobantes internos.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -107,11 +107,11 @@ export default function TenantStudio({ onTenantCreated }) {
 
           <div>
             <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-              Slug URL / Tenant ID:
+              Identificador Único del Negocio:
             </label>
             <div className="flex items-center">
               <span className="px-3 py-2.5 bg-white/5 border border-r-0 border-white/10 rounded-l-xl text-xs font-mono text-slate-400">
-                /ws/
+                id:
               </span>
               <input
                 type="text"
@@ -123,9 +123,6 @@ export default function TenantStudio({ onTenantCreated }) {
                 pattern="[a-z0-9_]{2,30}"
               />
             </div>
-            <span className="text-[11px] text-slate-500 font-mono mt-1 block">
-              Esquema DDL generado: tenant_{slug || 'slug'}
-            </span>
           </div>
 
           {/* Color Picker & Presets */}
@@ -203,12 +200,12 @@ export default function TenantStudio({ onTenantCreated }) {
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Aprovisionando Esquema Seguro...</span>
+                  <span>Configurando Entorno...</span>
                 </>
               ) : (
                 <>
                   <Sparkles className="w-4 h-4" />
-                  <span>🚀 Aprovisionar Marca POS</span>
+                  <span>🚀 Registrar Marca POS</span>
                 </>
               )}
             </button>
@@ -230,13 +227,13 @@ export default function TenantStudio({ onTenantCreated }) {
       {/* Previsualización en Tiempo Real del Ticket */}
       <div className="p-6 rounded-2xl bg-dark-900/40 border border-white/10 backdrop-blur-xl flex flex-col items-center justify-center text-center">
         <span className="text-xs font-bold font-mono text-slate-400 uppercase tracking-widest mb-4">
-          Previsualización del Comprobante Fiscal POS
+          Previsualización del Comprobante Interno POS
         </span>
 
         <PosReceiptCard tenant={previewTenant} invoiceData={previewInvoice} />
 
         <p className="text-xs text-slate-500 mt-4 max-w-sm">
-          Al presionar "Aprovisionar Marca POS", el backend creará el esquema de datos aislado y activará de inmediato el registro para este inquilino.
+          Al presionar "Registrar Marca POS", el sistema preparará tu entorno seguro y activará de inmediato el punto de venta.
         </p>
       </div>
 

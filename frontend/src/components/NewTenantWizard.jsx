@@ -747,9 +747,9 @@ export default function NewTenantWizard({ initialData, onComplete, onCancel }) {
                 <strong className="text-slate-800 capitalize">{navbarPosition}</strong>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Esquema Aislado de Tienda:</span>
+                <span className="text-slate-500">Identificador del Comercio:</span>
                 <code className="text-slate-800 font-mono text-[11px] font-bold bg-white px-2 py-0.5 rounded border border-slate-200">
-                  tenant_{businessName.toLowerCase().replace(/[^a-z0-9]/g, '')}
+                  {businessName.toLowerCase().replace(/[^a-z0-9]/g, '') || 'tienda'}
                 </code>
               </div>
             </div>
@@ -788,7 +788,7 @@ export default function NewTenantWizard({ initialData, onComplete, onCancel }) {
               {loadingProvision ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Aprovisionando esquema PostgreSQL y emitiendo JWT...</span>
+                  <span>Configurando tu punto de venta e iniciando sesión...</span>
                 </>
               ) : (
                 <>

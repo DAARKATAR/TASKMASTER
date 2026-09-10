@@ -298,7 +298,7 @@ export default function AuthView({ initialIsRegister = false, onLoginSuccess, on
       <div className="mt-5 pt-3.5 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-mono">
         <span className="flex items-center gap-1 text-slate-700 font-semibold">
           <ShieldCheck className="w-3.5 h-3.5 text-slate-600" />
-          <span>Protegido con JWT & Rate Limiting</span>
+          <span>Acceso Protegido y Seguro</span>
         </span>
         <span translate="no" className="notranslate text-slate-400">Task Master POS</span>
       </div>
