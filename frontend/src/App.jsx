@@ -22,16 +22,10 @@ export default function App() {
   // Módulos internos del POS: 'pos' | 'invoices' | 'kpis' | 'console' | 'architecture'
   const [activeTab, setActiveTab] = useState('pos');
   
-  // Inquilino / Negocio Activo
-  const [currentTenant, setCurrentTenant] = useState({
-    id: 'tortasysnacks',
-    nombre: 'Tortas y Snacks Artesanales',
-    brand_color: '#DB2777',
-    schema_name: 'tenant_tortasysnacks',
-    logo: '🍰',
-    logoType: 'emoji',
-    businessType: 'Repostería & Café'
-  });
+  // Inquilino / Negocio Activo (Inicia nulo hasta cargar de Neon DB)
+  const [currentTenant, setCurrentTenant] = useState(null);
+  const [availableTenants, setAvailableTenants] = useState([]);
+  const [loadingTenants, setLoadingTenants] = useState(true);
 
   // Datos para el wizard de registro
   const [wizardInitData, setWizardInitData] = useState(null);
@@ -114,6 +108,31 @@ export default function App() {
     }
   };
 
+  // Cargar lista de tenants registrados en Neon DB
+  const loadTenants = async () => {
+    setLoadingTenants(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/tenants`);
+      if (res.ok) {
+        const list = await res.json();
+        setAvailableTenants(list);
+        if (list.length > 0) {
+          setCurrentTenant(list[0]);
+        } else {
+          setCurrentTenant(null);
+        }
+      }
+    } catch (err) {
+      console.error('Error cargando lista de tenants:', err);
+    } finally {
+      setLoadingTenants(false);
+    }
+  };
+
+  useEffect(() => {
+    loadTenants();
+  }, []);
+
   // Escuchar cambio de tenant para recargar datos en vivo
   useEffect(() => {
     if (currentTenant?.id) {
@@ -137,7 +156,7 @@ export default function App() {
 
   useEffect(() => {
     if (currentView === 'pos') {
-      document.documentElement.style.setProperty('--brand-primary', currentTenant.brand_color || '#DB2777');
+      document.documentElement.style.setProperty('--brand-primary', currentTenant?.brand_color || '#4F46E5');
       document.body.style.backgroundColor = themeColors[bgTheme] || '#FFFFFF';
     } else {
       document.documentElement.style.setProperty('--brand-primary', '#0F172A');
@@ -289,6 +308,7 @@ export default function App() {
   // Finalización del Wizard de Onboarding
   const handleTenantCreated = (newTenantConfig) => {
     setCurrentTenant(newTenantConfig);
+    loadTenants();
     setBgTheme(newTenantConfig.bgTheme || 'white');
     setNavbarPosition(newTenantConfig.navbarPosition || 'top');
     setCurrentUser({
@@ -300,40 +320,65 @@ export default function App() {
     setCurrentView('pos');
   };
 
-  // Lanzar el demo de Tortas y Snacks
+  // Lanzar el demo o abrir Wizard si no hay tenants
   const handleLaunchDemo = () => {
-    setCurrentTenant({
-      id: 'tortasysnacks',
-      nombre: 'Tortas y Snacks Artesanales',
-      brand_color: '#DB2777',
-      schema_name: 'tenant_tortasysnacks',
-      logo: '🍰',
-      logoType: 'emoji',
-      businessType: 'Repostería & Café'
-    });
-    setBgTheme('white');
-    setNavbarPosition('top');
-    setCurrentUser({
-      name: 'Mariana López',
-      role: 'Administradora de Tienda POS',
-      email: 'mariana@tortasysnacks.com',
-      sucursal: 'Salón Rosa Principal'
-    });
-    setCurrentView('pos');
+    if (availableTenants.length > 0) {
+      setCurrentTenant(availableTenants[0]);
+      setCurrentUser({
+        name: 'Administrador',
+        role: 'Administrador de Tienda POS',
+        email: 'admin@negocio.com',
+        sucursal: 'Sucursal Principal #01'
+      });
+      setCurrentView('pos');
+    } else {
+      setWizardInitData({
+        businessName: 'Mi Tienda POS',
+        ownerName: 'Administrador',
+        email: 'admin@negocio.com'
+      });
+      setCurrentView('wizard');
+    }
   };
 
   // Contenido principal de las pestañas en la vista POS
-  const renderMainContent = () => (
-    <div className="space-y-6">
-      {/* 1. MÓDULO DE PRODUCTOS Y VENTA POS (LIMPIO, SIN SOBRECARGA) */}
-      {activeTab === 'pos' && (
-        <PosTerminal 
-          tenant={currentTenant}
-          onEmitInvoice={handleEmitInvoice}
-          loadingSoap={loadingSoap}
-          lastResponse={invoiceData}
-        />
-      )}
+  const renderMainContent = () => {
+    if (!currentTenant) {
+      return (
+        <div className="py-20 px-6 text-center space-y-4 max-w-md mx-auto bg-white rounded-3xl border border-slate-200 shadow-flat-sm my-10">
+          <div className="w-16 h-16 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center mx-auto text-indigo-600 text-3xl">
+            🏬
+          </div>
+          <h3 className="text-lg font-bold font-display text-slate-900">
+            Sin Inquilinos Registrados en Neon
+          </h3>
+          <p className="text-xs text-slate-500 leading-relaxed">
+            La base de datos está limpia y lista. Registra tu primer negocio para aprovisionar su esquema PostgreSQL aislado y emitir comprobantes reales.
+          </p>
+          <button
+            onClick={() => {
+              setWizardInitData(null);
+              setCurrentView('wizard');
+            }}
+            className="w-full py-3 rounded-2xl font-bold text-xs text-white bg-slate-900 hover:bg-slate-800 shadow-sm transition-all"
+          >
+            + Registrar Mi Primer Negocio
+          </button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-6">
+        {/* 1. MÓDULO DE PRODUCTOS Y VENTA POS (LIMPIO, SIN SOBRECARGA) */}
+        {activeTab === 'pos' && (
+          <PosTerminal 
+            tenant={currentTenant}
+            onEmitInvoice={handleEmitInvoice}
+            loadingSoap={loadingSoap}
+            lastResponse={invoiceData}
+          />
+        )}
 
       {/* 2. MÓDULO DE HISTÓRICO DE FACTURAS (SECCIÓN DEDICADA PARA EL CLIENTE) */}
       {activeTab === 'invoices' && (
@@ -374,7 +419,8 @@ export default function App() {
         <ArchitectureView tenants={[currentTenant]} />
       )}
     </div>
-  );
+    );
+  };
 
   return (
     <div 

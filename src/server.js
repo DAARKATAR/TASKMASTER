@@ -3,14 +3,31 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 import pool from './config/database.js';
 import soapRoutes from './routes/soapRoutes.js';
+import { logAccess, logError, getLogsSummary } from './services/auditLogger.js';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Logging HTTP
+// Logging HTTP en consola
 app.use(morgan('dev'));
+
+// Middleware de registro persistente clasificado en logs/access/
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    logAccess({
+      method: req.method,
+      url: req.originalUrl || req.url,
+      statusCode: res.statusCode,
+      durationMs: Date.now() - start,
+      clientIp: req.headers['cf-connecting-ip'] || req.ip,
+      userAgent: req.get('user-agent')
+    });
+  });
+  next();
+});
 
 // Middleware para procesar texto plano XML requerido para peticiones SOAP
 app.use(express.text({
@@ -271,6 +288,15 @@ app.get('/api/tenants/:tenantId/metrics', async (req, res) => {
 // Montar endpoints del servicio SOAP Multi-Tenant
 app.use('/ws', soapRoutes);
 
+// Endpoint para monitoreo y resumen de logs clasificados
+app.get('/api/logs/summary', (req, res) => {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    logs: getLogsSummary()
+  });
+});
+
 // Health check para orquestadores o contenedores
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'healthy', timestamp: new Date().toISOString() });
@@ -281,9 +307,14 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Endpoint not found' });
 });
 
-// Manejador global de errores
+// Manejador global de errores con registro clasificado en logs/errors/
 app.use((err, req, res, next) => {
-  console.error('Unhandled Server Error:', err);
+  logError(err, {
+    url: req.originalUrl || req.url,
+    method: req.method,
+    clientIp: req.headers['cf-connecting-ip'] || req.ip
+  });
+
   res.status(500).type('text/xml; charset=utf-8').send(`<?xml version="1.0" encoding="UTF-8"?>
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
   <soap:Body>
