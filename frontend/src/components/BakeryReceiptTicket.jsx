@@ -8,17 +8,16 @@ export default function BakeryReceiptTicket({ tenant, invoiceData, cartItems }) 
   
   const numeroFactura = invoiceData?.numero_factura || 'REC-1001';
   const cliente = invoiceData?.cliente || 'Cliente de Mostrador';
-  const subtotal = invoiceData?.subtotal ? Number(invoiceData.subtotal).toLocaleString('es-CO', { minimumFractionDigits: 2 }) : '50,420.17';
-  const impuestos = invoiceData?.impuestos ? Number(invoiceData.impuestos).toLocaleString('es-CO', { minimumFractionDigits: 2 }) : '9,579.83';
-  const total = invoiceData?.total ? Number(invoiceData.total).toLocaleString('es-CO', { minimumFractionDigits: 2 }) : '60,000.00';
-  const folioInterno = invoiceData?.folio_fiscal ? invoiceData.folio_fiscal.replace('CUFE-', 'INT-') : 'INT-TYS-9921-ROSE-2026';
+  const subtotal = invoiceData?.subtotal ? Number(invoiceData.subtotal).toLocaleString('es-CO', { minimumFractionDigits: 2 }) : '0.00';
+  const impuestos = invoiceData?.impuestos ? Number(invoiceData.impuestos).toLocaleString('es-CO', { minimumFractionDigits: 2 }) : '0.00';
+  const total = invoiceData?.total ? Number(invoiceData.total).toLocaleString('es-CO', { minimumFractionDigits: 2 }) : '0.00';
+  const folioInterno = invoiceData?.folio_fiscal ? invoiceData.folio_fiscal.replace('CUFE-', 'INT-') : 'INT-POS-2026';
 
-  const defaultItems = [
-    { name: 'Capuchino de Especialidad Doble', qty: 2, price: 9500 },
-    { name: 'Hamburguesa Angus Doble Queso', qty: 1, price: 32000 },
-  ];
-
-  const itemsToDisplay = cartItems && cartItems.length > 0 ? cartItems : defaultItems;
+  const itemsToDisplay = cartItems && cartItems.length > 0 
+    ? cartItems 
+    : [
+        { name: 'Consumo / Venta Registrada en Caja', qty: invoiceData?.items_count || 1, price: invoiceData?.subtotal ? Number(invoiceData.subtotal) : 0 }
+      ];
 
   return (
     <div className="w-full flex justify-center py-2">

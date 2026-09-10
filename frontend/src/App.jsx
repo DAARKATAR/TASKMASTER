@@ -54,29 +54,78 @@ export default function App() {
     slate: '#F8FAFC'
   };
 
-  // Datos de comprobante de venta interno y respuesta SOAP
-  const [invoiceData, setInvoiceData] = useState({
-    numero_factura: 'TYS-1001',
-    cliente: 'Cliente Frecuente - Salón Rosa',
-    subtotal: '50420.17',
-    impuestos: '9579.83',
-    total: '60000.00',
-    estado: 'REGISTRADO / CONTROL INTERNO',
-    folio_fiscal: 'REG-TYS-9921-ROSE-2026',
-    items_count: 3,
-    emisor: 'Tortas y Snacks Artesanales'
-  });
+  // Datos de comprobante y estado de ventas reales desde Neon DB
+  const [invoiceData, setInvoiceData] = useState(null);
+  const [invoices, setInvoices] = useState([]);
+  const [metrics, setMetrics] = useState(null);
+  const [loadingMetrics, setLoadingMetrics] = useState(false);
+  const [loadingInvoices, setLoadingInvoices] = useState(false);
   
   const [lastResponse, setLastResponse] = useState(null);
   const [loadingSoap, setLoadingSoap] = useState(false);
   const [latency, setLatency] = useState(12);
   const [httpStatus, setHttpStatus] = useState(200);
 
+  // Cargar facturas reales desde Neon DB
+  const loadInvoices = async (tenantId = currentTenant?.id) => {
+    if (!tenantId) return;
+    setLoadingInvoices(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/tenants/${tenantId}/invoices`);
+      if (res.ok) {
+        const data = await res.json();
+        setInvoices(data);
+        if (data.length > 0 && !invoiceData) {
+          setInvoiceData({
+            numero_factura: data[0].numero_factura,
+            cliente: data[0].cliente,
+            subtotal: parseFloat(data[0].subtotal || 0).toFixed(2),
+            impuestos: parseFloat(data[0].impuestos || 0).toFixed(2),
+            total: parseFloat(data[0].total || 0).toFixed(2),
+            estado: data[0].estado,
+            folio_fiscal: data[0].folio_fiscal,
+            items_count: data[0].items_count || 1,
+            metodo_pago: data[0].metodo_pago,
+            emisor: currentTenant?.nombre || 'Mi Negocio'
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Error cargando facturas:', err);
+    } finally {
+      setLoadingInvoices(false);
+    }
+  };
+
+  // Cargar métricas reales calculadas desde Neon DB
+  const loadMetrics = async (tenantId = currentTenant?.id) => {
+    if (!tenantId) return;
+    setLoadingMetrics(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/tenants/${tenantId}/metrics`);
+      if (res.ok) {
+        const data = await res.json();
+        setMetrics(data);
+      }
+    } catch (err) {
+      console.error('Error cargando métricas:', err);
+    } finally {
+      setLoadingMetrics(false);
+    }
+  };
+
+  // Escuchar cambio de tenant para recargar datos en vivo
+  useEffect(() => {
+    if (currentTenant?.id) {
+      loadInvoices(currentTenant.id);
+      loadMetrics(currentTenant.id);
+    }
+  }, [currentTenant?.id]);
+
   // Detección de ancho de pantalla para la regla de barra inferior
   useEffect(() => {
     const handleResize = () => {
       const isDesktop = window.innerWidth >= 1024;
-      // Regla: En PC la barra inferior está inhabilitada y regresa a 'top'
       if (isDesktop && navbarPosition === 'bottom') {
         setNavbarPosition('top');
       }
@@ -96,8 +145,48 @@ export default function App() {
     }
   }, [bgTheme, currentTenant, currentView]);
 
+  // Emisión real de comprobante y persistencia en Neon DB
+  const handleEmitInvoice = async (orderData) => {
+    setLoadingSoap(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/tenants/${currentTenant.id}/invoices`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error emitiendo comprobante');
+
+      const newInv = data.invoice;
+      const formatted = {
+        numero_factura: newInv.numero_factura,
+        cliente: newInv.cliente,
+        subtotal: parseFloat(newInv.subtotal).toFixed(2),
+        impuestos: parseFloat(newInv.impuestos).toFixed(2),
+        total: parseFloat(newInv.total).toFixed(2),
+        estado: newInv.estado,
+        folio_fiscal: newInv.folio_fiscal,
+        items_count: newInv.items_count,
+        metodo_pago: newInv.metodo_pago,
+        emisor: currentTenant.nombre
+      };
+
+      setInvoiceData(formatted);
+      setLastResponse({ raw: JSON.stringify(formatted, null, 2), isFault: false, ...formatted });
+
+      // Recargar datos en vivo inmediatamente
+      await Promise.all([loadInvoices(currentTenant.id), loadMetrics(currentTenant.id)]);
+    } catch (err) {
+      console.error('Error emitiendo venta:', err);
+      alert(`Error al registrar venta: ${err.message}`);
+    } finally {
+      setLoadingSoap(false);
+    }
+  };
+
   // Invocación SOAP POST real contra el backend Express
-  const executeSoapCall = async (invoiceNumber = 'TYS-1001') => {
+  const executeSoapCall = async (invoiceNumber = '') => {
+    if (!invoiceNumber) return;
     setLoadingSoap(true);
     const startTime = performance.now();
 
@@ -145,13 +234,13 @@ export default function App() {
         });
       } else {
         const numero_factura = xmlDoc.getElementsByTagNameNS('*', 'numero_factura')[0]?.textContent || invoiceNumber;
-        const cliente = xmlDoc.getElementsByTagNameNS('*', 'cliente')[0]?.textContent || 'Cliente Frecuente';
-        const subtotal = xmlDoc.getElementsByTagNameNS('*', 'subtotal')[0]?.textContent || '50420.17';
-        const impuestos = xmlDoc.getElementsByTagNameNS('*', 'impuestos')[0]?.textContent || '9579.83';
-        const total = xmlDoc.getElementsByTagNameNS('*', 'total')[0]?.textContent || '60000.00';
+        const cliente = xmlDoc.getElementsByTagNameNS('*', 'cliente')[0]?.textContent || 'Cliente';
+        const subtotal = xmlDoc.getElementsByTagNameNS('*', 'subtotal')[0]?.textContent || '0.00';
+        const impuestos = xmlDoc.getElementsByTagNameNS('*', 'impuestos')[0]?.textContent || '0.00';
+        const total = xmlDoc.getElementsByTagNameNS('*', 'total')[0]?.textContent || '0.00';
         const estado = xmlDoc.getElementsByTagNameNS('*', 'estado')[0]?.textContent || 'TIMBRADA / APROBADA';
-        const folio_fiscal = xmlDoc.getElementsByTagNameNS('*', 'folio_fiscal')[0]?.textContent || 'CUFE-TYS-9921-ROSE-2026';
-        const items_count = xmlDoc.getElementsByTagNameNS('*', 'items_count')[0]?.textContent || '3';
+        const folio_fiscal = xmlDoc.getElementsByTagNameNS('*', 'folio_fiscal')[0]?.textContent || '';
+        const items_count = xmlDoc.getElementsByTagNameNS('*', 'items_count')[0]?.textContent || '1';
 
         const updated = {
           numero_factura,
@@ -189,7 +278,6 @@ export default function App() {
   const handleLoginSuccess = (user) => {
     setCurrentUser(user);
     setCurrentView('pos');
-    executeSoapCall('TYS-1001');
   };
 
   // Inicio de registro de nuevo negocio -> pasa al Wizard
@@ -232,7 +320,6 @@ export default function App() {
       sucursal: 'Salón Rosa Principal'
     });
     setCurrentView('pos');
-    executeSoapCall('TYS-1001');
   };
 
   // Contenido principal de las pestañas en la vista POS
@@ -242,7 +329,7 @@ export default function App() {
       {activeTab === 'pos' && (
         <PosTerminal 
           tenant={currentTenant}
-          onEmitInvoice={() => executeSoapCall('TYS-1001')}
+          onEmitInvoice={handleEmitInvoice}
           loadingSoap={loadingSoap}
           lastResponse={invoiceData}
         />
@@ -252,15 +339,22 @@ export default function App() {
       {activeTab === 'invoices' && (
         <LedgerTable 
           tenant={currentTenant}
+          invoices={invoices}
           onConsultSoap={(inv) => executeSoapCall(inv)}
-          loading={loadingSoap}
+          loading={loadingInvoices || loadingSoap}
           lastResponse={invoiceData}
+          onRefresh={() => loadInvoices(currentTenant.id)}
         />
       )}
 
       {/* 3. MÓDULO DE CAJA Y MÉTRICAS FINANCIERAS */}
       {activeTab === 'kpis' && (
-        <KpiGrid tenant={currentTenant} />
+        <KpiGrid 
+          tenant={currentTenant} 
+          metrics={metrics}
+          loading={loadingMetrics}
+          onRefresh={() => loadMetrics(currentTenant.id)}
+        />
       )}
 
       {/* 4. MODO DESARROLLADOR / CONSOLA SOAP (OCULTA EN PRIMERA INSTANCIA) */}

@@ -73,34 +73,24 @@ export default function SoapConsole({
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs font-semibold text-slate-500">Comprobantes:</span>
           <button
-            onClick={() => setInvoiceNumber('TYS-1001')}
+            onClick={() => setInvoiceNumber(tenant?.id === 'tortasysnacks' ? 'REC-1001' : 'FAC-1001')}
             className={`px-3 py-1 rounded-xl text-xs font-mono font-semibold transition-all ${
-              invoiceNumber === 'TYS-1001' 
-                ? 'bg-pink-600 text-white shadow-sm' 
+              invoiceNumber === (tenant?.id === 'tortasysnacks' ? 'REC-1001' : 'FAC-1001')
+                ? 'bg-slate-900 text-white shadow-sm' 
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             }`}
           >
-            TYS-1001 (Activa)
+            {tenant?.id === 'tortasysnacks' ? 'REC-1001' : 'FAC-1001'} (Consecutivo 1)
           </button>
           <button
-            onClick={() => setInvoiceNumber('FAC-1001')}
+            onClick={() => setInvoiceNumber('INEXISTENTE-9999')}
             className={`px-3 py-1 rounded-xl text-xs font-mono font-semibold transition-all ${
-              invoiceNumber === 'FAC-1001' 
-                ? 'bg-pink-600 text-white shadow-sm' 
-                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-            }`}
-          >
-            FAC-1001 (Legacy)
-          </button>
-          <button
-            onClick={() => setInvoiceNumber('TYS-9999')}
-            className={`px-3 py-1 rounded-xl text-xs font-mono font-semibold transition-all ${
-              invoiceNumber === 'TYS-9999' 
+              invoiceNumber === 'INEXISTENTE-9999' 
                 ? 'bg-red-600 text-white shadow-sm' 
                 : 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200'
             }`}
           >
-            TYS-9999 (Fault 404)
+            Test Fault 404
           </button>
         </div>
       </div>

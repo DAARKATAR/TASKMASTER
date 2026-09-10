@@ -6,10 +6,9 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
   const [selectedRubro, setSelectedRubro] = useState('Todos');
   const [searchQuery, setSearchQuery] = useState('');
   
-  const [cart, setCart] = useState([
-    { id: 1, name: 'Capuchino de Especialidad Doble', price: 9500, qty: 2, emoji: '☕', rubro: 'Cafetería & Panadería' },
-    { id: 6, name: 'Hamburguesa Angus Doble Queso', price: 32000, qty: 1, emoji: '🍔', rubro: 'Restaurante & Fast Food' },
-  ]);
+  const [cart, setCart] = useState([]);
+  const [customerName, setCustomerName] = useState('Cliente Mostrador');
+  const [paymentMethod, setPaymentMethod] = useState('Efectivo');
   const [activeTab, setActiveTab] = useState('cart'); // 'cart' | 'ticket'
   const [acceptedNoFiscalTerms, setAcceptedNoFiscalTerms] = useState(false);
 
@@ -99,8 +98,19 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
   const total = subtotal + iva;
 
   const handleEmit = () => {
-    onEmitInvoice(cart, total);
+    if (cart.length === 0) return;
+    const itemsCount = cart.reduce((acc, i) => acc + i.qty, 0);
+    onEmitInvoice({
+      cliente: (customerName || 'Cliente Mostrador').trim(),
+      subtotal,
+      impuestos: iva,
+      total,
+      items_count: itemsCount,
+      metodo_pago: paymentMethod,
+      items: cart
+    });
     setActiveTab('ticket');
+    clearCart();
   };
 
   return (
@@ -267,6 +277,40 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
                   </div>
                 ))
               )}
+            </div>
+
+            {/* Datos de la Venta (Cliente y Medio de Pago) */}
+            <div className="pt-2.5 border-t border-slate-100 space-y-2 text-xs">
+              <div>
+                <label className="text-[11px] font-semibold text-slate-500 block mb-1">Nombre del Cliente / Receptor:</label>
+                <input
+                  type="text"
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  placeholder="Ej. Cliente Mostrador, Carlos Gómez..."
+                  className="w-full px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 focus:outline-none focus:bg-white transition-all"
+                />
+              </div>
+              <div>
+                <label className="text-[11px] font-semibold text-slate-500 block mb-1">Medio de Pago:</label>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {['Efectivo', 'Tarjeta Débito', 'Tarjeta Crédito', 'Transferencia'].map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => setPaymentMethod(m)}
+                      className={`px-2 py-1.5 rounded-xl text-[11px] font-semibold border transition-all ${
+                        paymentMethod === m 
+                          ? 'text-white shadow-xs' 
+                          : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                      }`}
+                      style={paymentMethod === m ? { backgroundColor: brandColor, borderColor: brandColor } : {}}
+                    >
+                      {m}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
 
             {/* Totales y Botón de Cobro con el color del usuario */}

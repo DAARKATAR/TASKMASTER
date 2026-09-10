@@ -106,22 +106,10 @@ app.post('/api/tenants', async (req, res) => {
         estado VARCHAR(50) NOT NULL DEFAULT 'TIMBRADA / APROBADA',
         folio_fiscal VARCHAR(100) NOT NULL,
         items_count INT DEFAULT 1,
+        metodo_pago VARCHAR(50) DEFAULT 'Efectivo',
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `);
-
-    // 4. Sembrar factura inicial para pruebas inmediatas
-    const subtotalCalc = (saldo * 0.84).toFixed(2);
-    const impuestosCalc = (saldo * 0.16).toFixed(2);
-    const cufe = `CUFE-${cleanId.toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}-2026`;
-
-    await client.query(`
-      INSERT INTO "${schemaName}".facturas (id, numero_factura, cliente, subtotal, impuestos, total, estado, folio_fiscal, items_count)
-      OVERRIDING SYSTEM VALUE
-      VALUES (1001, 'FAC-1001', $1, $2, $3, $4, 'TIMBRADA / APROBADA', $5, 5)
-      ON CONFLICT (numero_factura) DO UPDATE
-      SET cliente = EXCLUDED.cliente, total = EXCLUDED.total;
-    `, [titular, subtotalCalc, impuestosCalc, saldo, cufe]);
 
     await client.query('COMMIT');
 
@@ -147,6 +135,136 @@ app.post('/api/tenants', async (req, res) => {
     res.status(500).json({ error: `Error creando tenant: ${err.message}` });
   } finally {
     client.release();
+  }
+});
+
+// Endpoint para obtener las facturas reales del tenant desde Neon DB
+app.get('/api/tenants/:tenantId/invoices', async (req, res) => {
+  const { tenantId } = req.params;
+  const cleanId = tenantId.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+  const schemaName = `tenant_${cleanId}`;
+
+  try {
+    const { rows } = await pool.query(`
+      SELECT id, numero_factura, cliente, subtotal, impuestos, total, estado, folio_fiscal, items_count, metodo_pago, created_at
+      FROM "${schemaName}".facturas
+      ORDER BY id DESC
+    `);
+    res.json(rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Endpoint para registrar una venta real y emitir comprobante en Neon DB
+app.post('/api/tenants/:tenantId/invoices', async (req, res) => {
+  const { tenantId } = req.params;
+  const cleanId = tenantId.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+  const schemaName = `tenant_${cleanId}`;
+  const { cliente, subtotal, impuestos, total, items_count, metodo_pago } = req.body;
+
+  const clientName = (cliente || 'Cliente General').trim();
+  const subtotalNum = parseFloat(subtotal) || 0;
+  const impuestosNum = parseFloat(impuestos) || 0;
+  const totalNum = parseFloat(total) || (subtotalNum + impuestosNum);
+  const itemsCount = parseInt(items_count, 10) || 1;
+  const paymentMethod = (metodo_pago || 'Efectivo').trim();
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    // Obtener el siguiente consecutivo real
+    const countRes = await client.query(`SELECT COALESCE(MAX(id), 1000) + 1 AS next_id FROM "${schemaName}".facturas`);
+    const nextId = countRes.rows[0].next_id;
+    const prefix = cleanId === 'tortasysnacks' ? 'REC' : 'FAC';
+    const numeroFactura = `${prefix}-${nextId}`;
+    const cufe = `CUFE-${cleanId.toUpperCase()}-${Date.now().toString(36).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const insertRes = await client.query(`
+      INSERT INTO "${schemaName}".facturas (id, numero_factura, cliente, subtotal, impuestos, total, estado, folio_fiscal, items_count, metodo_pago, created_at)
+      VALUES ($1, $2, $3, $4, $5, $6, 'TIMBRADA / APROBADA', $7, $8, $9, NOW())
+      RETURNING *;
+    `, [nextId, numeroFactura, clientName, subtotalNum, impuestosNum, totalNum, cufe, itemsCount, paymentMethod]);
+
+    await client.query('COMMIT');
+
+    res.status(201).json({
+      success: true,
+      message: 'Venta registrada y comprobante emitido exitosamente',
+      invoice: insertRes.rows[0]
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Error registrando factura:', error);
+    res.status(500).json({ error: error.message });
+  } finally {
+    client.release();
+  }
+});
+
+// Endpoint para calcular métricas y gráficos reales para el tenant
+app.get('/api/tenants/:tenantId/metrics', async (req, res) => {
+  const { tenantId } = req.params;
+  const cleanId = tenantId.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+  const schemaName = `tenant_${cleanId}`;
+
+  try {
+    // 1. Resumen financiero agregado
+    const { rows: aggRows } = await pool.query(`
+      SELECT 
+        COALESCE(SUM(total), 0) AS total_ventas,
+        COUNT(*)::int AS total_comprobantes,
+        COALESCE(AVG(total), 0) AS ticket_promedio,
+        COALESCE(SUM(impuestos), 0) AS total_iva
+      FROM "${schemaName}".facturas
+    `);
+
+    // 2. Desglose por medio de pago
+    const { rows: paymentRows } = await pool.query(`
+      SELECT 
+        COALESCE(metodo_pago, 'Efectivo') AS metodo,
+        COUNT(*)::int AS transacciones,
+        COALESCE(SUM(total), 0) AS total
+      FROM "${schemaName}".facturas
+      GROUP BY metodo_pago
+      ORDER BY total DESC
+    `);
+
+    // 3. Ventas por día
+    const { rows: dailyRows } = await pool.query(`
+      SELECT 
+        TO_CHAR(created_at, 'YYYY-MM-DD') AS dia,
+        TO_CHAR(created_at, 'Dy DD Mon') AS label,
+        COUNT(*)::int AS transacciones,
+        COALESCE(SUM(total), 0) AS total
+      FROM "${schemaName}".facturas
+      GROUP BY TO_CHAR(created_at, 'YYYY-MM-DD'), TO_CHAR(created_at, 'Dy DD Mon')
+      ORDER BY dia ASC
+      LIMIT 14
+    `);
+
+    const summary = aggRows[0];
+
+    res.json({
+      total_ventas: parseFloat(summary.total_ventas),
+      total_comprobantes: summary.total_comprobantes,
+      ticket_promedio: Math.round(parseFloat(summary.ticket_promedio)),
+      total_iva: parseFloat(summary.total_iva),
+      desglose_pagos: paymentRows.map(r => ({
+        metodo: r.metodo,
+        transacciones: r.transacciones,
+        total: parseFloat(r.total)
+      })),
+      ventas_por_dia: dailyRows.map(r => ({
+        dia: r.dia,
+        label: r.label,
+        transacciones: r.transacciones,
+        total: parseFloat(r.total)
+      }))
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 });
 
