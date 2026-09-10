@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Search, Printer, CheckCircle2, Calendar, User, DollarSign, Filter, AlertCircle, RefreshCw } from 'lucide-react';
+import { FileText, Search, Printer, CheckCircle2, Calendar, User, DollarSign, Filter, AlertCircle, RefreshCw, Eye } from 'lucide-react';
 import BakeryReceiptTicket from './BakeryReceiptTicket';
 
 export default function LedgerTable({ tenant, invoices = [], onConsultSoap, loading, lastResponse, onRefresh }) {
