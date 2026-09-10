@@ -3,6 +3,8 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 import pool from './config/database.js';
 import soapRoutes from './routes/soapRoutes.js';
+import authRoutes from './routes/authRoutes.js';
+import { apiLimiter } from './middleware/rateLimiter.js';
 import { logAccess, logError, getLogsSummary } from './services/auditLogger.js';
 
 dotenv.config();
@@ -40,12 +42,18 @@ app.use(express.json());
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, SOAPAction, x-tenant-id');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, SOAPAction, x-tenant-id, Authorization');
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);
   }
   next();
 });
+
+// Rate limiting global para la API
+app.use('/api/', apiLimiter);
+
+// Rutas de autenticación con JWT y tablas de usuarios aisladas
+app.use('/api/auth', authRoutes);
 
 // Endpoint raíz informativo del Backend
 app.get('/', (req, res) => {
@@ -55,6 +63,7 @@ app.get('/', (req, res) => {
     version: '1.0.0',
     documentation: {
       health: '/health',
+      auth: '/api/auth',
       tenants: '/api/tenants',
       soap_endpoint: '/ws/:tenantId',
       wsdl: '/ws/:tenantId?wsdl'
@@ -125,6 +134,17 @@ app.post('/api/tenants', async (req, res) => {
         items_count INT DEFAULT 1,
         metodo_pago VARCHAR(50) DEFAULT 'Efectivo',
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS "${schemaName}".usuarios (
+        id SERIAL PRIMARY KEY,
+        email VARCHAR(150) NOT NULL UNIQUE,
+        password_hash VARCHAR(255) NOT NULL,
+        nombre VARCHAR(150) NOT NULL,
+        role VARCHAR(50) NOT NULL DEFAULT 'admin',
+        activo BOOLEAN NOT NULL DEFAULT TRUE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `);
 

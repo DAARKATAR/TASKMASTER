@@ -1,12 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Palette, Upload, Image as ImageIcon, Layout, Check, ArrowRight, ArrowLeft, Smartphone, Monitor, AlertCircle, Sparkles, Store, Building } from 'lucide-react';
+import { Palette, Upload, Image as ImageIcon, Layout, Check, ArrowRight, ArrowLeft, Smartphone, Monitor, AlertCircle, Sparkles, Store, Building, User, Mail, Lock, Loader2 } from 'lucide-react';
+import { API_BASE_URL } from '../config/api';
 
 export default function NewTenantWizard({ initialData, onComplete, onCancel }) {
   const [step, setStep] = useState(1);
   
   // Datos del nuevo inquilino
-  const [businessName, setBusinessName] = useState(initialData?.businessName || 'Mi Negocio POS');
+  const [businessName, setBusinessName] = useState(initialData?.businessName || '');
   const [businessType, setBusinessType] = useState(initialData?.businessType || 'Repostería & Café');
+  const [ownerName, setOwnerName] = useState(initialData?.ownerName || '');
+  const [email, setEmail] = useState(initialData?.email || '');
+  const [password, setPassword] = useState(initialData?.password || '');
+
+  // Estados de validación y carga
+  const [step1Error, setStep1Error] = useState(null);
+  const [provisionError, setProvisionError] = useState(null);
+  const [loadingProvision, setLoadingProvision] = useState(false);
   
   // 1. Fondos planos (Mínimo 4) y color de marca
   const [bgTheme, setBgTheme] = useState('white');
@@ -74,20 +83,49 @@ export default function NewTenantWizard({ initialData, onComplete, onCancel }) {
     }
   };
 
-  const handleFinish = () => {
-    const tenantConfig = {
-      id: businessName.toLowerCase().replace(/[^a-z0-9]/g, '') || 'minuevopos',
-      nombre: businessName,
-      brand_color: brandColor,
-      schema_name: `tenant_${businessName.toLowerCase().replace(/[^a-z0-9]/g, '') || 'minuevopos'}`,
-      logo: logoType === 'upload' ? uploadedLogo : logoEmoji,
-      logoType,
-      bgTheme,
-      navbarPosition: (isDesktopScreen && !isMobileSimulated && navbarPosition === 'bottom') ? 'top' : navbarPosition,
-      businessType
-    };
+  const handleFinish = async () => {
+    setProvisionError(null);
+    setLoadingProvision(true);
 
-    onComplete(tenantConfig);
+    try {
+      const slug = businessName.toLowerCase().replace(/[^a-z0-9]/g, '') || 'minuevopos';
+      const finalLogo = logoType === 'upload' ? uploadedLogo : logoEmoji;
+      const finalNavPos = (isDesktopScreen && !isMobileSimulated && navbarPosition === 'bottom') ? 'top' : navbarPosition;
+
+      const res = await fetch(`${API_BASE_URL}/api/auth/register-tenant`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          businessName: businessName.trim(),
+          slug,
+          brandColor,
+          logo: finalLogo,
+          businessType,
+          ownerName: ownerName.trim() || 'Administrador',
+          email: email.trim(),
+          password
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Error al aprovisionar el nuevo negocio.');
+      }
+
+      // Éxito: pasar la sesión con token y tenant creado
+      onComplete({
+        token: data.token,
+        user: data.user,
+        tenant: data.tenant,
+        bgTheme,
+        navbarPosition: finalNavPos
+      });
+    } catch (err) {
+      setProvisionError(err.message || 'Error al comunicarse con el servidor.');
+    } finally {
+      setLoadingProvision(false);
+    }
   };
 
   return (
@@ -138,31 +176,95 @@ export default function NewTenantWizard({ initialData, onComplete, onCancel }) {
               </p>
             </div>
 
-            {/* Nombre del negocio */}
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 font-mono">
-                  Nombre de tu Negocio:
-                </label>
-                <input
-                  type="text"
-                  value={businessName}
-                  onChange={(e) => setBusinessName(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-slate-800"
-                  placeholder="Ej. Tortas y Snacks, Café Del Puerto..."
-                />
+            {step1Error && (
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-600" />
+                <span>{step1Error}</span>
               </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 font-mono">
-                  Giro / Categoría:
-                </label>
-                <input
-                  type="text"
-                  value={businessType}
-                  onChange={(e) => setBusinessType(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-slate-800"
-                  placeholder="Ej. Pastelería, Cafetería, Restaurante..."
-                />
+            )}
+
+            {/* Datos de Negocio y Credenciales de Administrador */}
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 font-mono">
+                    Nombre de tu Negocio: *
+                  </label>
+                  <input
+                    type="text"
+                    value={businessName}
+                    onChange={(e) => {
+                      setBusinessName(e.target.value);
+                      if (step1Error) setStep1Error(null);
+                    }}
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-slate-800"
+                    placeholder="Ej. Tortas y Snacks, Café Del Puerto..."
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 font-mono">
+                    Giro / Categoría:
+                  </label>
+                  <input
+                    type="text"
+                    value={businessType}
+                    onChange={(e) => setBusinessType(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-slate-800"
+                    placeholder="Ej. Pastelería, Cafetería, Restaurante..."
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-200/60">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 font-mono">
+                    Administrador: *
+                  </label>
+                  <input
+                    type="text"
+                    value={ownerName}
+                    onChange={(e) => {
+                      setOwnerName(e.target.value);
+                      if (step1Error) setStep1Error(null);
+                    }}
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-slate-800"
+                    placeholder="Ej. Carlos Mendoza"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 font-mono">
+                    Correo Electrónico: *
+                  </label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (step1Error) setStep1Error(null);
+                    }}
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-slate-800"
+                    placeholder="carlos@negocio.com"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 font-mono">
+                    Contraseña (mín 6 car.): *
+                  </label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      if (step1Error) setStep1Error(null);
+                    }}
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:border-slate-800"
+                    placeholder="••••••••"
+                    required
+                  />
+                </div>
               </div>
             </div>
 
@@ -667,17 +769,33 @@ export default function NewTenantWizard({ initialData, onComplete, onCancel }) {
               </label>
             </div>
 
+            {provisionError && (
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2 text-left">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-600" />
+                <span>{provisionError}</span>
+              </div>
+            )}
+
             <button
               onClick={handleFinish}
-              disabled={!acceptedFiscalDisclaimer}
+              disabled={!acceptedFiscalDisclaimer || loadingProvision}
               className={`w-full py-3.5 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${
-                acceptedFiscalDisclaimer
+                acceptedFiscalDisclaimer && !loadingProvision
                   ? 'bg-slate-900 hover:bg-black text-white shadow-md cursor-pointer'
                   : 'bg-slate-200 text-slate-400 border border-slate-300 cursor-not-allowed'
               }`}
             >
-              <span>{acceptedFiscalDisclaimer ? 'Abrir Mi Punto de Venta (POS) con mi Paleta' : 'Acepta la casilla para continuar'}</span>
-              <ArrowRight className="w-4 h-4" />
+              {loadingProvision ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Aprovisionando esquema PostgreSQL y emitiendo JWT...</span>
+                </>
+              ) : (
+                <>
+                  <span>{acceptedFiscalDisclaimer ? 'Aprovisionar Negocio & Abrir POS' : 'Acepta la casilla para continuar'}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </button>
 
           </div>
@@ -699,7 +817,28 @@ export default function NewTenantWizard({ initialData, onComplete, onCancel }) {
         {step < 4 && (
           <button
             type="button"
-            onClick={() => setStep(step + 1)}
+            onClick={() => {
+              if (step === 1) {
+                if (!businessName.trim()) {
+                  setStep1Error('El nombre del negocio es obligatorio.');
+                  return;
+                }
+                if (!ownerName.trim()) {
+                  setStep1Error('El nombre del administrador es obligatorio.');
+                  return;
+                }
+                if (!email || !email.includes('@')) {
+                  setStep1Error('Por favor ingresa un correo electrónico válido.');
+                  return;
+                }
+                if (!password || password.length < 6) {
+                  setStep1Error('La contraseña de acceso debe tener al menos 6 caracteres.');
+                  return;
+                }
+                setStep1Error(null);
+              }
+              setStep(step + 1);
+            }}
             className="flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs font-bold text-white bg-slate-900 hover:bg-black shadow-xs transition-colors"
           >
             <span>Siguiente Paso</span>

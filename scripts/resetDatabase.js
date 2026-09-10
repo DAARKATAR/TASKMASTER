@@ -33,6 +33,14 @@ async function resetDatabase() {
         logo VARCHAR(50) DEFAULT '🏬',
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
+
+      CREATE TABLE IF NOT EXISTS public.tenant_users (
+        id SERIAL PRIMARY KEY,
+        email VARCHAR(150) NOT NULL UNIQUE,
+        tenant_id VARCHAR(50) NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE INDEX IF NOT EXISTS idx_tenant_users_email ON public.tenant_users(email);
     `);
 
     // 4. Comprobar que la tabla esté totalmente vacía

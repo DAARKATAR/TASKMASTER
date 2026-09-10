@@ -16,8 +16,10 @@ export default function App() {
   // Navegación de nivel superior: 'landing' | 'auth' | 'wizard' | 'pos'
   const [currentView, setCurrentView] = useState('landing');
   
-  // Estado de usuario autenticado
+  // Estado de usuario autenticado y token JWT
   const [currentUser, setCurrentUser] = useState(null);
+  const [authToken, setAuthToken] = useState(() => localStorage.getItem('taskmaster_token') || null);
+  const [authIsRegister, setAuthIsRegister] = useState(false);
   
   // Módulos internos del POS: 'pos' | 'invoices' | 'kpis' | 'console' | 'architecture'
   const [activeTab, setActiveTab] = useState('pos');
@@ -110,27 +112,48 @@ export default function App() {
 
   // Cargar lista de tenants registrados en Neon DB
   const loadTenants = async () => {
-    setLoadingTenants(true);
     try {
       const res = await fetch(`${API_BASE_URL}/api/tenants`);
       if (res.ok) {
         const list = await res.json();
         setAvailableTenants(list);
-        if (list.length > 0) {
-          setCurrentTenant(list[0]);
-        } else {
-          setCurrentTenant(null);
-        }
       }
     } catch (err) {
       console.error('Error cargando lista de tenants:', err);
-    } finally {
-      setLoadingTenants(false);
     }
   };
 
+  // Restaurar sesión de usuario mediante JWT al cargar
   useEffect(() => {
-    loadTenants();
+    const initAuthAndTenants = async () => {
+      setLoadingTenants(true);
+      const token = localStorage.getItem('taskmaster_token');
+      if (token) {
+        try {
+          const res = await fetch(`${API_BASE_URL}/api/auth/me`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setCurrentUser(data.user);
+            setCurrentTenant(data.tenant);
+            setAuthToken(token);
+            setCurrentView('pos');
+          } else {
+            localStorage.removeItem('taskmaster_token');
+            setAuthToken(null);
+            setCurrentUser(null);
+          }
+        } catch (err) {
+          console.error('Error restaurando sesión:', err);
+        }
+      }
+
+      await loadTenants();
+      setLoadingTenants(false);
+    };
+
+    initAuthAndTenants();
   }, []);
 
   // Escuchar cambio de tenant para recargar datos en vivo
@@ -168,9 +191,14 @@ export default function App() {
   const handleEmitInvoice = async (orderData) => {
     setLoadingSoap(true);
     try {
+      const headers = { 'Content-Type': 'application/json' };
+      if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+      }
+
       const res = await fetch(`${API_BASE_URL}/api/tenants/${currentTenant.id}/invoices`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(orderData)
       });
       const data = await res.json();
@@ -293,52 +321,50 @@ export default function App() {
     }
   };
 
-  // Manejo de Login directo
-  const handleLoginSuccess = (user) => {
-    setCurrentUser(user);
+  // Manejo de Login con JWT
+  const handleLoginSuccess = (authData) => {
+    if (authData?.token) {
+      localStorage.setItem('taskmaster_token', authData.token);
+      setAuthToken(authData.token);
+    }
+    setCurrentUser(authData.user);
+    setCurrentTenant(authData.tenant);
     setCurrentView('pos');
   };
 
-  // Inicio de registro de nuevo negocio -> pasa al Wizard
+  // Cierre seguro de sesión con invalidación de token
+  const handleLogout = () => {
+    localStorage.removeItem('taskmaster_token');
+    setAuthToken(null);
+    setCurrentUser(null);
+    setCurrentTenant(null);
+    setCurrentView('landing');
+  };
+
+  // Inicio de registro de nuevo negocio -> pasa al Wizard con credenciales
   const handleStartNewTenantWizard = (formData) => {
     setWizardInitData(formData);
     setCurrentView('wizard');
   };
 
-  // Finalización del Wizard de Onboarding
-  const handleTenantCreated = (newTenantConfig) => {
-    setCurrentTenant(newTenantConfig);
+  // Finalización del Wizard de Onboarding con aprovisionamiento real
+  const handleTenantCreated = (sessionData) => {
+    if (sessionData?.token) {
+      localStorage.setItem('taskmaster_token', sessionData.token);
+      setAuthToken(sessionData.token);
+    }
+    setCurrentTenant(sessionData.tenant);
+    setCurrentUser(sessionData.user);
+    if (sessionData.bgTheme) setBgTheme(sessionData.bgTheme);
+    if (sessionData.navbarPosition) setNavbarPosition(sessionData.navbarPosition);
     loadTenants();
-    setBgTheme(newTenantConfig.bgTheme || 'white');
-    setNavbarPosition(newTenantConfig.navbarPosition || 'top');
-    setCurrentUser({
-      name: wizardInitData?.ownerName || 'Administrador',
-      role: 'Administrador de Tienda POS',
-      email: wizardInitData?.email || 'admin@negocio.com',
-      sucursal: 'Sucursal Principal #01'
-    });
     setCurrentView('pos');
   };
 
-  // Lanzar el demo o abrir Wizard si no hay tenants
+  // Lanzar creación de negocio o login (sin bypass mock)
   const handleLaunchDemo = () => {
-    if (availableTenants.length > 0) {
-      setCurrentTenant(availableTenants[0]);
-      setCurrentUser({
-        name: 'Administrador',
-        role: 'Administrador de Tienda POS',
-        email: 'admin@negocio.com',
-        sucursal: 'Sucursal Principal #01'
-      });
-      setCurrentView('pos');
-    } else {
-      setWizardInitData({
-        businessName: 'Mi Tienda POS',
-        ownerName: 'Administrador',
-        email: 'admin@negocio.com'
-      });
-      setCurrentView('wizard');
-    }
+    setAuthIsRegister(true);
+    setCurrentView('auth');
   };
 
   // Contenido principal de las pestañas en la vista POS
@@ -431,12 +457,18 @@ export default function App() {
       {/* VISTA 1: LANDING PAGE CENTRAL DE TASK MASTER */}
       {currentView === 'landing' && (
         <TaskMasterLanding 
-          onGoToLogin={() => setCurrentView('auth')}
-          onStartRegistration={() => {
-            setWizardInitData(null);
-            setCurrentView('wizard');
+          onGoToLogin={() => {
+            setAuthIsRegister(false);
+            setCurrentView('auth');
           }}
-          onQuickLaunchDemo={handleLaunchDemo}
+          onStartRegistration={() => {
+            setAuthIsRegister(true);
+            setCurrentView('auth');
+          }}
+          onQuickLaunchDemo={() => {
+            setAuthIsRegister(false);
+            setCurrentView('auth');
+          }}
         />
       )}
 
@@ -444,6 +476,7 @@ export default function App() {
       {currentView === 'auth' && (
         <div className="min-h-screen flex items-center justify-center p-4 sm:p-8">
           <AuthView 
+            initialIsRegister={authIsRegister}
             onLoginSuccess={handleLoginSuccess}
             onStartNewTenantWizard={handleStartNewTenantWizard}
             onBackToLanding={() => setCurrentView('landing')}
@@ -462,8 +495,32 @@ export default function App() {
         </div>
       )}
 
+      {/* BLOQUEO DE SEGURIDAD: SI INTENTAN ENTRAR AL POS SIN AUTENTICACIÓN */}
+      {currentView === 'pos' && !currentUser && (
+        <div className="py-24 px-6 text-center max-w-md mx-auto my-auto space-y-4">
+          <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto text-3xl">
+            🔒
+          </div>
+          <h3 className="text-xl font-bold font-display text-slate-900">
+            Acceso Restringido al POS
+          </h3>
+          <p className="text-xs text-slate-500 leading-relaxed">
+            Para operar la terminal de venta y registrar ventas debes iniciar sesión con una cuenta de negocio autenticada con JWT.
+          </p>
+          <button
+            onClick={() => {
+              setAuthIsRegister(false);
+              setCurrentView('auth');
+            }}
+            className="w-full py-3 rounded-2xl bg-slate-900 text-white font-bold text-xs hover:bg-black transition-all shadow-sm"
+          >
+            Iniciar Sesión con mi Cuenta
+          </button>
+        </div>
+      )}
+
       {/* VISTA 4: TERMINAL POS OPERATIVA PERSONALIZADA */}
-      {currentView === 'pos' && (
+      {currentView === 'pos' && currentUser && (
         <>
           {/* CASO A: NAVBAR ARRIBA (TOP) */}
           {navbarPosition === 'top' && (
@@ -475,10 +532,7 @@ export default function App() {
                 currentUser={currentUser}
                 tenant={currentTenant}
                 onOpenCustomizer={() => setShowCustomizer(true)}
-                onLogout={() => {
-                  setCurrentUser(null);
-                  setCurrentView('auth');
-                }}
+                onLogout={handleLogout}
                 onExitToLanding={() => setCurrentView('landing')}
                 showDebugTools={showDebugTools}
               />
@@ -523,10 +577,7 @@ export default function App() {
                 currentUser={currentUser}
                 tenant={currentTenant}
                 onOpenCustomizer={() => setShowCustomizer(true)}
-                onLogout={() => {
-                  setCurrentUser(null);
-                  setCurrentView('auth');
-                }}
+                onLogout={handleLogout}
                 onExitToLanding={() => setCurrentView('landing')}
                 showDebugTools={showDebugTools}
               />
@@ -607,10 +658,7 @@ export default function App() {
                 currentUser={currentUser}
                 tenant={currentTenant}
                 onOpenCustomizer={() => setShowCustomizer(true)}
-                onLogout={() => {
-                  setCurrentUser(null);
-                  setCurrentView('auth');
-                }}
+                onLogout={handleLogout}
                 onExitToLanding={() => setCurrentView('landing')}
                 showDebugTools={showDebugTools}
               />
@@ -660,10 +708,7 @@ export default function App() {
                 currentUser={currentUser}
                 tenant={currentTenant}
                 onOpenCustomizer={() => setShowCustomizer(true)}
-                onLogout={() => {
-                  setCurrentUser(null);
-                  setCurrentView('auth');
-                }}
+                onLogout={handleLogout}
                 onExitToLanding={() => setCurrentView('landing')}
                 showDebugTools={showDebugTools}
               />
