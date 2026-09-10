@@ -1,0 +1,562 @@
+import React, { useState, useEffect } from 'react';
+import TaskMasterLanding from './components/TaskMasterLanding';
+import AuthView from './components/AuthView';
+import NewTenantWizard from './components/NewTenantWizard';
+import Navbar from './components/Navbar';
+import PosTerminal from './components/PosTerminal';
+import KpiGrid from './components/KpiGrid';
+import LedgerTable from './components/LedgerTable';
+import SoapConsole from './components/SoapConsole';
+import ArchitectureView from './components/ArchitectureView';
+import ThemeCustomizerModal from './components/ThemeCustomizerModal';
+import { Cake, FileText, TrendingUp, Sparkles, ArrowLeft, Settings, Sliders } from 'lucide-react';
+
+export default function App() {
+  // Navegación de nivel superior: 'landing' | 'auth' | 'wizard' | 'pos'
+  const [currentView, setCurrentView] = useState('landing');
+  
+  // Estado de usuario autenticado
+  const [currentUser, setCurrentUser] = useState(null);
+  
+  // Módulos internos del POS: 'pos' | 'invoices' | 'kpis' | 'console' | 'architecture'
+  const [activeTab, setActiveTab] = useState('pos');
+  
+  // Inquilino / Negocio Activo
+  const [currentTenant, setCurrentTenant] = useState({
+    id: 'tortasysnacks',
+    nombre: 'Tortas y Snacks Artesanales',
+    brand_color: '#DB2777',
+    schema_name: 'tenant_tortasysnacks',
+    logo: '🍰',
+    logoType: 'emoji',
+    businessType: 'Repostería & Café'
+  });
+
+  // Datos para el wizard de registro
+  const [wizardInitData, setWizardInitData] = useState(null);
+
+  // Opciones de personalización: 4 posiciones de Navbar y Color de Fondo Plano
+  const [navbarPosition, setNavbarPosition] = useState('top'); // 'top' | 'left' | 'right' | 'bottom'
+  const [bgTheme, setBgTheme] = useState('white'); // 'white' | 'cream' | 'pink' | 'lavender' | 'mint' | 'slate'
+  const [showCustomizer, setShowCustomizer] = useState(false);
+  
+  // Herramientas de depuración SOAP (ocultas en primera instancia)
+  const [showDebugTools, setShowDebugTools] = useState(false);
+
+  // Mapeo de colores de fondo planos y limpios
+  const themeColors = {
+    white: '#FFFFFF',
+    cream: '#FDFBF7',
+    pink: '#FFF5F7',
+    lavender: '#F8F7FF',
+    mint: '#F0FDF4',
+    slate: '#F8FAFC'
+  };
+
+  // Datos de comprobante de venta interno y respuesta SOAP
+  const [invoiceData, setInvoiceData] = useState({
+    numero_factura: 'TYS-1001',
+    cliente: 'Cliente Frecuente - Salón Rosa',
+    subtotal: '50420.17',
+    impuestos: '9579.83',
+    total: '60000.00',
+    estado: 'REGISTRADO / CONTROL INTERNO',
+    folio_fiscal: 'REG-TYS-9921-ROSE-2026',
+    items_count: 3,
+    emisor: 'Tortas y Snacks Artesanales'
+  });
+  
+  const [lastResponse, setLastResponse] = useState(null);
+  const [loadingSoap, setLoadingSoap] = useState(false);
+  const [latency, setLatency] = useState(12);
+  const [httpStatus, setHttpStatus] = useState(200);
+
+  // Detección de ancho de pantalla para la regla de barra inferior
+  useEffect(() => {
+    const handleResize = () => {
+      const isDesktop = window.innerWidth >= 1024;
+      // Regla: En PC la barra inferior está inhabilitada y regresa a 'top'
+      if (isDesktop && navbarPosition === 'bottom') {
+        setNavbarPosition('top');
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [navbarPosition]);
+
+  useEffect(() => {
+    if (currentView === 'pos') {
+      document.documentElement.style.setProperty('--brand-primary', currentTenant.brand_color || '#DB2777');
+      document.body.style.backgroundColor = themeColors[bgTheme] || '#FFFFFF';
+    } else {
+      document.documentElement.style.setProperty('--brand-primary', '#0F172A');
+      document.body.style.backgroundColor = '#FFFFFF';
+    }
+  }, [bgTheme, currentTenant, currentView]);
+
+  // Invocación SOAP POST real contra el backend Express
+  const executeSoapCall = async (invoiceNumber = 'TYS-1001') => {
+    setLoadingSoap(true);
+    const startTime = performance.now();
+
+    const targetNs = `https://${currentTenant.id}.pos-billing.com/schema`;
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:sch="${targetNs}">
+  <soapenv:Header/>
+  <soapenv:Body>
+    <sch:ConsultarFacturaRequest>
+      <sch:numero_factura>${invoiceNumber}</sch:numero_factura>
+    </sch:ConsultarFacturaRequest>
+  </soapenv:Body>
+</soapenv:Envelope>`.trim();
+
+    try {
+      const res = await fetch(`/ws/${currentTenant.id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/xml; charset=utf-8',
+          'SOAPAction': `https://${currentTenant.id}.pos-billing.com/wsdl/ConsultarFactura`
+        },
+        body: xml
+      });
+
+      const elapsed = Math.round(performance.now() - startTime);
+      setLatency(elapsed);
+      setHttpStatus(res.status);
+
+      const responseText = await res.text();
+      
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(responseText, 'text/xml');
+
+      const faultNode = xmlDoc.getElementsByTagNameNS('*', 'Fault')[0] || xmlDoc.getElementsByTagName('Fault')[0];
+
+      if (faultNode || !res.ok) {
+        const faultCode = faultNode?.getElementsByTagNameNS('*', 'faultcode')[0]?.textContent || 'soap:Fault';
+        const faultString = faultNode?.getElementsByTagNameNS('*', 'faultstring')[0]?.textContent || 'Factura no encontrada';
+        
+        setLastResponse({
+          raw: responseText,
+          isFault: true,
+          faultCode,
+          faultString
+        });
+      } else {
+        const numero_factura = xmlDoc.getElementsByTagNameNS('*', 'numero_factura')[0]?.textContent || invoiceNumber;
+        const cliente = xmlDoc.getElementsByTagNameNS('*', 'cliente')[0]?.textContent || 'Cliente Frecuente';
+        const subtotal = xmlDoc.getElementsByTagNameNS('*', 'subtotal')[0]?.textContent || '50420.17';
+        const impuestos = xmlDoc.getElementsByTagNameNS('*', 'impuestos')[0]?.textContent || '9579.83';
+        const total = xmlDoc.getElementsByTagNameNS('*', 'total')[0]?.textContent || '60000.00';
+        const estado = xmlDoc.getElementsByTagNameNS('*', 'estado')[0]?.textContent || 'TIMBRADA / APROBADA';
+        const folio_fiscal = xmlDoc.getElementsByTagNameNS('*', 'folio_fiscal')[0]?.textContent || 'CUFE-TYS-9921-ROSE-2026';
+        const items_count = xmlDoc.getElementsByTagNameNS('*', 'items_count')[0]?.textContent || '3';
+
+        const updated = {
+          numero_factura,
+          cliente,
+          subtotal,
+          impuestos,
+          total,
+          estado,
+          folio_fiscal,
+          items_count: parseInt(items_count, 10),
+          emisor: currentTenant.nombre
+        };
+
+        setInvoiceData(updated);
+        setLastResponse({
+          raw: responseText,
+          isFault: false,
+          ...updated
+        });
+      }
+    } catch (err) {
+      console.error('SOAP Error:', err);
+      setLastResponse({
+        raw: `Error: ${err.message}`,
+        isFault: true,
+        faultCode: 'ClientError',
+        faultString: err.message
+      });
+    } finally {
+      setLoadingSoap(false);
+    }
+  };
+
+  // Manejo de Login directo
+  const handleLoginSuccess = (user) => {
+    setCurrentUser(user);
+    setCurrentView('pos');
+    executeSoapCall('TYS-1001');
+  };
+
+  // Inicio de registro de nuevo negocio -> pasa al Wizard
+  const handleStartNewTenantWizard = (formData) => {
+    setWizardInitData(formData);
+    setCurrentView('wizard');
+  };
+
+  // Finalización del Wizard de Onboarding
+  const handleTenantCreated = (newTenantConfig) => {
+    setCurrentTenant(newTenantConfig);
+    setBgTheme(newTenantConfig.bgTheme || 'white');
+    setNavbarPosition(newTenantConfig.navbarPosition || 'top');
+    setCurrentUser({
+      name: wizardInitData?.ownerName || 'Administrador',
+      role: 'Administrador de Tienda POS',
+      email: wizardInitData?.email || 'admin@negocio.com',
+      sucursal: 'Sucursal Principal #01'
+    });
+    setCurrentView('pos');
+  };
+
+  // Lanzar el demo de Tortas y Snacks
+  const handleLaunchDemo = () => {
+    setCurrentTenant({
+      id: 'tortasysnacks',
+      nombre: 'Tortas y Snacks Artesanales',
+      brand_color: '#DB2777',
+      schema_name: 'tenant_tortasysnacks',
+      logo: '🍰',
+      logoType: 'emoji',
+      businessType: 'Repostería & Café'
+    });
+    setBgTheme('white');
+    setNavbarPosition('top');
+    setCurrentUser({
+      name: 'Mariana López',
+      role: 'Administradora de Tienda POS',
+      email: 'mariana@tortasysnacks.com',
+      sucursal: 'Salón Rosa Principal'
+    });
+    setCurrentView('pos');
+    executeSoapCall('TYS-1001');
+  };
+
+  // Contenido principal de las pestañas en la vista POS
+  const renderMainContent = () => (
+    <div className="space-y-6">
+      {/* 1. MÓDULO DE PRODUCTOS Y VENTA POS (LIMPIO, SIN SOBRECARGA) */}
+      {activeTab === 'pos' && (
+        <PosTerminal 
+          tenant={currentTenant}
+          onEmitInvoice={() => executeSoapCall('TYS-1001')}
+          loadingSoap={loadingSoap}
+          lastResponse={invoiceData}
+        />
+      )}
+
+      {/* 2. MÓDULO DE HISTÓRICO DE FACTURAS (SECCIÓN DEDICADA PARA EL CLIENTE) */}
+      {activeTab === 'invoices' && (
+        <LedgerTable 
+          tenant={currentTenant}
+          onConsultSoap={(inv) => executeSoapCall(inv)}
+          loading={loadingSoap}
+          lastResponse={invoiceData}
+        />
+      )}
+
+      {/* 3. MÓDULO DE CAJA Y MÉTRICAS FINANCIERAS */}
+      {activeTab === 'kpis' && (
+        <KpiGrid tenant={currentTenant} />
+      )}
+
+      {/* 4. MODO DESARROLLADOR / CONSOLA SOAP (OCULTA EN PRIMERA INSTANCIA) */}
+      {showDebugTools && activeTab === 'console' && (
+        <SoapConsole 
+          tenant={currentTenant}
+          onSendRequest={(xml, invNum) => executeSoapCall(invNum)}
+          lastResponse={lastResponse}
+          loading={loadingSoap}
+          latency={latency}
+          httpStatus={httpStatus}
+        />
+      )}
+
+      {/* 5. MODO DESARROLLADOR / ARQUITECTURA AISLADA (OCULTA EN PRIMERA INSTANCIA) */}
+      {showDebugTools && activeTab === 'architecture' && (
+        <ArchitectureView tenants={[currentTenant]} />
+      )}
+    </div>
+  );
+
+  return (
+    <div 
+      className="min-h-screen text-slate-800 font-sans transition-colors duration-300 flex flex-col selection:bg-slate-900 selection:text-white"
+      style={{ backgroundColor: currentView === 'pos' ? (themeColors[bgTheme] || '#FFFFFF') : '#FFFFFF' }}
+    >
+      
+      {/* VISTA 1: LANDING PAGE CENTRAL DE TASK MASTER */}
+      {currentView === 'landing' && (
+        <TaskMasterLanding 
+          onGoToLogin={() => setCurrentView('auth')}
+          onStartRegistration={() => {
+            setWizardInitData(null);
+            setCurrentView('wizard');
+          }}
+          onQuickLaunchDemo={handleLaunchDemo}
+        />
+      )}
+
+      {/* VISTA 2: FORMULARIO DE LOGIN / REGISTRO HECHO Y DERECHO */}
+      {currentView === 'auth' && (
+        <div className="min-h-screen flex items-center justify-center p-4 sm:p-8">
+          <AuthView 
+            onLoginSuccess={handleLoginSuccess}
+            onStartNewTenantWizard={handleStartNewTenantWizard}
+            onBackToLanding={() => setCurrentView('landing')}
+          />
+        </div>
+      )}
+
+      {/* VISTA 3: CARRUSEL DE PERSONALIZACIÓN PARA NUEVOS USUARIOS (WIZARD CON ESQUELETOS) */}
+      {currentView === 'wizard' && (
+        <div className="min-h-screen flex items-center justify-center p-4 sm:p-8">
+          <NewTenantWizard 
+            initialData={wizardInitData}
+            onComplete={handleTenantCreated}
+            onCancel={() => setCurrentView('landing')}
+          />
+        </div>
+      )}
+
+      {/* VISTA 4: TERMINAL POS OPERATIVA PERSONALIZADA */}
+      {currentView === 'pos' && (
+        <>
+          {/* CASO A: NAVBAR ARRIBA (TOP) */}
+          {navbarPosition === 'top' && (
+            <div className="flex-1 flex flex-col">
+              <Navbar 
+                position="top"
+                activeTab={activeTab}
+                onSelectTab={setActiveTab}
+                currentUser={currentUser}
+                tenant={currentTenant}
+                onOpenCustomizer={() => setShowCustomizer(true)}
+                onLogout={() => {
+                  setCurrentUser(null);
+                  setCurrentView('auth');
+                }}
+                onExitToLanding={() => setCurrentView('landing')}
+                showDebugTools={showDebugTools}
+              />
+
+              <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                {renderMainContent()}
+              </main>
+
+              <footer className="border-t border-slate-200 bg-white/70 py-4 mt-auto">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-4 text-xs text-slate-400 font-mono">
+                  <div>
+                    <strong>{currentTenant.nombre}</strong> · Powered by <span translate="no" className="notranslate">Task Master POS</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button 
+                      onClick={() => setShowCustomizer(true)}
+                      className="hover:underline flex items-center gap-1 font-semibold"
+                      style={{ color: currentTenant.brand_color }}
+                    >
+                      <Settings className="w-3 h-3" /> Personalizar Navbar
+                    </button>
+                    <span>·</span>
+                    <button 
+                      onClick={() => setCurrentView('landing')}
+                      className="hover:text-slate-800"
+                    >
+                      Página Central <span translate="no" className="notranslate">Task Master</span>
+                    </button>
+                  </div>
+                </div>
+              </footer>
+            </div>
+          )}
+
+          {/* CASO B: NAVBAR A LA IZQUIERDA (SIDEBAR LEFT) */}
+          {navbarPosition === 'left' && (
+            <div className="min-h-screen flex flex-row w-full">
+              <Navbar 
+                position="left"
+                activeTab={activeTab}
+                onSelectTab={setActiveTab}
+                currentUser={currentUser}
+                tenant={currentTenant}
+                onOpenCustomizer={() => setShowCustomizer(true)}
+                onLogout={() => {
+                  setCurrentUser(null);
+                  setCurrentView('auth');
+                }}
+                onExitToLanding={() => setCurrentView('landing')}
+                showDebugTools={showDebugTools}
+              />
+
+              <div className="flex-1 flex flex-col min-w-0">
+                <header className="px-6 py-3 border-b border-slate-200 bg-white flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider font-mono">
+                    {currentTenant.nombre} · Barra Lateral Izquierda
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setShowCustomizer(true)}
+                      className="flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
+                    >
+                      <Settings className="w-3.5 h-3.5" />
+                      <span>Ajustes</span>
+                    </button>
+                    <button
+                      onClick={() => setCurrentView('landing')}
+                      className="px-3 py-1 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-800"
+                    >
+                      <span translate="no" className="notranslate">Task Master</span>
+                    </button>
+                  </div>
+                </header>
+
+                <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                  {renderMainContent()}
+                </main>
+
+                <footer className="border-t border-slate-200 bg-white/70 py-4 px-6 text-xs text-slate-400 font-mono flex justify-between">
+                  <span>{currentTenant.nombre} · POS White-Label</span>
+                  <span>Sucursal: {currentUser?.sucursal}</span>
+                </footer>
+              </div>
+            </div>
+          )}
+
+          {/* CASO C: NAVBAR A LA DERECHA (SIDEBAR RIGHT) */}
+          {navbarPosition === 'right' && (
+            <div className="min-h-screen flex flex-row w-full">
+              <div className="flex-1 flex flex-col min-w-0">
+                <header className="px-6 py-3 border-b border-slate-200 bg-white flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setShowCustomizer(true)}
+                      className="flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
+                    >
+                      <Settings className="w-3.5 h-3.5" />
+                      <span>Ajustes</span>
+                    </button>
+                    <button
+                      onClick={() => setCurrentView('landing')}
+                      className="px-3 py-1 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-800"
+                    >
+                      <span translate="no" className="notranslate">Task Master</span>
+                    </button>
+                  </div>
+                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider font-mono">
+                    {currentTenant.nombre} · Barra Lateral Derecha
+                  </span>
+                </header>
+
+                <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                  {renderMainContent()}
+                </main>
+
+                <footer className="border-t border-slate-200 bg-white/70 py-4 px-6 text-xs text-slate-400 font-mono flex justify-between">
+                  <span>{currentTenant.nombre} · POS White-Label</span>
+                  <span>Sucursal: {currentUser?.sucursal}</span>
+                </footer>
+              </div>
+
+              <Navbar 
+                position="right"
+                activeTab={activeTab}
+                onSelectTab={setActiveTab}
+                currentUser={currentUser}
+                tenant={currentTenant}
+                onOpenCustomizer={() => setShowCustomizer(true)}
+                onLogout={() => {
+                  setCurrentUser(null);
+                  setCurrentView('auth');
+                }}
+                onExitToLanding={() => setCurrentView('landing')}
+                showDebugTools={showDebugTools}
+              />
+            </div>
+          )}
+
+          {/* CASO D: NAVBAR ABAJO (BOTTOM) - SÓLO HABILITADO EN CELULARES, TABLETS Y DISPOSITIVOS REDUCIDOS */}
+          {navbarPosition === 'bottom' && (
+            <div className="flex-1 flex flex-col pb-24">
+              <header className="px-4 py-2.5 border-b border-slate-200 bg-white flex items-center justify-between sticky top-0 z-30 shadow-flat-sm">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">{currentTenant.logo || '🍰'}</span>
+                  <div>
+                    <span className="text-xs font-bold text-slate-900 block leading-tight">{currentTenant.nombre}</span>
+                    <span className="text-[10px] font-semibold block" style={{ color: currentTenant.brand_color }}>
+                      {currentUser?.sucursal}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowCustomizer(true)}
+                    className="p-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    title="Ajustes de Interfaz"
+                  >
+                    <Settings className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setCurrentView('landing')}
+                    className="text-[11px] font-semibold text-slate-500 hover:text-red-600 px-2 py-1 rounded"
+                  >
+                    Salir
+                  </button>
+                </div>
+              </header>
+
+              <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-4">
+                {renderMainContent()}
+              </main>
+
+              {/* Barra Inferior Fija para Móviles / Tablets */}
+              <Navbar 
+                position="bottom"
+                activeTab={activeTab}
+                onSelectTab={setActiveTab}
+                currentUser={currentUser}
+                tenant={currentTenant}
+                onOpenCustomizer={() => setShowCustomizer(true)}
+                onLogout={() => {
+                  setCurrentUser(null);
+                  setCurrentView('auth');
+                }}
+                onExitToLanding={() => setCurrentView('landing')}
+                showDebugTools={showDebugTools}
+              />
+            </div>
+          )}
+
+          {/* Botón Flotante discreto para abrir Personalizador en cualquier momento */}
+          <button
+            onClick={() => setShowCustomizer(true)}
+            className="fixed bottom-4 right-4 z-40 p-3 rounded-2xl bg-white text-slate-700 border border-slate-200 shadow-xl hover:shadow-2xl transition-all flex items-center gap-2 group"
+            title="Personalizar Posición del Navbar y Fondo"
+          >
+            <Sliders 
+              className="w-4 h-4 transition-transform group-hover:rotate-45" 
+              style={{ color: currentTenant.brand_color }}
+            />
+            <span className="text-xs font-bold hidden sm:inline">Navbars ({navbarPosition})</span>
+          </button>
+        </>
+      )}
+
+      {/* MODAL DE PERSONALIZACIÓN CON EL COLOR DE MARCA DEL USUARIO */}
+      <ThemeCustomizerModal 
+        isOpen={showCustomizer}
+        onClose={() => setShowCustomizer(false)}
+        navbarPosition={navbarPosition}
+        onSelectNavbarPosition={setNavbarPosition}
+        bgTheme={bgTheme}
+        onSelectBgTheme={setBgTheme}
+        showDebugTools={showDebugTools}
+        onToggleDebugTools={setShowDebugTools}
+        brandColor={currentTenant.brand_color}
+      />
+
+    </div>
+  );
+}

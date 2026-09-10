@@ -1,0 +1,34 @@
+# Koyeb Free Tier App Specification ($0 USD / Mes)
+# SOAP Engine & Express Backend Multi-Tenant (Always-on, sin cold starts)
+name: taskmaster-app
+services:
+  - name: taskmaster-service
+    type: web
+    image: koyeb/taskmaster:latest
+    instance_type: free
+    regions:
+      - fra
+    ports:
+      - port: 3000
+        path: /
+    env:
+      - key: PORT
+        value: "3000"
+      - key: NODE_ENV
+        value: "production"
+      # Configurar en secrets de Koyeb:
+      # - key: DATABASE_URL
+      #   value: @neon-database-url
+      # - key: UPSTASH_REDIS_REST_URL
+      #   value: @upstash-url
+      # - key: UPSTASH_REDIS_REST_TOKEN
+      #   value: @upstash-token
+      # - key: BETTER_STACK_SOURCE_TOKEN
+      #   value: @better-stack-token
+    health_checks:
+      - path: /health
+        port: 3000
+        interval: 30
+        timeout: 5
+        unhealthy_threshold: 3
+        healthy_threshold: 1
