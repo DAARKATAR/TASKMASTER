@@ -490,13 +490,13 @@ export default function App() {
               <footer className="border-t border-slate-200 bg-white/70 py-4 mt-auto">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-4 text-xs text-slate-400 font-mono">
                   <div>
-                    <strong>{currentTenant.nombre}</strong> · Powered by <span translate="no" className="notranslate">Task Master POS</span>
+                    <strong>{currentTenant?.nombre || 'Task Master'}</strong> · Powered by <span translate="no" className="notranslate">Task Master POS</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <button 
                       onClick={() => setShowCustomizer(true)}
                       className="hover:underline flex items-center gap-1 font-semibold"
-                      style={{ color: currentTenant.brand_color }}
+                      style={{ color: currentTenant?.brand_color || '#0F172A' }}
                     >
                       <Settings className="w-3 h-3" /> Personalizar Navbar
                     </button>
@@ -534,7 +534,7 @@ export default function App() {
               <div className="flex-1 flex flex-col min-w-0">
                 <header className="px-6 py-3 border-b border-slate-200 bg-white flex items-center justify-between">
                   <span className="text-xs font-bold text-slate-500 uppercase tracking-wider font-mono">
-                    {currentTenant.nombre} · Barra Lateral Izquierda
+                    {currentTenant?.nombre || 'Task Master'} · Barra Lateral Izquierda
                   </span>
                   <div className="flex items-center gap-2">
                     <button
@@ -558,7 +558,7 @@ export default function App() {
                 </main>
 
                 <footer className="border-t border-slate-200 bg-white/70 py-4 px-6 text-xs text-slate-400 font-mono flex justify-between">
-                  <span>{currentTenant.nombre} · POS White-Label</span>
+                  <span>{currentTenant?.nombre || 'Task Master'} · POS White-Label</span>
                   <span>Sucursal: {currentUser?.sucursal}</span>
                 </footer>
               </div>
@@ -586,7 +586,7 @@ export default function App() {
                     </button>
                   </div>
                   <span className="text-xs font-bold text-slate-500 uppercase tracking-wider font-mono">
-                    {currentTenant.nombre} · Barra Lateral Derecha
+                    {currentTenant?.nombre || 'Task Master'} · Barra Lateral Derecha
                   </span>
                 </header>
 
@@ -595,7 +595,7 @@ export default function App() {
                 </main>
 
                 <footer className="border-t border-slate-200 bg-white/70 py-4 px-6 text-xs text-slate-400 font-mono flex justify-between">
-                  <span>{currentTenant.nombre} · POS White-Label</span>
+                  <span>{currentTenant?.nombre || 'Task Master'} · POS White-Label</span>
                   <span>Sucursal: {currentUser?.sucursal}</span>
                 </footer>
               </div>
@@ -622,10 +622,10 @@ export default function App() {
             <div className="flex-1 flex flex-col pb-24">
               <header className="px-4 py-2.5 border-b border-slate-200 bg-white flex items-center justify-between sticky top-0 z-30 shadow-flat-sm">
                 <div className="flex items-center gap-2">
-                  <span className="text-lg">{currentTenant.logo || '🍰'}</span>
+                  <span className="text-lg">{currentTenant?.logo || '🏬'}</span>
                   <div>
-                    <span className="text-xs font-bold text-slate-900 block leading-tight">{currentTenant.nombre}</span>
-                    <span className="text-[10px] font-semibold block" style={{ color: currentTenant.brand_color }}>
+                    <span className="text-xs font-bold text-slate-900 block leading-tight">{currentTenant?.nombre || 'Mi Negocio'}</span>
+                    <span className="text-[10px] font-semibold block" style={{ color: currentTenant?.brand_color || '#0F172A' }}>
                       {currentUser?.sucursal}
                     </span>
                   </div>
@@ -678,7 +678,7 @@ export default function App() {
           >
             <Sliders 
               className="w-4 h-4 transition-transform group-hover:rotate-45" 
-              style={{ color: currentTenant.brand_color }}
+              style={{ color: currentTenant?.brand_color || '#0F172A' }}
             />
             <span className="text-xs font-bold hidden sm:inline">Navbars ({navbarPosition})</span>
           </button>
@@ -695,7 +695,7 @@ export default function App() {
         onSelectBgTheme={setBgTheme}
         showDebugTools={showDebugTools}
         onToggleDebugTools={setShowDebugTools}
-        brandColor={currentTenant.brand_color}
+        brandColor={currentTenant?.brand_color || '#0F172A'}
       />
 
     </div>
