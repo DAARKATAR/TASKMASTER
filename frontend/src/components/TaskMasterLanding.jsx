@@ -51,7 +51,7 @@ export default function TaskMasterLanding({ onGoToLogin, onStartRegistration, on
   ];
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 font-sans flex flex-col selection:bg-slate-900 selection:text-white">
+    <div className="w-full flex-1 bg-white text-slate-900 font-sans flex flex-col selection:bg-slate-900 selection:text-white">
       
       {/* Header / Navbar de la Landing */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200">
