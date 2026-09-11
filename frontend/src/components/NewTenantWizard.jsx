@@ -90,7 +90,7 @@ export default function NewTenantWizard({ initialData, onComplete, onCancel }) {
     try {
       const slug = businessName.toLowerCase().replace(/[^a-z0-9]/g, '') || 'minuevopos';
       const finalLogo = logoType === 'upload' ? uploadedLogo : logoEmoji;
-      const finalNavPos = (isDesktopScreen && !isMobileSimulated && navbarPosition === 'bottom') ? 'top' : navbarPosition;
+      const finalNavPos = navbarPosition;
 
       const res = await fetch(`${API_BASE_URL}/api/auth/register-tenant`, {
         method: 'POST',
@@ -635,68 +635,49 @@ export default function NewTenantWizard({ initialData, onComplete, onCancel }) {
                 </span>
               </div>
 
-              {/* Esqueleto 4: Navbar Abajo (Bottom) - REGLA: INHABILITADA PARA PC */}
-              {(() => {
-                const isBottomAllowed = isMobileSimulated || !isDesktopScreen;
-                return (
-                  <div 
-                    onClick={() => {
-                      if (isBottomAllowed) setNavbarPosition('bottom');
-                    }}
-                    className={`p-4 rounded-2xl border transition-all flex flex-col justify-between relative ${
-                      !isBottomAllowed 
-                        ? 'opacity-60 bg-slate-50 border-slate-200 cursor-not-allowed' 
-                        : navbarPosition === 'bottom'
-                        ? 'border-slate-900 ring-2 ring-slate-900/15 bg-slate-50/50 shadow-sm cursor-pointer'
-                        : 'border-slate-200 bg-white hover:border-slate-300 cursor-pointer'
-                    }`}
-                  >
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-xs font-bold text-slate-900">Abajo (Bottom)</span>
-                          <Smartphone className="w-3 h-3 text-slate-700" />
-                        </div>
-                        {navbarPosition === 'bottom' && isBottomAllowed && <Check className="w-4 h-4 text-slate-900" />}
-                      </div>
+              {/* Esqueleto 4: Navbar Abajo (Bottom) */}
+              <div 
+                onClick={() => setNavbarPosition('bottom')}
+                className={`p-4 rounded-2xl border transition-all flex flex-col justify-between cursor-pointer ${
+                  navbarPosition === 'bottom'
+                    ? 'border-slate-900 ring-2 ring-slate-900/15 bg-slate-50/50 shadow-sm'
+                    : 'border-slate-200 bg-white hover:border-slate-300'
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-bold text-slate-900">Abajo (Bottom)</span>
+                      <Smartphone className="w-3.5 h-3.5 text-slate-700" />
+                    </div>
+                    {navbarPosition === 'bottom' && <Check className="w-4 h-4 text-slate-900" />}
+                  </div>
 
-                      {/* Visual Skeleton Wireframe */}
-                      <div className="w-full h-32 rounded-xl bg-slate-100 border border-slate-200 p-2 flex flex-col justify-between">
-                        <div className="flex-1 rounded-md bg-white border border-slate-200 p-1 flex flex-col gap-1 mb-1">
-                          <div className="h-2 w-12 rounded bg-slate-200" />
-                          <div className="grid grid-cols-2 gap-1 flex-1">
-                            <div className="rounded bg-slate-200/60" />
-                            <div className="rounded bg-slate-200/60" />
-                          </div>
-                        </div>
-                        {/* Barra Inferior */}
-                        <div 
-                          className={`h-4 w-full rounded-md flex items-center justify-around px-2 ${
-                            !isBottomAllowed ? 'bg-slate-400' : ''
-                          }`}
-                          style={isBottomAllowed ? { backgroundColor: brandColor } : {}}
-                        >
-                          <div className="w-2.5 h-2 rounded bg-white/90" />
-                          <div className="w-2.5 h-2 rounded bg-white/70" />
-                          <div className="w-2.5 h-2 rounded bg-white/70" />
-                        </div>
+                  {/* Visual Skeleton Wireframe */}
+                  <div className="w-full h-32 rounded-xl bg-slate-100 border border-slate-200 p-2 flex flex-col justify-between">
+                    <div className="flex-1 rounded-md bg-white border border-slate-200 p-1 flex flex-col gap-1 mb-1">
+                      <div className="h-2 w-12 rounded bg-slate-200" />
+                      <div className="grid grid-cols-2 gap-1 flex-1">
+                        <div className="rounded bg-slate-200/60" />
+                        <div className="rounded bg-slate-200/60" />
                       </div>
                     </div>
-
-                    <div className="mt-2">
-                      {!isBottomAllowed ? (
-                        <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 block text-center">
-                          ⚠️ Inhabilitada para PC
-                        </span>
-                      ) : (
-                        <span className="text-[11px] font-semibold text-emerald-700 block text-center">
-                          ✓ Habilitada para Móviles/Tablets
-                        </span>
-                      )}
+                    {/* Barra Inferior */}
+                    <div 
+                      className="h-4 w-full rounded-md flex items-center justify-around px-2"
+                      style={{ backgroundColor: brandColor }}
+                    >
+                      <div className="w-2.5 h-2 rounded bg-white/90" />
+                      <div className="w-2.5 h-2 rounded bg-white/70" />
+                      <div className="w-2.5 h-2 rounded bg-white/70" />
                     </div>
                   </div>
-                );
-              })()}
+                </div>
+
+                <span className="text-[11px] text-slate-500 mt-2 block">
+                  Estilo app táctil para tabletas, celulares y terminales portátiles.
+                </span>
+              </div>
 
             </div>
 

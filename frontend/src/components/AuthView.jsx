@@ -2,12 +2,19 @@ import React, { useState } from 'react';
 import { Lock, Mail, Store, ArrowRight, ShieldCheck, ArrowLeft, User, Sparkles, AlertCircle, Loader2 } from 'lucide-react';
 import { API_BASE_URL } from '../config/api';
 
-export default function AuthView({ initialIsRegister = false, onLoginSuccess, onStartNewTenantWizard, onBackToLanding }) {
+export default function AuthView({ 
+  initialIsRegister = false, 
+  initialEmail = '', 
+  initialPassword = '', 
+  onLoginSuccess, 
+  onStartNewTenantWizard, 
+  onBackToLanding 
+}) {
   const [isRegister, setIsRegister] = useState(initialIsRegister);
   
   // Login form state
-  const [loginEmail, setLoginEmail] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
+  const [loginEmail, setLoginEmail] = useState(initialEmail);
+  const [loginPassword, setLoginPassword] = useState(initialPassword);
   const [loadingLogin, setLoadingLogin] = useState(false);
   const [loginError, setLoginError] = useState(null);
 
@@ -183,7 +190,25 @@ export default function AuthView({ initialIsRegister = false, onLoginSuccess, on
             </div>
           </div>
 
-          <div className="pt-2">
+          {/* Credenciales de demostración preconfiguradas */}
+          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <span className="font-semibold text-slate-700 block">Cuenta Demo Preconfigurada:</span>
+              <span className="text-[11px] text-slate-500 font-mono truncate block">admin@taskmaster.com / admin123</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setLoginEmail('admin@taskmaster.com');
+                setLoginPassword('admin123');
+              }}
+              className="shrink-0 px-2.5 py-1 text-[11px] font-bold bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 rounded-lg transition-colors shadow-2xs"
+            >
+              Autocompletar
+            </button>
+          </div>
+
+          <div className="pt-1">
             <button
               type="submit"
               disabled={loadingLogin}

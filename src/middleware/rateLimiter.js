@@ -6,7 +6,7 @@ import rateLimit from 'express-rate-limit';
  */
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 10, // Máximo 10 intentos por IP
+  max: process.env.NODE_ENV === 'production' ? 15 : 1000, // Máximo 15 en producción, 1000 en desarrollo
   standardHeaders: true, // Devuelve headers RateLimit-* estándar
   legacyHeaders: false, // Deshabilita X-RateLimit-*
   message: {

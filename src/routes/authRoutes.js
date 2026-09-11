@@ -231,17 +231,52 @@ router.post('/login', authLimiter, async (req, res) => {
   const client = await pool.connect();
 
   try {
+    console.log(`[Auth Login] 📥 Nueva petición de inicio de sesión para: "${cleanEmail}"`);
+    console.log(`[Auth Login] 🔍 Consultando mapeo en tabla central "public.tenant_users"...`);
+
     // 1. Identificar a qué tenant pertenece el usuario
-    const { rows: mappingRows } = await client.query(
+    let { rows: mappingRows } = await client.query(
       'SELECT tenant_id FROM public.tenant_users WHERE email = $1;',
       [cleanEmail]
     );
 
-    if (mappingRows.length === 0) {
-      return res.status(401).json({ error: 'Credenciales inválidas. Usuario no registrado.' });
+    let tenantId = mappingRows[0]?.tenant_id;
+
+    // 1.1 Si no está en tenant_users, buscar en los esquemas existentes de public.tenants (Auto-reparación)
+    if (!tenantId) {
+      console.log(`[Auth Login] ⚠️ Usuario no encontrado en "public.tenant_users". Buscando en esquemas de tenants...`);
+      const { rows: allTenants } = await client.query(
+        'SELECT id, schema_name FROM public.tenants;'
+      );
+
+      for (const t of allTenants) {
+        try {
+          const { rows: checkUser } = await client.query(`
+            SELECT id FROM "${t.schema_name}".usuarios WHERE email = $1;
+          `, [cleanEmail]);
+
+          if (checkUser.length > 0) {
+            tenantId = t.id;
+            console.log(`[Auth Login] 💡 Usuario localizado en esquema "${t.schema_name}" (${t.id}). Auto-registrando en "public.tenant_users"...`);
+            await client.query(`
+              INSERT INTO public.tenant_users (email, tenant_id)
+              VALUES ($1, $2)
+              ON CONFLICT (email) DO UPDATE SET tenant_id = $2;
+            `, [cleanEmail, tenantId]);
+            break;
+          }
+        } catch (schemaErr) {
+          // Ignorar si el esquema o tabla aún no tiene la estructura
+        }
+      }
     }
 
-    const tenantId = mappingRows[0].tenant_id;
+    if (!tenantId) {
+      console.log(`[Auth Login] ❌ Usuario "${cleanEmail}" no encontrado en la base de datos.`);
+      return res.status(401).json({ error: 'Credenciales inválidas. Usuario no registrado en ningún negocio.' });
+    }
+
+    console.log(`[Auth Login] 🏢 Tenant identificado: "${tenantId}". Consultando datos del inquilino...`);
 
     // 2. Obtener datos del tenant
     const { rows: tenantRows } = await client.query(
@@ -250,10 +285,12 @@ router.post('/login', authLimiter, async (req, res) => {
     );
 
     if (tenantRows.length === 0) {
+      console.log(`[Auth Login] ❌ El negocio "${tenantId}" no está activo.`);
       return res.status(401).json({ error: 'El negocio asociado a este usuario no se encuentra activo.' });
     }
 
     const tenant = tenantRows[0];
+    console.log(`[Auth Login] 🔐 Verificando credenciales en "${tenant.schema_name}".usuarios...`);
 
     // 3. Consultar la tabla aislada del tenant
     const { rows: userRows } = await client.query(`
@@ -263,20 +300,25 @@ router.post('/login', authLimiter, async (req, res) => {
     `, [cleanEmail]);
 
     if (userRows.length === 0) {
+      console.log(`[Auth Login] ❌ El usuario no existe en la tabla "${tenant.schema_name}".usuarios.`);
       return res.status(401).json({ error: 'Credenciales inválidas.' });
     }
 
     const user = userRows[0];
 
     if (!user.activo) {
+      console.log(`[Auth Login] ⚠️ Cuenta desactivada para: "${cleanEmail}".`);
       return res.status(403).json({ error: 'Esta cuenta de usuario ha sido desactivada.' });
     }
 
     // 4. Comparar contraseña con bcrypt
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
     if (!isPasswordValid) {
+      console.log(`[Auth Login] ❌ Contraseña incorrecta para: "${cleanEmail}".`);
       return res.status(401).json({ error: 'Credenciales inválidas. Contraseña incorrecta.' });
     }
+
+    console.log(`[Auth Login] ✅ Contraseña válida para: "${cleanEmail}". Generando token JWT...`);
 
     // 5. Emitir JWT
     const token = signJwt({

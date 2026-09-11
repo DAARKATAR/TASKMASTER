@@ -20,6 +20,8 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [authToken, setAuthToken] = useState(() => localStorage.getItem('taskmaster_token') || null);
   const [authIsRegister, setAuthIsRegister] = useState(false);
+  const [authInitialEmail, setAuthInitialEmail] = useState('');
+  const [authInitialPassword, setAuthInitialPassword] = useState('');
   
   // Módulos internos del POS: 'pos' | 'invoices' | 'kpis' | 'console' | 'architecture'
   const [activeTab, setActiveTab] = useState('pos');
@@ -33,9 +35,19 @@ export default function App() {
   const [wizardInitData, setWizardInitData] = useState(null);
 
   // Opciones de personalización: 4 posiciones de Navbar y Color de Fondo Plano
-  const [navbarPosition, setNavbarPosition] = useState('top'); // 'top' | 'left' | 'right' | 'bottom'
-  const [bgTheme, setBgTheme] = useState('white'); // 'white' | 'cream' | 'pink' | 'lavender' | 'mint' | 'slate'
+  const [navbarPosition, setNavbarPosition] = useState(() => localStorage.getItem('taskmaster_nav_pos') || 'top'); // 'top' | 'left' | 'right' | 'bottom'
+  const [bgTheme, setBgTheme] = useState(() => localStorage.getItem('taskmaster_bg_theme') || 'white'); // 'white' | 'cream' | 'pink' | 'lavender' | 'mint' | 'slate'
   const [showCustomizer, setShowCustomizer] = useState(false);
+
+  const handleSelectNavbarPosition = (pos) => {
+    setNavbarPosition(pos);
+    localStorage.setItem('taskmaster_nav_pos', pos);
+  };
+
+  const handleSelectBgTheme = (theme) => {
+    setBgTheme(theme);
+    localStorage.setItem('taskmaster_bg_theme', theme);
+  };
   
   // Herramientas de depuración SOAP (ocultas en primera instancia)
   const [showDebugTools, setShowDebugTools] = useState(false);
@@ -164,18 +176,7 @@ export default function App() {
     }
   }, [currentTenant?.id]);
 
-  // Detección de ancho de pantalla para la regla de barra inferior
-  useEffect(() => {
-    const handleResize = () => {
-      const isDesktop = window.innerWidth >= 1024;
-      if (isDesktop && navbarPosition === 'bottom') {
-        setNavbarPosition('top');
-      }
-    };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [navbarPosition]);
+
 
   useEffect(() => {
     if (currentView === 'pos') {
@@ -356,8 +357,8 @@ export default function App() {
     }
     setCurrentTenant(sessionData.tenant);
     setCurrentUser(sessionData.user);
-    if (sessionData.bgTheme) setBgTheme(sessionData.bgTheme);
-    if (sessionData.navbarPosition) setNavbarPosition(sessionData.navbarPosition);
+    if (sessionData.bgTheme) handleSelectBgTheme(sessionData.bgTheme);
+    if (sessionData.navbarPosition) handleSelectNavbarPosition(sessionData.navbarPosition);
     loadTenants();
     setCurrentView('pos');
   };
@@ -443,14 +444,20 @@ export default function App() {
         <TaskMasterLanding 
           onGoToLogin={() => {
             setAuthIsRegister(false);
+            setAuthInitialEmail('');
+            setAuthInitialPassword('');
             setCurrentView('auth');
           }}
           onStartRegistration={() => {
             setAuthIsRegister(true);
+            setAuthInitialEmail('');
+            setAuthInitialPassword('');
             setCurrentView('auth');
           }}
           onQuickLaunchDemo={() => {
             setAuthIsRegister(false);
+            setAuthInitialEmail('admin@taskmaster.com');
+            setAuthInitialPassword('admin123');
             setCurrentView('auth');
           }}
         />
@@ -461,6 +468,8 @@ export default function App() {
         <div className="min-h-screen flex items-center justify-center p-4 sm:p-8">
           <AuthView 
             initialIsRegister={authIsRegister}
+            initialEmail={authInitialEmail}
+            initialPassword={authInitialPassword}
             onLoginSuccess={handleLoginSuccess}
             onStartNewTenantWizard={handleStartNewTenantWizard}
             onBackToLanding={() => setCurrentView('landing')}
@@ -719,9 +728,9 @@ export default function App() {
         isOpen={showCustomizer}
         onClose={() => setShowCustomizer(false)}
         navbarPosition={navbarPosition}
-        onSelectNavbarPosition={setNavbarPosition}
+        onSelectNavbarPosition={handleSelectNavbarPosition}
         bgTheme={bgTheme}
-        onSelectBgTheme={setBgTheme}
+        onSelectBgTheme={handleSelectBgTheme}
         showDebugTools={showDebugTools}
         onToggleDebugTools={setShowDebugTools}
         brandColor={currentTenant?.brand_color || '#0F172A'}

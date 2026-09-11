@@ -92,7 +92,15 @@ export default function ThemeCustomizerModal({
                       <span className="text-[11px] text-slate-500 block leading-tight">{pos.desc}</span>
                     </div>
                   </div>
-                  {isSelected && <Check className="w-4 h-4 shrink-0" style={{ color: brandColor }} />}
+                  {isSelected && (
+                    <span 
+                      className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full text-white shadow-2xs shrink-0"
+                      style={{ backgroundColor: brandColor }}
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Activo</span>
+                    </span>
+                  )}
                 </button>
               );
             })}
