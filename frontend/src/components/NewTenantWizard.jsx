@@ -1,6 +1,6 @@
 import { optimizeImageToWebP, formatBytes } from '../utils/imageOptimizer';
 import React, { useState, useRef, useEffect } from 'react';
-import { Palette, Upload, Image as ImageIcon, Layout, Check, ArrowRight, ArrowLeft, Smartphone, Monitor, AlertCircle, Sparkles, Store, Building, User, Mail, Lock, Loader2 } from 'lucide-react';
+import { Palette, Upload, Image as ImageIcon, Layout, Check, ArrowRight, ArrowLeft, Smartphone, Monitor, AlertCircle, Store, Loader2 } from 'lucide-react';
 import { API_BASE_URL } from '../config/api';
 
 export default function NewTenantWizard({ initialData, onComplete, onCancel }) {
@@ -33,7 +33,6 @@ export default function NewTenantWizard({ initialData, onComplete, onCancel }) {
   // 3. Layout y regla de dispositivo
   const [navbarPosition, setNavbarPosition] = useState('top');
   const [isMobileSimulated, setIsMobileSimulated] = useState(false);
-  const [isDesktopScreen, setIsDesktopScreen] = useState(true);
   const [acceptedFiscalDisclaimer, setAcceptedFiscalDisclaimer] = useState(false);
 
   useEffect(() => {
