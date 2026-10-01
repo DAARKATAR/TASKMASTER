@@ -14,12 +14,17 @@ import {
   ShoppingCart,
   PackagePlus,
   Loader2,
-  AlertTriangle
+  AlertTriangle,
+  Wifi,
+  WifiOff,
+  CloudUpload,
+  RefreshCw
 } from 'lucide-react';
 import BakeryReceiptTicket from './BakeryReceiptTicket';
 import NewProductModal from './NewProductModal';
 import { useCart } from '../hooks/useCart';
 import { API_BASE_URL } from '../config/api';
+import { getOfflineQueue, syncOfflineQueue } from '../utils/offlineQueue';;
 
 export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastResponse }) {
   const [selectedRubro, setSelectedRubro] = useState('Todos');
