@@ -160,7 +160,7 @@
     <article 
       id="diag-01-arq" 
       data-category="arq" 
-      data-title="diagrama de arquitectura global del sistema (c4 nivel 2)" 
+      data-title="diagrama de arquitectura de microservicios (enterprise vpc & clúster kubernetes)" 
       data-code="arq-01"
       class="diagram-card bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
     >
@@ -175,21 +175,21 @@
               Arquitectura & ERD
             </span>
           </div>
-          <h2 class="text-xl sm:text-2xl font-black text-white mt-2">Diagrama de Arquitectura Global del Sistema (C4 Nivel 2)</h2>
-          <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-4xl leading-relaxed">Visión integral de contenedores y servicios: Cloudflare Edge (CDN / WAF), Frontend React SPA, Backend Node.js en Render, Caché en Memoria LRU con TTL de 60s, Cola Offline LocalStorage y PostgreSQL Neon Multi-Tenant con aislamiento por esquemas (public vs tenant_{slug}) y Gateway Fiscal SOAP.</p>
+          <h2 class="text-xl sm:text-2xl font-black text-white mt-2">Diagrama de Arquitectura de Microservicios (Enterprise VPC & Clúster Kubernetes)</h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-4xl leading-relaxed">Arquitectura integral de microservicios según especificación empresarial: Red privada VPC, balanceadores Ingress internos, Service Mesh (Consul), Tiers de Microservicios (Python Auth, Go Transaccional, Java/TS Fiscal), Observabilidad (Prometheus, Alertmanager, ELK), Almacenamiento Distribuido (PostgreSQL Multitenant, Redis, RocketMQ) y pipeline CI/CD con Bastion Jump Hosts.</p>
         </div>
 
         <!-- Botones de Descarga del Diagrama -->
         <div class="flex items-center gap-2 no-print shrink-0">
           <button 
-            onclick="downloadPNG('diag-01-arq', 'ARQ-01_Diagrama_de_Arquitectura_Global_del_Sistema__C4_Nivel_2_')"
+            onclick="downloadPNG('diag-01-arq', 'ARQ-01_Diagrama_de_Arquitectura_de_Microservicios__Enterprise_VPC___Cl_ster_Kubernetes_')"
             class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-sky-400 border border-slate-700 hover:border-sky-500 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
             title="Descargar en formato PNG de Alta Resolución"
           >
             <span>🖼️ Descargar PNG</span>
           </button>
           <button 
-            onclick="downloadSVG('diag-01-arq', 'ARQ-01_Diagrama_de_Arquitectura_Global_del_Sistema__C4_Nivel_2_')"
+            onclick="downloadSVG('diag-01-arq', 'ARQ-01_Diagrama_de_Arquitectura_de_Microservicios__Enterprise_VPC___Cl_ster_Kubernetes_')"
             class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
             title="Descargar Vector SVG Nítido Escalable"
           >
@@ -209,133 +209,391 @@
       <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 overflow-x-auto flex items-center justify-center min-h-[320px] diagram-canvas-container">
         <pre class="mermaid text-center w-full" id="mermaid-diag-01-arq">
 flowchart TB
-    subgraph ClientLayer["🖥️ Capa de Cliente & Dispositivos"]
-        Browser["🌐 Navegador Web / Terminal POS (Vite + React)"]
-        Mobile["📱 Dispositivo Móvil / Tablet Mostrador"]
-        OfflineQueue["💾 Almacenamiento Local (Cola Offline Resilience)"]
-        Browser <--> OfflineQueue
+    %% =========================================================================
+    %% DIAGRAMA DE ARQUITECTURA DE MICROSERVICIOS (ENTERPRISE VPC & KUBERNETES)
+    %% =========================================================================
+
+    subgraph CLIENTS["📱 Clientes & Dispositivos Externos"]
+        api_client["💻 apis (REST / SOAP Client)"]
+        pc_client["🖥️ pc (Web POS Terminal)"]
+        mobile_client["📱 phone (Móvil / Tablet Mostrador)"]
     end
 
-    subgraph EdgeLayer["🛡️ Capa de Borde & Red (Cloudflare)"]
-        CF_DNS["Cloudflare DNS & WAF"]
-        CF_Pages["Cloudflare Pages / Workers (Frontend Assets Hosting)"]
-        CF_SSL["Terminación SSL / TLS 1.3"]
-        Browser --> CF_DNS
-        Mobile --> CF_DNS
-        CF_DNS --> CF_Pages
-        CF_DNS --> CF_SSL
+    subgraph VPC["☁️ Red Privada Virtual (VPC TASKMASTER Cloud)"]
+        
+        subgraph PUBLIC_NET["🌐 Red Pública SLB & Borde"]
+            pub_slb["Red pública SLB / Cloudflare WAF"]
+            cdn_edge["CDN Anycast / DNS Edge"]
+        end
+
+        subgraph INTRANET_SLB["🔀 Intranet SLB & Ingress Gateway"]
+            ingress1["Ingress Controller 1
+(Adentro / Afuera)"]
+            ingress2["Ingress Controller 2
+(Adentro / Afuera)"]
+        end
+
+        subgraph KUBERNETES["☸️ Clúster de Microservicios (Kubernetes / Render Compute)"]
+            
+            subgraph SERVICE_DISCOVERY["🧭 Service Discovery & Mesh"]
+                consul1["Consul 1
+(Líder de Registro)"]
+                consul2["Consul 2
+(Nodo Réplica)"]
+                consul3["Consul 3
+(Nodo Réplica)"]
+                consul1 --- consul2 --- consul3
+            end
+
+            subgraph API_GATEWAYS["🚪 API Gateways Internos"]
+                gw1["gateway 1
+(Express Router API)"]
+                gw2["gateway 2
+(SOAP / WSDL Proxy)"]
+            end
+
+            subgraph TIER_PYTHON["🐍 Microservicios de Autenticación & Usuarios (Tier Python / Auth)"]
+                s_py1["serve 1
+(Auth & JWT)"]
+                s_py2["serve 2
+(RBAC Guard)"]
+                s_py3["serve 3
+(User Service)"]
+                s_py4["serve 4
+(Audit Interceptor)"]
+            end
+
+            subgraph TIER_GOLANG["⚡ Microservicios Transaccionales & Multitenant (Tier Go / Transaccional)"]
+                s_go1["serve 1
+(Tenant Provisioner)"]
+                s_go2["serve 2
+(POS Cashier Engine)"]
+                s_go3["serve 3
+(Cart & Checkout)"]
+                s_go4["serve 4
+(Search-Path Router)"]
+            end
+
+            subgraph TIER_JAVA["☕ Microservicios Fiscales & Catálogo (Tier Java / Core Fiscal)"]
+                s_jv1["web 1
+(DIAN XML Signer)"]
+                s_jv2["web 2
+(CUFE Generator)"]
+                s_jv3["web 3
+(XSD Validator)"]
+                s_jv4["web 4
+(Product & Stock Engine)"]
+            end
+
+            subgraph OBSERVABILITY["📊 Monitoreo & Métricas"]
+                prometheus["Prometheus
+(Métricas Pods)"]
+                alertmgr["Alertmanager
+(Reglas de Alerta)"]
+                prometheus --> alertmgr
+            end
+
+            subgraph LOG_STACK["📑 Pipeline de Auditoría & Logs (ELK)"]
+                logstash["Logstash / Filebeat
+(Recolección)"]
+                elasticsearch[("Elasticsearch
+(Índice Central)")]
+                kibana["Kibana
+(Tablero de Control)"]
+                logstash --> elasticsearch --> kibana
+            end
+
+        end
+
+        subgraph DATA_TIER["🗄️ Capa de Datos & Almacenamiento Distribuido"]
+            oss_store[("📦 OSS / Cloudflare R2
+(Logos & Assets)")]
+            pg_db[("🐘 PostgreSQL / Neon
+(Esquemas Multitenant)")]
+            redis_cache[("⚡ Redis Cluster
+(Caché LRU & RateLimit)")]
+            rocket_mq[("📨 RocketMQ / RabbitMQ
+(Cola Resiliente Offline)")]
+            hbase_audit[("🏛️ HBase / Mongo
+(Histórico Fiscal CUFE)")]
+        end
+
+        subgraph BASTION["🛡️ Bastion & Gestión de Acceso"]
+            jump1["jump 1 (SSH Bastion)"]
+            jump2["jump 2 (VPN Gateway)"]
+        end
+
     end
 
-    subgraph BackendLayer["⚙️ Capa de Aplicación & Lógica de Negocio (Render Cloud)"]
-        ExpressServer["Servidor API Node.js / Express (TypeScript)"]
-        CorsGuard["Middleware CORS (GET, POST, PUT, PATCH, DELETE)"]
-        RateLimiter["Rate Limiting (Protección Anti-Abuso)"]
-        AuthModule["Módulo de Autenticación & JWT"]
-        TenantModule["Módulo de Inquilinos & Aprovisionamiento Dinámico"]
-        InvoiceModule["Módulo de Facturación & Emisión de Comprobantes"]
-        ProductModule["Módulo de Catálogo & Existencias"]
-        SoapEngine["Motor SOAP / WSDL & Validador XSD"]
-        MemoryCache["⚡ Caché en Memoria LRU (TTL 60s - Inval. Reactiva)"]
-
-        CF_SSL --> CorsGuard
-        CorsGuard --> RateLimiter
-        RateLimiter --> ExpressServer
-        ExpressServer --> AuthModule
-        ExpressServer --> TenantModule
-        ExpressServer --> InvoiceModule
-        ExpressServer --> ProductModule
-        ExpressServer --> SoapEngine
-        ProductModule <--> MemoryCache
+    subgraph NOTIFICATIONS["🔔 Canales de Notificación"]
+        notif_email["📧 Email
+(Alertas Contables)"]
+        notif_phone["📞 phone / SMS
+(MFA & Alertas)"]
+        notif_wechat["💬 WeChat / Slack
+(Webhook Alertas)"]
     end
 
-    subgraph DatabaseLayer["🗄️ Capa de Datos (Neon Serverless PostgreSQL)"]
-        PublicSchema[("🏢 Esquema 'public' (Global)
-tenants | users | user_tenants")]
-        TenantSchema1[("🏬 Esquema 'tenant_pasteleria' (Aislado)
-facturas | factura_detalles | productos")]
-        TenantSchema2[("🍕 Esquema 'tenant_tortasysnacks' (Aislado)
-facturas | factura_detalles | productos")]
-        TenantSchemaN[("📦 Esquema 'tenant_{slug}' (On-Demand)
-facturas | factura_detalles | productos")]
-
-        AuthModule --> PublicSchema
-        TenantModule --> PublicSchema
-        TenantModule -.->|"DDL CREATE SCHEMA"| TenantSchemaN
-        InvoiceModule -->|"SET search_path"| TenantSchema1
-        InvoiceModule -->|"SET search_path"| TenantSchema2
-        ProductModule -->|"SET search_path"| TenantSchema1
+    subgraph DEVOPS_AREA["🏢 Área de Oficina & CI/CD Pipeline"]
+        office_admins["👨‍💻 Área de oficina
+(DevOps & Auditores)"]
+        git_repo["🐙 Git Repo
+(TASKMASTER GitHub)"]
+        jenkins_ci["⚙️ Jenkins / Actions
+(CI Pipeline)"]
+        harbor_reg["🐳 Harbor / Docker
+(Registry de Imágenes)"]
+        ansible_dep["🚀 Ansible / Helm
+(Despliegue Continuo)"]
     end
 
-    subgraph ExternalLayer["🏛️ Servicios Externos Fiscales"]
-        DianSoap["📡 Servicio Fiscal DIAN / Factura Electrónica (SOAP/XML)"]
-        SoapEngine <-->|"SOAP Envelope (CUFE / Hash)"| DianSoap
-    end
+    %% Conexiones de Entrada
+    api_client --> pub_slb
+    pc_client --> pub_slb
+    mobile_client --> pub_slb
+    pub_slb --> cdn_edge
+    pub_slb --> ingress1
+    pub_slb --> ingress2
+
+    %% Enrutamiento Interno Ingress a Gateways y Consul
+    ingress1 --> consul1
+    ingress2 --> consul2
+    consul1 --> gw1
+    consul2 --> gw2
+
+    %% Distribución de Carga hacia los Tiers de Servicios
+    gw1 --> s_py1
+    gw1 --> s_py2
+    gw1 --> s_go1
+    gw1 --> s_go2
+    gw2 --> s_jv1
+    gw2 --> s_jv2
+
+    %% Monitoreo de Tiers
+    s_py4 -.-> prometheus
+    s_go4 -.-> prometheus
+    s_jv4 -.-> prometheus
+    s_py4 -.-> logstash
+    s_go4 -.-> logstash
+    s_jv4 -.-> logstash
+
+    %% Alertas
+    alertmgr --> notif_email
+    alertmgr --> notif_phone
+    alertmgr --> notif_wechat
+
+    %% Acceso a Datos
+    s_py1 --> pg_db
+    s_go2 --> pg_db
+    s_go3 --> redis_cache
+    s_go4 --> rocket_mq
+    s_jv1 --> hbase_audit
+    s_jv4 --> oss_store
+
+    %% Flujo DevOps y Oficina
+    office_admins --> jump1
+    office_admins --> jump2
+    jump1 --> KUBERNETES
+    office_admins --> git_repo
+    git_repo --> jenkins_ci
+    jenkins_ci --> harbor_reg
+    harbor_reg --> ansible_dep
+    ansible_dep --> KUBERNETES
         </pre>
       </div>
 
       <!-- Código Mermaid Oculto para Copiado -->
       <textarea id="raw-diag-01-arq" class="hidden">flowchart TB
-    subgraph ClientLayer["🖥️ Capa de Cliente & Dispositivos"]
-        Browser["🌐 Navegador Web / Terminal POS (Vite + React)"]
-        Mobile["📱 Dispositivo Móvil / Tablet Mostrador"]
-        OfflineQueue["💾 Almacenamiento Local (Cola Offline Resilience)"]
-        Browser <--> OfflineQueue
+    %% =========================================================================
+    %% DIAGRAMA DE ARQUITECTURA DE MICROSERVICIOS (ENTERPRISE VPC & KUBERNETES)
+    %% =========================================================================
+
+    subgraph CLIENTS["📱 Clientes & Dispositivos Externos"]
+        api_client["💻 apis (REST / SOAP Client)"]
+        pc_client["🖥️ pc (Web POS Terminal)"]
+        mobile_client["📱 phone (Móvil / Tablet Mostrador)"]
     end
 
-    subgraph EdgeLayer["🛡️ Capa de Borde & Red (Cloudflare)"]
-        CF_DNS["Cloudflare DNS & WAF"]
-        CF_Pages["Cloudflare Pages / Workers (Frontend Assets Hosting)"]
-        CF_SSL["Terminación SSL / TLS 1.3"]
-        Browser --> CF_DNS
-        Mobile --> CF_DNS
-        CF_DNS --> CF_Pages
-        CF_DNS --> CF_SSL
+    subgraph VPC["☁️ Red Privada Virtual (VPC TASKMASTER Cloud)"]
+        
+        subgraph PUBLIC_NET["🌐 Red Pública SLB & Borde"]
+            pub_slb["Red pública SLB / Cloudflare WAF"]
+            cdn_edge["CDN Anycast / DNS Edge"]
+        end
+
+        subgraph INTRANET_SLB["🔀 Intranet SLB & Ingress Gateway"]
+            ingress1["Ingress Controller 1
+(Adentro / Afuera)"]
+            ingress2["Ingress Controller 2
+(Adentro / Afuera)"]
+        end
+
+        subgraph KUBERNETES["☸️ Clúster de Microservicios (Kubernetes / Render Compute)"]
+            
+            subgraph SERVICE_DISCOVERY["🧭 Service Discovery & Mesh"]
+                consul1["Consul 1
+(Líder de Registro)"]
+                consul2["Consul 2
+(Nodo Réplica)"]
+                consul3["Consul 3
+(Nodo Réplica)"]
+                consul1 --- consul2 --- consul3
+            end
+
+            subgraph API_GATEWAYS["🚪 API Gateways Internos"]
+                gw1["gateway 1
+(Express Router API)"]
+                gw2["gateway 2
+(SOAP / WSDL Proxy)"]
+            end
+
+            subgraph TIER_PYTHON["🐍 Microservicios de Autenticación & Usuarios (Tier Python / Auth)"]
+                s_py1["serve 1
+(Auth & JWT)"]
+                s_py2["serve 2
+(RBAC Guard)"]
+                s_py3["serve 3
+(User Service)"]
+                s_py4["serve 4
+(Audit Interceptor)"]
+            end
+
+            subgraph TIER_GOLANG["⚡ Microservicios Transaccionales & Multitenant (Tier Go / Transaccional)"]
+                s_go1["serve 1
+(Tenant Provisioner)"]
+                s_go2["serve 2
+(POS Cashier Engine)"]
+                s_go3["serve 3
+(Cart & Checkout)"]
+                s_go4["serve 4
+(Search-Path Router)"]
+            end
+
+            subgraph TIER_JAVA["☕ Microservicios Fiscales & Catálogo (Tier Java / Core Fiscal)"]
+                s_jv1["web 1
+(DIAN XML Signer)"]
+                s_jv2["web 2
+(CUFE Generator)"]
+                s_jv3["web 3
+(XSD Validator)"]
+                s_jv4["web 4
+(Product & Stock Engine)"]
+            end
+
+            subgraph OBSERVABILITY["📊 Monitoreo & Métricas"]
+                prometheus["Prometheus
+(Métricas Pods)"]
+                alertmgr["Alertmanager
+(Reglas de Alerta)"]
+                prometheus --> alertmgr
+            end
+
+            subgraph LOG_STACK["📑 Pipeline de Auditoría & Logs (ELK)"]
+                logstash["Logstash / Filebeat
+(Recolección)"]
+                elasticsearch[("Elasticsearch
+(Índice Central)")]
+                kibana["Kibana
+(Tablero de Control)"]
+                logstash --> elasticsearch --> kibana
+            end
+
+        end
+
+        subgraph DATA_TIER["🗄️ Capa de Datos & Almacenamiento Distribuido"]
+            oss_store[("📦 OSS / Cloudflare R2
+(Logos & Assets)")]
+            pg_db[("🐘 PostgreSQL / Neon
+(Esquemas Multitenant)")]
+            redis_cache[("⚡ Redis Cluster
+(Caché LRU & RateLimit)")]
+            rocket_mq[("📨 RocketMQ / RabbitMQ
+(Cola Resiliente Offline)")]
+            hbase_audit[("🏛️ HBase / Mongo
+(Histórico Fiscal CUFE)")]
+        end
+
+        subgraph BASTION["🛡️ Bastion & Gestión de Acceso"]
+            jump1["jump 1 (SSH Bastion)"]
+            jump2["jump 2 (VPN Gateway)"]
+        end
+
     end
 
-    subgraph BackendLayer["⚙️ Capa de Aplicación & Lógica de Negocio (Render Cloud)"]
-        ExpressServer["Servidor API Node.js / Express (TypeScript)"]
-        CorsGuard["Middleware CORS (GET, POST, PUT, PATCH, DELETE)"]
-        RateLimiter["Rate Limiting (Protección Anti-Abuso)"]
-        AuthModule["Módulo de Autenticación & JWT"]
-        TenantModule["Módulo de Inquilinos & Aprovisionamiento Dinámico"]
-        InvoiceModule["Módulo de Facturación & Emisión de Comprobantes"]
-        ProductModule["Módulo de Catálogo & Existencias"]
-        SoapEngine["Motor SOAP / WSDL & Validador XSD"]
-        MemoryCache["⚡ Caché en Memoria LRU (TTL 60s - Inval. Reactiva)"]
-
-        CF_SSL --> CorsGuard
-        CorsGuard --> RateLimiter
-        RateLimiter --> ExpressServer
-        ExpressServer --> AuthModule
-        ExpressServer --> TenantModule
-        ExpressServer --> InvoiceModule
-        ExpressServer --> ProductModule
-        ExpressServer --> SoapEngine
-        ProductModule <--> MemoryCache
+    subgraph NOTIFICATIONS["🔔 Canales de Notificación"]
+        notif_email["📧 Email
+(Alertas Contables)"]
+        notif_phone["📞 phone / SMS
+(MFA & Alertas)"]
+        notif_wechat["💬 WeChat / Slack
+(Webhook Alertas)"]
     end
 
-    subgraph DatabaseLayer["🗄️ Capa de Datos (Neon Serverless PostgreSQL)"]
-        PublicSchema[("🏢 Esquema 'public' (Global)
-tenants | users | user_tenants")]
-        TenantSchema1[("🏬 Esquema 'tenant_pasteleria' (Aislado)
-facturas | factura_detalles | productos")]
-        TenantSchema2[("🍕 Esquema 'tenant_tortasysnacks' (Aislado)
-facturas | factura_detalles | productos")]
-        TenantSchemaN[("📦 Esquema 'tenant_{slug}' (On-Demand)
-facturas | factura_detalles | productos")]
-
-        AuthModule --> PublicSchema
-        TenantModule --> PublicSchema
-        TenantModule -.->|"DDL CREATE SCHEMA"| TenantSchemaN
-        InvoiceModule -->|"SET search_path"| TenantSchema1
-        InvoiceModule -->|"SET search_path"| TenantSchema2
-        ProductModule -->|"SET search_path"| TenantSchema1
+    subgraph DEVOPS_AREA["🏢 Área de Oficina & CI/CD Pipeline"]
+        office_admins["👨‍💻 Área de oficina
+(DevOps & Auditores)"]
+        git_repo["🐙 Git Repo
+(TASKMASTER GitHub)"]
+        jenkins_ci["⚙️ Jenkins / Actions
+(CI Pipeline)"]
+        harbor_reg["🐳 Harbor / Docker
+(Registry de Imágenes)"]
+        ansible_dep["🚀 Ansible / Helm
+(Despliegue Continuo)"]
     end
 
-    subgraph ExternalLayer["🏛️ Servicios Externos Fiscales"]
-        DianSoap["📡 Servicio Fiscal DIAN / Factura Electrónica (SOAP/XML)"]
-        SoapEngine <-->|"SOAP Envelope (CUFE / Hash)"| DianSoap
-    end</textarea>
+    %% Conexiones de Entrada
+    api_client --> pub_slb
+    pc_client --> pub_slb
+    mobile_client --> pub_slb
+    pub_slb --> cdn_edge
+    pub_slb --> ingress1
+    pub_slb --> ingress2
+
+    %% Enrutamiento Interno Ingress a Gateways y Consul
+    ingress1 --> consul1
+    ingress2 --> consul2
+    consul1 --> gw1
+    consul2 --> gw2
+
+    %% Distribución de Carga hacia los Tiers de Servicios
+    gw1 --> s_py1
+    gw1 --> s_py2
+    gw1 --> s_go1
+    gw1 --> s_go2
+    gw2 --> s_jv1
+    gw2 --> s_jv2
+
+    %% Monitoreo de Tiers
+    s_py4 -.-> prometheus
+    s_go4 -.-> prometheus
+    s_jv4 -.-> prometheus
+    s_py4 -.-> logstash
+    s_go4 -.-> logstash
+    s_jv4 -.-> logstash
+
+    %% Alertas
+    alertmgr --> notif_email
+    alertmgr --> notif_phone
+    alertmgr --> notif_wechat
+
+    %% Acceso a Datos
+    s_py1 --> pg_db
+    s_go2 --> pg_db
+    s_go3 --> redis_cache
+    s_go4 --> rocket_mq
+    s_jv1 --> hbase_audit
+    s_jv4 --> oss_store
+
+    %% Flujo DevOps y Oficina
+    office_admins --> jump1
+    office_admins --> jump2
+    jump1 --> KUBERNETES
+    office_admins --> git_repo
+    git_repo --> jenkins_ci
+    jenkins_ci --> harbor_reg
+    harbor_reg --> ansible_dep
+    ansible_dep --> KUBERNETES</textarea>
     </article>
 
 
@@ -618,10 +876,10 @@ flowchart LR
     Cajero --> UC8
     Cliente --> UC4
 
-    UC5 -.->|<<includes>>| UC9
-    UC5 -.->|<<includes>>| UC8
-    UC6 -.->|<<extends>>| UC5
-    UC7 -.->|<<extends>>| UC6
+    UC5 -.->|"«include»"| UC9
+    UC5 -.->|"«include»"| UC8
+    UC6 -.->|"«extend»"| UC5
+    UC7 -.->|"«extend»"| UC6
         </pre>
       </div>
 
@@ -652,10 +910,10 @@ flowchart LR
     Cajero --> UC8
     Cliente --> UC4
 
-    UC5 -.->|<<includes>>| UC9
-    UC5 -.->|<<includes>>| UC8
-    UC6 -.->|<<extends>>| UC5
-    UC7 -.->|<<extends>>| UC6</textarea>
+    UC5 -.->|"«include»"| UC9
+    UC5 -.->|"«include»"| UC8
+    UC6 -.->|"«extend»"| UC5
+    UC7 -.->|"«extend»"| UC6</textarea>
     </article>
 
 
@@ -735,9 +993,9 @@ flowchart LR
     Admin --> UC17
     Admin --> UC14
 
-    UC10 -.->|<<includes>>| UC11
-    UC10 -.->|<<includes>>| UC14
-    UC14 -.->|<<includes>>| UC15
+    UC10 -.->|"«include»"| UC11
+    UC10 -.->|"«include»"| UC14
+    UC14 -.->|"«include»"| UC15
         </pre>
       </div>
 
@@ -766,9 +1024,9 @@ flowchart LR
     Admin --> UC17
     Admin --> UC14
 
-    UC10 -.->|<<includes>>| UC11
-    UC10 -.->|<<includes>>| UC14
-    UC14 -.->|<<includes>>| UC15</textarea>
+    UC10 -.->|"«include»"| UC11
+    UC10 -.->|"«include»"| UC14
+    UC14 -.->|"«include»"| UC15</textarea>
     </article>
 
 
@@ -843,10 +1101,10 @@ flowchart LR
     Auditor --> UC24
     UC22 <--> DianServer
 
-    UC22 -.->|<<includes>>| UC19
-    UC22 -.->|<<includes>>| UC20
-    UC22 -.->|<<includes>>| UC21
-    UC22 -.->|<<extends>>| UC23
+    UC22 -.->|"«include»"| UC19
+    UC22 -.->|"«include»"| UC20
+    UC22 -.->|"«include»"| UC21
+    UC22 -.->|"«extend»"| UC23
         </pre>
       </div>
 
@@ -870,10 +1128,10 @@ flowchart LR
     Auditor --> UC24
     UC22 <--> DianServer
 
-    UC22 -.->|<<includes>>| UC19
-    UC22 -.->|<<includes>>| UC20
-    UC22 -.->|<<includes>>| UC21
-    UC22 -.->|<<extends>>| UC23</textarea>
+    UC22 -.->|"«include»"| UC19
+    UC22 -.->|"«include»"| UC20
+    UC22 -.->|"«include»"| UC21
+    UC22 -.->|"«extend»"| UC23</textarea>
     </article>
 
 
