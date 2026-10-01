@@ -44,8 +44,12 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
     customerName,
     setCustomerName,
     paymentMethod,
-    setPaymentMethod
-  } = useCart(0.19); // 19% IVA
+    setPaymentMethod,
+    applyTax,
+    setApplyTax,
+    taxRate,
+    setTaxRate
+  } = useCart(0.19, false); // 19% IVA opcional desactivado por defecto
 
   const brandColor = tenant?.brand_color || '#0F172A';
 
@@ -385,6 +389,33 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
               </div>
             </div>
 
+            {/* Opción Adicional: Toggle de Cálculo de Impuestos / IVA */}
+            <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
+              <label className="flex items-center justify-between cursor-pointer select-none">
+                <div className="flex items-center gap-2.5">
+                  <input
+                    type="checkbox"
+                    checked={applyTax}
+                    onChange={(e) => setApplyTax(e.target.checked)}
+                    className="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900 cursor-pointer"
+                  />
+                  <div>
+                    <span className="font-bold text-slate-800 block text-xs">
+                      Calcular Impuesto / IVA ({Math.round(taxRate * 100)}%)
+                    </span>
+                    <span className="text-[10px] text-slate-400 block">
+                      {applyTax ? "Cálculo tributario activo para esta orden" : "Opcional (Exento / Régimen Simplificado)"}
+                    </span>
+                  </div>
+                </div>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold font-mono ${
+                  applyTax ? "bg-indigo-50 text-indigo-700 border border-indigo-200" : "bg-slate-200 text-slate-600"
+                }`}>
+                  {applyTax ? `+${Math.round(taxRate * 100)}%` : "0% IVA"}
+                </span>
+              </label>
+            </div>
+
             {/* Resumen Financiero */}
             <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-xs font-mono">
               <div className="flex justify-between text-slate-500">
@@ -392,8 +423,10 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
                 <span>${subtotal.toLocaleString('es-CO')}</span>
               </div>
               <div className="flex justify-between text-slate-500">
-                <span>IVA Estimado (19%):</span>
-                <span>${impuestos.toLocaleString('es-CO')}</span>
+                <span>IVA / Impuestos ({applyTax ? `${Math.round(taxRate * 100)}%` : "Exento"}):</span>
+                <span className={applyTax ? "text-slate-800 font-bold" : "text-slate-400"}>
+                  ${impuestos.toLocaleString('es-CO')}
+                </span>
               </div>
               <div className="flex justify-between text-sm font-bold text-slate-900 pt-2 border-t border-slate-200">
                 <span>TOTAL A COBRAR:</span>

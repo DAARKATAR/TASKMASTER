@@ -2,11 +2,14 @@ import { useState, useMemo } from 'react';
 
 /**
  * Hook para la gestión del carrito de compras POS
+ * Incluye cálculo opcional de impuestos mediante toggle / checkbox
  */
-export function useCart(taxRate = 0.16) {
+export function useCart(defaultTaxRate = 0.19, initialApplyTax = false) {
   const [cart, setCart] = useState([]);
   const [customerName, setCustomerName] = useState('Cliente Mostrador');
   const [paymentMethod, setPaymentMethod] = useState('Efectivo');
+  const [applyTax, setApplyTax] = useState(initialApplyTax);
+  const [taxRate, setTaxRate] = useState(defaultTaxRate);
 
   const addToCart = (product) => {
     setCart((prev) => {
@@ -47,6 +50,7 @@ export function useCart(taxRate = 0.16) {
     setCart([]);
     setCustomerName('Cliente Mostrador');
     setPaymentMethod('Efectivo');
+    // Mantenemos la preferencia de applyTax para agilizar cobros sucesivos
   };
 
   const { subtotal, impuestos, total, itemsCount } = useMemo(() => {
@@ -54,7 +58,7 @@ export function useCart(taxRate = 0.16) {
       (acc, item) => acc + (parseFloat(item.precio || item.price || 0) * item.qty),
       0
     );
-    const rawTax = rawSubtotal * taxRate;
+    const rawTax = applyTax ? rawSubtotal * taxRate : 0;
     const rawTotal = rawSubtotal + rawTax;
     const totalCount = cart.reduce((acc, item) => acc + item.qty, 0);
 
@@ -64,7 +68,7 @@ export function useCart(taxRate = 0.16) {
       total: parseFloat(rawTotal.toFixed(2)),
       itemsCount: totalCount
     };
-  }, [cart, taxRate]);
+  }, [cart, applyTax, taxRate]);
 
   return {
     cart,
@@ -79,7 +83,11 @@ export function useCart(taxRate = 0.16) {
     customerName,
     setCustomerName,
     paymentMethod,
-    setPaymentMethod
+    setPaymentMethod,
+    applyTax,
+    setApplyTax,
+    taxRate,
+    setTaxRate
   };
 }
 

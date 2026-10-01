@@ -100,8 +100,8 @@ export default function BakeryReceiptTicket({ tenant, invoiceData, cartItems }) 
             <span>${subtotal}</span>
           </div>
           <div className="flex justify-between text-slate-600">
-            <span>IVA Estimado (19%):</span>
-            <span>${impuestos}</span>
+            <span>IVA / Impuestos:</span>
+            <span>{parseFloat(invoiceData?.impuestos || 0) > 0 ? `${impuestos}` : "Exento (0%)"}</span>
           </div>
           <div className="flex justify-between items-baseline font-bold text-slate-900 text-sm pt-1">
             <span>TOTAL PAGADO:</span>
