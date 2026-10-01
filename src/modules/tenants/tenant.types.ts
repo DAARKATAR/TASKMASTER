@@ -4,6 +4,8 @@ export interface Tenant {
   name?: string;
   schema_name: string;
   brand_color: string;
+  active_modules?: string[];
+  logo?: string;
 }
 
 export interface ProvisionTenantDTO {
@@ -14,6 +16,7 @@ export interface ProvisionTenantDTO {
   initialTitular?: string;
   initialSaldo?: number;
   logo?: string;
+  activeModules?: string[];
 }
 
 export interface TenantMetrics {

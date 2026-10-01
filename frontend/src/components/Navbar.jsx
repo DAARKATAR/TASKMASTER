@@ -1,5 +1,5 @@
 import React from 'react';
-import { Cake, FileText, TrendingUp, Settings, LogOut, Terminal, Shield, ArrowLeft } from 'lucide-react';
+import { ShoppingBag, Boxes, FileText, TrendingUp, Settings, LogOut, Terminal, Shield, ArrowLeft } from 'lucide-react';
 
 export default function Navbar({ 
   position = 'top', // 'top' | 'left' | 'right' | 'bottom'
@@ -12,12 +12,27 @@ export default function Navbar({
   onExitToLanding,
   showDebugTools = false
 }) {
-  // Pestañas comerciales para el cliente
-  const tabs = [
-    { id: 'pos', name: 'Productos & Venta POS', icon: <Cake className="w-4 h-4" /> },
-    { id: 'invoices', name: 'Histórico de Comprobantes', icon: <FileText className="w-4 h-4" /> },
-    { id: 'kpis', name: 'Caja & Métricas', icon: <TrendingUp className="w-4 h-4" /> },
+  // Módulos activos a la carta para este negocio
+  const activeModuleList = (tenant?.active_modules && Array.isArray(tenant.active_modules))
+    ? tenant.active_modules
+    : ['pos', 'inventory', 'invoices', 'kpis'];
+
+  const allPossibleTabs = [
+    { id: 'pos', name: 'Terminal POS', icon: <ShoppingBag className="w-4 h-4" /> },
+    { id: 'inventory', name: 'Inventario & Stock', icon: <Boxes className="w-4 h-4" /> },
+    { id: 'invoices', name: 'Comprobantes', icon: <FileText className="w-4 h-4" /> },
+    { id: 'kpis', name: 'Métricas & Caja', icon: <TrendingUp className="w-4 h-4" /> },
+    { id: 'console', name: 'Enlace Fiscal / SOAP', icon: <Terminal className="w-4 h-4" /> }
   ];
+
+  const tabs = allPossibleTabs.filter((t) => {
+    if (t.id === 'console') return activeModuleList.includes('soap');
+    return activeModuleList.includes(t.id);
+  });
+
+  if (showDebugTools) {
+    tabs.push({ id: 'architecture', name: 'Arquitectura Cloud', icon: <Shield className="w-4 h-4" /> });
+  }
 
   const brandColor = tenant?.brand_color || '#0F172A';
   const businessName = tenant?.nombre || 'Mi Negocio POS';

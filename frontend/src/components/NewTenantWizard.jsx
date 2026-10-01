@@ -1,4 +1,5 @@
 import { optimizeImageToWebP, formatBytes } from '../utils/imageOptimizer';
+import { AVAILABLE_MODULES, PRESET_MODULAR_PROFILES, DEFAULT_ACTIVE_MODULES } from '../config/modules';
 import React, { useState, useRef, useEffect } from 'react';
 import { Palette, Upload, Image as ImageIcon, Layout, Check, ArrowRight, ArrowLeft, Smartphone, Monitor, AlertCircle, Store, Loader2 } from 'lucide-react';
 import { API_BASE_URL } from '../config/api';
@@ -34,6 +35,7 @@ export default function NewTenantWizard({ initialData, onComplete, onCancel }) {
   const [navbarPosition, setNavbarPosition] = useState('top');
   const [isMobileSimulated, setIsMobileSimulated] = useState(false);
   const [acceptedFiscalDisclaimer, setAcceptedFiscalDisclaimer] = useState(false);
+  const [selectedModules, setSelectedModules] = useState(DEFAULT_ACTIVE_MODULES);
 
   useEffect(() => {
     const checkScreen = () => {
@@ -120,7 +122,8 @@ export default function NewTenantWizard({ initialData, onComplete, onCancel }) {
           businessType,
           ownerName: ownerName.trim() || 'Administrador',
           email: email.trim(),
-          password
+          password,
+          activeModules: selectedModules
         })
       });
 

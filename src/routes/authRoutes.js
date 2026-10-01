@@ -22,8 +22,11 @@ router.post('/register-tenant', authLimiter, async (req, res) => {
     businessType,
     email,
     password,
-    ownerName
+    ownerName,
+    activeModules
   } = req.body;
+
+  const finalModules = Array.isArray(activeModules) && activeModules.length > 0 ? activeModules : ["pos", "inventory", "invoices", "kpis"];
 
   // 1. Validaciones básicas
   if (!businessName || !businessName.trim()) {
@@ -79,9 +82,9 @@ router.post('/register-tenant', authLimiter, async (req, res) => {
 
     // 5. Insertar en public.tenants
     await client.query(`
-      INSERT INTO public.tenants (id, nombre, schema_name, brand_color, business_type, logo)
-      VALUES ($1, $2, $3, $4, $5, $6);
-    `, [cleanId, businessName.trim(), schemaName, color, finalType, finalLogo]);
+      INSERT INTO public.tenants (id, nombre, schema_name, brand_color, business_type, logo, active_modules)
+      VALUES ($1, $2, $3, $4, $5, $6, $7);
+    `, [cleanId, businessName.trim(), schemaName, color, finalType, finalLogo, JSON.stringify(finalModules)]);
 
     // 6. Insertar en public.tenant_users para mapeo de login
     await client.query(`
@@ -171,7 +174,8 @@ router.post('/register-tenant', authLimiter, async (req, res) => {
       schema_name: schemaName,
       brand_color: color,
       business_type: finalType,
-      logo: finalLogo
+      logo: finalLogo,
+      active_modules: finalModules
     };
 
     // 11. Emitir token JWT
@@ -280,7 +284,7 @@ router.post('/login', authLimiter, async (req, res) => {
 
     // 2. Obtener datos del tenant
     const { rows: tenantRows } = await client.query(
-      'SELECT id, nombre, schema_name, brand_color, business_type, logo FROM public.tenants WHERE id = $1;',
+      'SELECT id, nombre, schema_name, brand_color, business_type, logo, active_modules FROM public.tenants WHERE id = $1;',
       [tenantId]
     );
 
@@ -370,7 +374,7 @@ router.get('/me', authenticateJwt, async (req, res) => {
 
   try {
     const { rows: tenantRows } = await client.query(
-      'SELECT id, nombre, schema_name, brand_color, business_type, logo FROM public.tenants WHERE id = $1;',
+      'SELECT id, nombre, schema_name, brand_color, business_type, logo, active_modules FROM public.tenants WHERE id = $1;',
       [tenantId]
     );
 

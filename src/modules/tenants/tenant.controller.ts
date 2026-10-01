@@ -5,7 +5,7 @@ import { provisionTenant } from './tenant.provisioner.js';
 export async function listTenants(req: Request, res: Response, next: NextFunction) {
   try {
     const { rows } = await pool.query(
-      'SELECT id, nombre, nombre AS name, schema_name, brand_color FROM public.tenants ORDER BY id ASC'
+      'SELECT id, nombre, nombre AS name, schema_name, brand_color, active_modules FROM public.tenants ORDER BY id ASC'
     );
     res.json(rows);
   } catch (error) {
@@ -15,7 +15,7 @@ export async function listTenants(req: Request, res: Response, next: NextFunctio
 
 export async function createTenant(req: Request, res: Response, next: NextFunction) {
   try {
-    const { id, nombre, brand_color, initial_titular, initial_saldo } = req.body;
+    const { id, nombre, brand_color, initial_titular, initial_saldo, active_modules } = req.body;
     if (!id || !nombre) {
       return res.status(400).json({ error: 'El identificador (slug) y el nombre de la empresa son obligatorios.' });
     }
@@ -25,13 +25,43 @@ export async function createTenant(req: Request, res: Response, next: NextFuncti
       nombre,
       brandColor: brand_color,
       initialTitular: initial_titular,
-      initialSaldo: parseFloat(initial_saldo) || 50000.00
+      initialSaldo: parseFloat(initial_saldo) || 50000.00,
+      activeModules: Array.isArray(active_modules) ? active_modules : ['pos', 'inventory', 'invoices', 'kpis']
     });
 
     res.status(201).json({
       success: true,
       message: `Tenant "${nombre}" aprovisionado con éxito.`,
       tenant
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updateTenantModules(req: Request, res: Response, next: NextFunction) {
+  const { tenantId } = req.params;
+  const { active_modules } = req.body;
+  const cleanId = String(tenantId).trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+
+  if (!Array.isArray(active_modules) || active_modules.length === 0) {
+    return res.status(400).json({ error: 'Debes seleccionar al menos un módulo activo para tu negocio.' });
+  }
+
+  try {
+    const { rowCount } = await pool.query(
+      'UPDATE public.tenants SET active_modules = $1 WHERE id = $2',
+      [JSON.stringify(active_modules), cleanId]
+    );
+
+    if (rowCount === 0) {
+      return res.status(404).json({ error: 'Negocio no encontrado.' });
+    }
+
+    res.json({
+      success: true,
+      message: 'Módulos actualizados con éxito.',
+      active_modules
     });
   } catch (error) {
     next(error);

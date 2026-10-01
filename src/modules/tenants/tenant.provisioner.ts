@@ -11,7 +11,6 @@ const SAFE_SLUG_REGEX = /^[a-z0-9_]{2,30}$/;
  */
 export async function provisionTenant(dto: ProvisionTenantDTO): Promise<Tenant> {
   const cleanId = String(dto.id).trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
-
   if (!SAFE_SLUG_REGEX.test(cleanId)) {
     throw new Error('El identificador del tenant debe tener entre 2 y 30 caracteres alfanuméricos.');
   }
@@ -20,21 +19,22 @@ export async function provisionTenant(dto: ProvisionTenantDTO): Promise<Tenant> 
   const titular = dto.initialTitular || `Administrador de ${dto.nombre}`;
   const brandColor = dto.brandColor || '#4F46E5';
   const saldo = Number(dto.initialSaldo) || 50000.00;
+  const activeModules = dto.activeModules || ['pos', 'inventory', 'invoices', 'kpis'];
 
   const client = await pool.connect();
-
   try {
     await client.query('BEGIN');
 
-    // 1. Registrar o actualizar en public.tenants
+    // 1. Registrar o actualizar en public.tenants con módulos activos
     await client.query(`
-      INSERT INTO public.tenants (id, nombre, schema_name, brand_color)
-      VALUES ($1, $2, $3, $4)
+      INSERT INTO public.tenants (id, nombre, schema_name, brand_color, active_modules)
+      VALUES ($1, $2, $3, $4, $5)
       ON CONFLICT (id) DO UPDATE
       SET nombre = EXCLUDED.nombre,
           schema_name = EXCLUDED.schema_name,
-          brand_color = EXCLUDED.brand_color;
-    `, [cleanId, dto.nombre, schemaName, brandColor]);
+          brand_color = EXCLUDED.brand_color,
+          active_modules = EXCLUDED.active_modules;
+    `, [cleanId, dto.nombre, schemaName, brandColor, JSON.stringify(activeModules)]);
 
     // 2. Crear esquema aislado
     await client.query(`CREATE SCHEMA IF NOT EXISTS "${schemaName}";`);
@@ -122,7 +122,8 @@ export async function provisionTenant(dto: ProvisionTenantDTO): Promise<Tenant> 
       nombre: dto.nombre,
       name: dto.nombre,
       schema_name: schemaName,
-      brand_color: brandColor
+      brand_color: brandColor,
+      active_modules: activeModules
     };
   } catch (error) {
     await client.query('ROLLBACK');

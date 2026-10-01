@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { listTenants, createTenant, getTenantMetrics } from './tenant.controller.js';
+import { listTenants, createTenant, getTenantMetrics, updateTenantModules } from './tenant.controller.js';
 import { listProducts, createProduct } from '../products/product.controller.js';
 import { listInvoices, getInvoiceDetails, createInvoice } from '../invoices/invoice.controller.js';
 
@@ -8,6 +8,7 @@ const router = Router();
 // Rutas de Tenants
 router.get('/', listTenants);
 router.post('/', createTenant);
+router.patch('/:tenantId/modules', updateTenantModules);
 
 // Sub-rutas de Catálogo de Productos del Tenant
 router.get('/:tenantId/products', listProducts);
