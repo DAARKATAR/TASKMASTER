@@ -1,6 +1,4 @@
 // Configuración inteligente de la URL base del Backend:
-// En desarrollo local (Vite dev server) usa '' para aprovechar el proxy hacia localhost:3000
-// En producción o si se define VITE_API_URL, apunta al endpoint correspondiente
-export const API_BASE_URL = import.meta.env.VITE_API_URL 
-  ? import.meta.env.VITE_API_URL 
-  : (import.meta.env.DEV ? '' : 'https://taskmaster-soq6.onrender.com');
+// 1. Si existe VITE_API_URL, se usa esa URL (ej. en despliegue desacoplado en Cloudflare Pages).
+// 2. Si no, utiliza cadena vacía '' para aprovechar el proxy de Vite en desarrollo o rutas relativas /api en producción unificada.
+export const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '' : (process.env.NODE_ENV === 'production' && window.location.origin.includes('localhost') ? '' : (import.meta.env.VITE_API_URL || '')));

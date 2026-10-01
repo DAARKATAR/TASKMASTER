@@ -1,8 +1,8 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import pool from '../config/database.js';
-import { signJwt, authenticateJwt } from '../middleware/auth.js';
-import { authLimiter } from '../middleware/rateLimiter.js';
+import { signJwt, authenticateJwt } from '../middlewares/auth.middleware.js';
+import { authLimiter } from '../middlewares/rateLimiter.middleware.js';
 import { logAudit } from '../services/auditLogger.js';
 import { getDefaultProducts } from '../config/defaultProducts.js';
 
