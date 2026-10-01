@@ -51,6 +51,50 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
     setTaxRate
   } = useCart(0.19, false); // 19% IVA opcional desactivado por defecto
 
+
+  const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
+  const [offlineCount, setOfflineCount] = useState(0);
+  const [syncingOffline, setSyncingOffline] = useState(false);
+
+  const checkOfflineQueue = () => {
+    if (tenant?.id) {
+      setOfflineCount(getOfflineQueue(tenant.id).length);
+    }
+  };
+
+  useEffect(() => {
+    checkOfflineQueue();
+    const handleOnline = () => {
+      setIsOnline(true);
+      checkOfflineQueue();
+    };
+    const handleOffline = () => {
+      setIsOnline(false);
+      checkOfflineQueue();
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [tenant?.id]);
+
+  const handleSyncOffline = async () => {
+    if (!tenant?.id) return;
+    setSyncingOffline(true);
+    try {
+      await syncOfflineQueue(tenant, onEmitInvoice);
+      checkOfflineQueue();
+      loadProducts();
+    } catch (err) {
+      console.error('Error sincronizando cola offline:', err);
+    } finally {
+      setSyncingOffline(false);
+    }
+  };
+
   const brandColor = tenant?.brand_color || '#0F172A';
 
   const rubros = [
@@ -119,6 +163,7 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
 
     setActiveTab('ticket');
     clearCart();
+    checkOfflineQueue();
     loadProducts();
   };
 
@@ -126,6 +171,45 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
       {/* 1. Columna Izquierda: Catálogo Real POS (7 columnas) */}
       <div className="lg:col-span-7 space-y-4">
+        {/* Banner de Estado de Conectividad y Cola Offline */}
+        {(!isOnline || offlineCount > 0) && (
+          <div className={`p-3.5 rounded-2xl border text-xs flex flex-wrap items-center justify-between gap-3 animate-fadeIn ${
+            !isOnline
+              ? "bg-amber-50 border-amber-300 text-amber-900"
+              : "bg-indigo-50 border-indigo-200 text-indigo-900"
+          }`}>
+            <div className="flex items-center gap-2.5">
+              {!isOnline ? (
+                <WifiOff className="w-4 h-4 text-amber-600 shrink-0" />
+              ) : (
+                <CloudUpload className="w-4 h-4 text-indigo-600 shrink-0" />
+              )}
+              <div>
+                <span className="font-bold block">
+                  {!isOnline ? "Modo Fuera de Línea (Offline)" : "Ventas Pendientes por Sincronizar"}
+                </span>
+                <span className="text-[11px] opacity-80 block">
+                  {!isOnline
+                    ? "Puedes seguir cobrando en mostrador. Las ventas se guardan localmente y se emitirán al volver internet."
+                    : `Hay ${offlineCount} comprobante(s) emitido(s) offline listos para subir a Neon DB.`}
+                </span>
+              </div>
+            </div>
+
+            {isOnline && offlineCount > 0 && (
+              <button
+                type="button"
+                onClick={handleSyncOffline}
+                disabled={syncingOffline}
+                className="px-3 py-1.5 rounded-xl font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${syncingOffline ? "animate-spin" : ""}`} />
+                <span>{syncingOffline ? "Sincronizando..." : "Subir a la Nube"}</span>
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Buscador de Productos y Selector de Rubros */}
         <div className="p-4 rounded-3xl bg-white border border-slate-200 shadow-flat-sm space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
