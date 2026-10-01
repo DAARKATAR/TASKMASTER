@@ -9,6 +9,7 @@ const router = Router();
 router.get('/', listTenants);
 router.post('/', createTenant);
 router.patch('/:tenantId/modules', updateTenantModules);
+router.put('/:tenantId/modules', updateTenantModules);
 
 // Sub-rutas de Catálogo de Productos del Tenant
 router.get('/:tenantId/products', listProducts);
