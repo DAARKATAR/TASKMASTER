@@ -2001,7 +2001,7 @@ sequenceDiagram
     participant Controller as invoice.controller.ts
     participant Cache as product.controller (Caché RAM)
     participant Context as withTenantContext (DB Pool)
-    participant DB as Neon DB (tenant_{slug})
+    participant DB as Neon DB (tenant_slug)
 
     Cajero->>POS: Presiona "Emitir Venta & Cobrar"
     POS->>Hook: emitInvoice(orderData, tenant)
@@ -2033,7 +2033,7 @@ sequenceDiagram
     participant Controller as invoice.controller.ts
     participant Cache as product.controller (Caché RAM)
     participant Context as withTenantContext (DB Pool)
-    participant DB as Neon DB (tenant_{slug})
+    participant DB as Neon DB (tenant_slug)
 
     Cajero->>POS: Presiona "Emitir Venta & Cobrar"
     POS->>Hook: emitInvoice(orderData, tenant)
@@ -2247,16 +2247,17 @@ sequenceDiagram
     SoapRouter->>Validator: Validar sintaxis contra schema.xsd
     alt XML Inválido o Mal Formado
         Validator-->>SoapRouter: Error de Validación XSD
-        SoapRouter-->>Client: 500 SOAP Fault (<faultcode>SOAP-ENV:Client</faultcode>)
+        SoapRouter-->>Client: 500 SOAP Fault (faultcode: SOAP-ENV:Client)
     else XML Válido
         Validator-->>SoapRouter: Validación Exitosa
-        SoapRouter->>Service: parseEnvelope(xml) & extraer invoiceId
+        SoapRouter->>Service: parseEnvelope(xml) y extraer invoiceId
         Service->>DB: SELECT * FROM facturas WHERE id = $1
         DB-->>Service: Registro fiscal con CUFE
-        Service->>Service: Construir <soap:Envelope> con <ConsultarFacturaResponse>
+        Service->>Service: Construir soap:Envelope con ConsultarFacturaResponse
         Service-->>SoapRouter: XML Response completo
         SoapRouter-->>Client: 200 OK (Content-Type: application/xml)
         Client-->>Auditor: Muestra inspección de cabeceras, latencia y árbol XML
+    end
         </pre>
       </div>
 
@@ -2277,16 +2278,17 @@ sequenceDiagram
     SoapRouter->>Validator: Validar sintaxis contra schema.xsd
     alt XML Inválido o Mal Formado
         Validator-->>SoapRouter: Error de Validación XSD
-        SoapRouter-->>Client: 500 SOAP Fault (<faultcode>SOAP-ENV:Client</faultcode>)
+        SoapRouter-->>Client: 500 SOAP Fault (faultcode: SOAP-ENV:Client)
     else XML Válido
         Validator-->>SoapRouter: Validación Exitosa
-        SoapRouter->>Service: parseEnvelope(xml) & extraer invoiceId
+        SoapRouter->>Service: parseEnvelope(xml) y extraer invoiceId
         Service->>DB: SELECT * FROM facturas WHERE id = $1
         DB-->>Service: Registro fiscal con CUFE
-        Service->>Service: Construir <soap:Envelope> con <ConsultarFacturaResponse>
+        Service->>Service: Construir soap:Envelope con ConsultarFacturaResponse
         Service-->>SoapRouter: XML Response completo
         SoapRouter-->>Client: 200 OK (Content-Type: application/xml)
-        Client-->>Auditor: Muestra inspección de cabeceras, latencia y árbol XML</textarea>
+        Client-->>Auditor: Muestra inspección de cabeceras, latencia y árbol XML
+    end</textarea>
     </article>
 
 
@@ -2658,7 +2660,7 @@ flowchart TD
     SelectType --> CustomizeBrand[Elegir Color Corporativo y Tipografía]
     CustomizeBrand --> SelectModules[Seleccionar Módulos a la Carta: POS, Inventario, KPIs, SOAP]
     SelectModules --> SubmitWizard[Enviar Formulario de Aprovisionamiento]
-    SubmitWizard --> ExecDDL[Backend ejecuta CREATE SCHEMA 'tenant_{slug}']
+    SubmitWizard --> ExecDDL[Backend ejecuta CREATE SCHEMA tenant_slug]
     ExecDDL --> CreateTables[Crear tablas facturas, detalles y productos]
     CreateTables --> SeedCatalog[Insertar catálogo inicial según rubro seleccionado]
     SeedCatalog --> GenToken[Generar sesión JWT asociada al inquilino]
@@ -2677,7 +2679,7 @@ flowchart TD
     SelectType --> CustomizeBrand[Elegir Color Corporativo y Tipografía]
     CustomizeBrand --> SelectModules[Seleccionar Módulos a la Carta: POS, Inventario, KPIs, SOAP]
     SelectModules --> SubmitWizard[Enviar Formulario de Aprovisionamiento]
-    SubmitWizard --> ExecDDL[Backend ejecuta CREATE SCHEMA 'tenant_{slug}']
+    SubmitWizard --> ExecDDL[Backend ejecuta CREATE SCHEMA tenant_slug]
     ExecDDL --> CreateTables[Crear tablas facturas, detalles y productos]
     CreateTables --> SeedCatalog[Insertar catálogo inicial según rubro seleccionado]
     SeedCatalog --> GenToken[Generar sesión JWT asociada al inquilino]
@@ -3237,7 +3239,7 @@ flowchart LR
     CtxMgr -->|"4: SET search_path & INSERT factura"| DbPool
     CtxMgr -->|"5: UPDATE stock WHERE id = $1"| DbPool
     InvCtrl -->|"6: invalidateProductsCache()"| Cache
-    InvCtrl -->>|"7: return Invoice & Ticket"| Terminal
+    InvCtrl -->|"7: return Invoice y Ticket"| Terminal
         </pre>
       </div>
 
@@ -3256,7 +3258,7 @@ flowchart LR
     CtxMgr -->|"4: SET search_path & INSERT factura"| DbPool
     CtxMgr -->|"5: UPDATE stock WHERE id = $1"| DbPool
     InvCtrl -->|"6: invalidateProductsCache()"| Cache
-    InvCtrl -->>|"7: return Invoice & Ticket"| Terminal</textarea>
+    InvCtrl -->|"7: return Invoice y Ticket"| Terminal</textarea>
     </article>
 
 
