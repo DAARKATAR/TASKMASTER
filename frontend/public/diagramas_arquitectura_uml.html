@@ -1,0 +1,3532 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TASKMASTER POS - Suite Completa de Diagramas de Arquitectura, ERD y 25 Diagramas UML</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Outfit', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#F0F9FF',
+              500: '#0EA5E9',
+              600: '#0284C7',
+              700: '#0369A1',
+              900: '#0C4A6E',
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      font-family: 'Outfit', sans-serif;
+    }
+    .mermaid svg {
+      max-width: 100% !important;
+      height: auto !important;
+    }
+    .diagram-card {
+      transition: all 0.2s ease-in-out;
+    }
+    .diagram-card:hover {
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
+    }
+    @media print {
+      .no-print { display: none !important; }
+      .diagram-card { break-inside: avoid; border: 1px solid #ccc !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen antialiased">
+
+  <!-- Header Principal -->
+  <header class="border-b border-slate-800 bg-slate-950/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-sky-500/20">
+          ⚡
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-lg font-black tracking-tight text-white">TASKMASTER POS</h1>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-sky-500/20 text-sky-400 border border-sky-500/30">v2.4.0</span>
+          </div>
+          <p class="text-xs text-slate-400">Suite Completa de Arquitectura, ERD y 25 Diagramas UML Oficiales</p>
+        </div>
+      </div>
+
+      <!-- Acciones de Cabecera -->
+      <div class="flex items-center gap-2 no-print">
+        <button onclick="window.print()" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-1.5 cursor-pointer">
+          <span>🖨️ Imprimir Todo</span>
+        </button>
+        <button onclick="downloadAllSVGs()" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-sky-600 hover:bg-sky-500 text-white shadow-md shadow-sky-600/30 transition flex items-center gap-1.5 cursor-pointer">
+          <span>📦 Descargar Lote SVG</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Banner de Estadísticas y Resumen -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-4">
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div class="p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80">
+        <span class="text-xs font-mono text-slate-400 uppercase tracking-wider block">Total Diagramas</span>
+        <span class="text-2xl font-black text-white mt-1 block">27</span>
+        <span class="text-[11px] text-emerald-400 flex items-center gap-1 mt-0.5">✓ 100% Vectorizados</span>
+      </div>
+      <div class="p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80">
+        <span class="text-xs font-mono text-slate-400 uppercase tracking-wider block">Arquitectura & ERD</span>
+        <span class="text-2xl font-black text-sky-400 mt-1 block">2</span>
+        <span class="text-[11px] text-slate-400 mt-0.5">C4 Nivel 2 + PostgreSQL ERD</span>
+      </div>
+      <div class="p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80">
+        <span class="text-xs font-mono text-slate-400 uppercase tracking-wider block">Diagramas UML</span>
+        <span class="text-2xl font-black text-indigo-400 mt-1 block">25</span>
+        <span class="text-[11px] text-slate-400 mt-0.5">Casos de Uso, Clases, Secuencia...</span>
+      </div>
+      <div class="p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80">
+        <span class="text-xs font-mono text-slate-400 uppercase tracking-wider block">Formatos de Exportación</span>
+        <span class="text-2xl font-black text-purple-400 mt-1 block">PNG & SVG</span>
+        <span class="text-[11px] text-slate-400 mt-0.5">Descarga individual 1-clic</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra de Filtros y Búsqueda -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sticky top-18 z-40 bg-slate-900/90 backdrop-blur no-print">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-3 p-2 rounded-2xl bg-slate-950 border border-slate-800">
+      <!-- Selector de Categorías -->
+      <div class="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
+        <button onclick="filterCategory('all')" id="btn-all" class="category-btn px-3 py-1.5 rounded-xl text-xs font-bold transition bg-sky-600 text-white cursor-pointer">
+          Todos (27)
+        </button>
+        <button onclick="filterCategory('arq')" id="btn-arq" class="category-btn px-3 py-1.5 rounded-xl text-xs font-bold transition bg-slate-900 text-slate-400 hover:text-white cursor-pointer">
+          Arquitectura & ERD (2)
+        </button>
+        <button onclick="filterCategory('usecases')" id="btn-usecases" class="category-btn px-3 py-1.5 rounded-xl text-xs font-bold transition bg-slate-900 text-slate-400 hover:text-white cursor-pointer">
+          Casos de Uso (3)
+        </button>
+        <button onclick="filterCategory('classes')" id="btn-classes" class="category-btn px-3 py-1.5 rounded-xl text-xs font-bold transition bg-slate-900 text-slate-400 hover:text-white cursor-pointer">
+          Clases & Paquetes (5)
+        </button>
+        <button onclick="filterCategory('components')" id="btn-components" class="category-btn px-3 py-1.5 rounded-xl text-xs font-bold transition bg-slate-900 text-slate-400 hover:text-white cursor-pointer">
+          Componentes & Despliegue (2)
+        </button>
+        <button onclick="filterCategory('sequence')" id="btn-sequence" class="category-btn px-3 py-1.5 rounded-xl text-xs font-bold transition bg-slate-900 text-slate-400 hover:text-white cursor-pointer">
+          Secuencia (6)
+        </button>
+        <button onclick="filterCategory('activity')" id="btn-activity" class="category-btn px-3 py-1.5 rounded-xl text-xs font-bold transition bg-slate-900 text-slate-400 hover:text-white cursor-pointer">
+          Actividades (4)
+        </button>
+        <button onclick="filterCategory('state')" id="btn-state" class="category-btn px-3 py-1.5 rounded-xl text-xs font-bold transition bg-slate-900 text-slate-400 hover:text-white cursor-pointer">
+          Estados & Seguridad (5)
+        </button>
+      </div>
+
+      <!-- Buscador -->
+      <div class="relative w-full sm:w-64">
+        <input 
+          type="text" 
+          id="search-input" 
+          onkeyup="searchDiagrams()" 
+          placeholder="Buscar diagrama..." 
+          class="w-full pl-8 pr-3 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500"
+        />
+        <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs">🔍</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenedor Principal de Diagramas -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-10">
+
+
+    <!-- DIAGRAMA 01: ARQ-01 -->
+    <article 
+      id="diag-01-arq" 
+      data-category="arq" 
+      data-title="diagrama de arquitectura global del sistema (c4 nivel 2)" 
+      data-code="arq-01"
+      class="diagram-card bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
+    >
+      <!-- Cabecera del Diagrama -->
+      <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-800/80">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+              #01 • ARQ-01
+            </span>
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] text-slate-400 bg-slate-900 border border-slate-800">
+              Arquitectura & ERD
+            </span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black text-white mt-2">Diagrama de Arquitectura Global del Sistema (C4 Nivel 2)</h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-4xl leading-relaxed">Visión integral de contenedores y servicios: Cloudflare Edge (CDN / WAF), Frontend React SPA, Backend Node.js en Render, Caché en Memoria LRU con TTL de 60s, Cola Offline LocalStorage y PostgreSQL Neon Multi-Tenant con aislamiento por esquemas (public vs tenant_{slug}) y Gateway Fiscal SOAP.</p>
+        </div>
+
+        <!-- Botones de Descarga del Diagrama -->
+        <div class="flex items-center gap-2 no-print shrink-0">
+          <button 
+            onclick="downloadPNG('diag-01-arq', 'ARQ-01_Diagrama_de_Arquitectura_Global_del_Sistema__C4_Nivel_2_')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-sky-400 border border-slate-700 hover:border-sky-500 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar en formato PNG de Alta Resolución"
+          >
+            <span>🖼️ Descargar PNG</span>
+          </button>
+          <button 
+            onclick="downloadSVG('diag-01-arq', 'ARQ-01_Diagrama_de_Arquitectura_Global_del_Sistema__C4_Nivel_2_')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar Vector SVG Nítido Escalable"
+          >
+            <span>📐 Descargar SVG</span>
+          </button>
+          <button 
+            onclick="copyMermaidCode('diag-01-arq')"
+            class="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition cursor-pointer"
+            title="Copiar código fuente Mermaid"
+          >
+            <span>📋 Código</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lienzo de Renderizado Mermaid -->
+      <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 overflow-x-auto flex items-center justify-center min-h-[320px] diagram-canvas-container">
+        <pre class="mermaid text-center w-full" id="mermaid-diag-01-arq">
+flowchart TB
+    subgraph ClientLayer["🖥️ Capa de Cliente & Dispositivos"]
+        Browser["🌐 Navegador Web / Terminal POS (Vite + React)"]
+        Mobile["📱 Dispositivo Móvil / Tablet Mostrador"]
+        OfflineQueue["💾 Almacenamiento Local (Cola Offline Resilience)"]
+        Browser <--> OfflineQueue
+    end
+
+    subgraph EdgeLayer["🛡️ Capa de Borde & Red (Cloudflare)"]
+        CF_DNS["Cloudflare DNS & WAF"]
+        CF_Pages["Cloudflare Pages / Workers (Frontend Assets Hosting)"]
+        CF_SSL["Terminación SSL / TLS 1.3"]
+        Browser --> CF_DNS
+        Mobile --> CF_DNS
+        CF_DNS --> CF_Pages
+        CF_DNS --> CF_SSL
+    end
+
+    subgraph BackendLayer["⚙️ Capa de Aplicación & Lógica de Negocio (Render Cloud)"]
+        ExpressServer["Servidor API Node.js / Express (TypeScript)"]
+        CorsGuard["Middleware CORS (GET, POST, PUT, PATCH, DELETE)"]
+        RateLimiter["Rate Limiting (Protección Anti-Abuso)"]
+        AuthModule["Módulo de Autenticación & JWT"]
+        TenantModule["Módulo de Inquilinos & Aprovisionamiento Dinámico"]
+        InvoiceModule["Módulo de Facturación & Emisión de Comprobantes"]
+        ProductModule["Módulo de Catálogo & Existencias"]
+        SoapEngine["Motor SOAP / WSDL & Validador XSD"]
+        MemoryCache["⚡ Caché en Memoria LRU (TTL 60s - Inval. Reactiva)"]
+
+        CF_SSL --> CorsGuard
+        CorsGuard --> RateLimiter
+        RateLimiter --> ExpressServer
+        ExpressServer --> AuthModule
+        ExpressServer --> TenantModule
+        ExpressServer --> InvoiceModule
+        ExpressServer --> ProductModule
+        ExpressServer --> SoapEngine
+        ProductModule <--> MemoryCache
+    end
+
+    subgraph DatabaseLayer["🗄️ Capa de Datos (Neon Serverless PostgreSQL)"]
+        PublicSchema[("🏢 Esquema 'public' (Global)
+tenants | users | user_tenants")]
+        TenantSchema1[("🏬 Esquema 'tenant_pasteleria' (Aislado)
+facturas | factura_detalles | productos")]
+        TenantSchema2[("🍕 Esquema 'tenant_tortasysnacks' (Aislado)
+facturas | factura_detalles | productos")]
+        TenantSchemaN[("📦 Esquema 'tenant_{slug}' (On-Demand)
+facturas | factura_detalles | productos")]
+
+        AuthModule --> PublicSchema
+        TenantModule --> PublicSchema
+        TenantModule -.->|"DDL CREATE SCHEMA"| TenantSchemaN
+        InvoiceModule -->|"SET search_path"| TenantSchema1
+        InvoiceModule -->|"SET search_path"| TenantSchema2
+        ProductModule -->|"SET search_path"| TenantSchema1
+    end
+
+    subgraph ExternalLayer["🏛️ Servicios Externos Fiscales"]
+        DianSoap["📡 Servicio Fiscal DIAN / Factura Electrónica (SOAP/XML)"]
+        SoapEngine <-->|"SOAP Envelope (CUFE / Hash)"| DianSoap
+    end
+        </pre>
+      </div>
+
+      <!-- Código Mermaid Oculto para Copiado -->
+      <textarea id="raw-diag-01-arq" class="hidden">flowchart TB
+    subgraph ClientLayer["🖥️ Capa de Cliente & Dispositivos"]
+        Browser["🌐 Navegador Web / Terminal POS (Vite + React)"]
+        Mobile["📱 Dispositivo Móvil / Tablet Mostrador"]
+        OfflineQueue["💾 Almacenamiento Local (Cola Offline Resilience)"]
+        Browser <--> OfflineQueue
+    end
+
+    subgraph EdgeLayer["🛡️ Capa de Borde & Red (Cloudflare)"]
+        CF_DNS["Cloudflare DNS & WAF"]
+        CF_Pages["Cloudflare Pages / Workers (Frontend Assets Hosting)"]
+        CF_SSL["Terminación SSL / TLS 1.3"]
+        Browser --> CF_DNS
+        Mobile --> CF_DNS
+        CF_DNS --> CF_Pages
+        CF_DNS --> CF_SSL
+    end
+
+    subgraph BackendLayer["⚙️ Capa de Aplicación & Lógica de Negocio (Render Cloud)"]
+        ExpressServer["Servidor API Node.js / Express (TypeScript)"]
+        CorsGuard["Middleware CORS (GET, POST, PUT, PATCH, DELETE)"]
+        RateLimiter["Rate Limiting (Protección Anti-Abuso)"]
+        AuthModule["Módulo de Autenticación & JWT"]
+        TenantModule["Módulo de Inquilinos & Aprovisionamiento Dinámico"]
+        InvoiceModule["Módulo de Facturación & Emisión de Comprobantes"]
+        ProductModule["Módulo de Catálogo & Existencias"]
+        SoapEngine["Motor SOAP / WSDL & Validador XSD"]
+        MemoryCache["⚡ Caché en Memoria LRU (TTL 60s - Inval. Reactiva)"]
+
+        CF_SSL --> CorsGuard
+        CorsGuard --> RateLimiter
+        RateLimiter --> ExpressServer
+        ExpressServer --> AuthModule
+        ExpressServer --> TenantModule
+        ExpressServer --> InvoiceModule
+        ExpressServer --> ProductModule
+        ExpressServer --> SoapEngine
+        ProductModule <--> MemoryCache
+    end
+
+    subgraph DatabaseLayer["🗄️ Capa de Datos (Neon Serverless PostgreSQL)"]
+        PublicSchema[("🏢 Esquema 'public' (Global)
+tenants | users | user_tenants")]
+        TenantSchema1[("🏬 Esquema 'tenant_pasteleria' (Aislado)
+facturas | factura_detalles | productos")]
+        TenantSchema2[("🍕 Esquema 'tenant_tortasysnacks' (Aislado)
+facturas | factura_detalles | productos")]
+        TenantSchemaN[("📦 Esquema 'tenant_{slug}' (On-Demand)
+facturas | factura_detalles | productos")]
+
+        AuthModule --> PublicSchema
+        TenantModule --> PublicSchema
+        TenantModule -.->|"DDL CREATE SCHEMA"| TenantSchemaN
+        InvoiceModule -->|"SET search_path"| TenantSchema1
+        InvoiceModule -->|"SET search_path"| TenantSchema2
+        ProductModule -->|"SET search_path"| TenantSchema1
+    end
+
+    subgraph ExternalLayer["🏛️ Servicios Externos Fiscales"]
+        DianSoap["📡 Servicio Fiscal DIAN / Factura Electrónica (SOAP/XML)"]
+        SoapEngine <-->|"SOAP Envelope (CUFE / Hash)"| DianSoap
+    end</textarea>
+    </article>
+
+
+    <!-- DIAGRAMA 02: ERD-01 -->
+    <article 
+      id="diag-02-erd" 
+      data-category="arq" 
+      data-title="diagrama entidad-relación completo (postgresql multi-tenant)" 
+      data-code="erd-01"
+      class="diagram-card bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
+    >
+      <!-- Cabecera del Diagrama -->
+      <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-800/80">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+              #02 • ERD-01
+            </span>
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] text-slate-400 bg-slate-900 border border-slate-800">
+              Arquitectura & ERD
+            </span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black text-white mt-2">Diagrama Entidad-Relación Completo (PostgreSQL Multi-Tenant)</h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-4xl leading-relaxed">Modelo de datos relacional híbrido: Esquema Público para el control de identidad multitenant (tenants, users, user_tenants) y Esquemas de Inquilino dedicados (tenant_{slug}) para total aislamiento de datos comerciales, existencias e histórico fiscal.</p>
+        </div>
+
+        <!-- Botones de Descarga del Diagrama -->
+        <div class="flex items-center gap-2 no-print shrink-0">
+          <button 
+            onclick="downloadPNG('diag-02-erd', 'ERD-01_Diagrama_Entidad_Relaci_n_Completo__PostgreSQL_Multi_Tenant_')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-sky-400 border border-slate-700 hover:border-sky-500 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar en formato PNG de Alta Resolución"
+          >
+            <span>🖼️ Descargar PNG</span>
+          </button>
+          <button 
+            onclick="downloadSVG('diag-02-erd', 'ERD-01_Diagrama_Entidad_Relaci_n_Completo__PostgreSQL_Multi_Tenant_')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar Vector SVG Nítido Escalable"
+          >
+            <span>📐 Descargar SVG</span>
+          </button>
+          <button 
+            onclick="copyMermaidCode('diag-02-erd')"
+            class="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition cursor-pointer"
+            title="Copiar código fuente Mermaid"
+          >
+            <span>📋 Código</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lienzo de Renderizado Mermaid -->
+      <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 overflow-x-auto flex items-center justify-center min-h-[320px] diagram-canvas-container">
+        <pre class="mermaid text-center w-full" id="mermaid-diag-02-erd">
+erDiagram
+    %% ESQUEMA PUBLIC (GLOBAL)
+    PUBLIC_TENANTS {
+        varchar id PK "Slug único del negocio (ej. 'pasteleriatest')"
+        varchar nombre "Nombre comercial de la empresa"
+        varchar schema_name UK "Nombre del esquema exclusivo ('tenant_...')"
+        varchar brand_color "Color hexadecimal corporativo ('#0F172A')"
+        varchar business_type "Rubro (Panadería, Boutiques, Restaurante)"
+        text logo "URL o base64 del logotipo optimizado WebP"
+        jsonb active_modules "Módulos activos: ['pos','inventory','invoices','kpis']"
+        timestamp created_at "Fecha y hora de aprovisionamiento"
+    }
+
+    PUBLIC_USERS {
+        serial id PK "Identificador único de usuario"
+        varchar email UK "Correo electrónico de acceso institucional"
+        varchar password_hash "Hash seguro con Argon2 / Bcrypt"
+        varchar nombre "Nombre y apellidos del usuario"
+        varchar rol "SUPERADMIN | TENANT_ADMIN | CASHIER"
+        boolean activo "Estado de la cuenta"
+        timestamp created_at "Fecha de registro"
+    }
+
+    PUBLIC_USER_TENANTS {
+        int user_id PK,FK "Referencia a PUBLIC_USERS.id"
+        varchar tenant_id PK,FK "Referencia a PUBLIC_TENANTS.id"
+        varchar role "Rol del usuario en este negocio específico"
+        timestamp assigned_at "Fecha de asignación"
+    }
+
+    %% ESQUEMA TENANT EXCLUSIVO (tenant_{slug})
+    TENANT_PRODUCTOS {
+        serial id PK "Identificador interno del artículo"
+        varchar nombre "Nombre del producto (ej. 'Croissant Francés')"
+        numeric precio "Precio unitario de venta"
+        varchar rubro "Categoría comercial (Cafetería, Panadería, etc.)"
+        varchar emoji "Icono representativo visual"
+        int stock "Existencias disponibles en tiempo real"
+        text descripcion "Detalle y características del producto"
+        timestamp created_at "Fecha de alta en inventario"
+    }
+
+    TENANT_FACTURAS {
+        int id PK "Consecutivo fiscal único (1001, 1002...)"
+        varchar numero_factura UK "Código de comprobante (FAC-1001, REC-1002)"
+        varchar cliente "Nombre o razón social del comprador"
+        numeric subtotal "Monto antes de impuestos"
+        numeric impuestos "IVA u otros gravámenes calculados"
+        numeric total "Importe total liquidado de la venta"
+        varchar estado "TIMBRADA / APROBADA | PENDIENTE_OFFLINE | ANULADA"
+        varchar folio_fiscal "CUFE fiscal sha384 único"
+        int items_count "Cantidad de artículos en la transacción"
+        varchar metodo_pago "Efectivo | Tarjeta Débito | Tarjeta Crédito | QR"
+        timestamp created_at "Estampa cronológica exacta de emisión"
+    }
+
+    TENANT_FACTURA_DETALLES {
+        serial id PK "Identificador único de la línea de detalle"
+        int factura_id FK "Referencia a TENANT_FACTURAS.id"
+        int producto_id FK "Referencia a TENANT_PRODUCTOS.id (opcional)"
+        varchar nombre_producto "Nombre congelado del artículo al momento de venta"
+        int cantidad "Unidades facturadas"
+        numeric precio_unitario "Precio unitario aplicado en la venta"
+        numeric subtotal "Subtotal de la línea (cantidad * precio_unitario)"
+    }
+
+    %% RELACIONES RELACIONALES
+    PUBLIC_USERS ||--o{ PUBLIC_USER_TENANTS : "tiene asignados"
+    PUBLIC_TENANTS ||--o{ PUBLIC_USER_TENANTS : "asigna a"
+    TENANT_FACTURAS ||--|{ TENANT_FACTURA_DETALLES : "contiene líneas"
+    TENANT_PRODUCTOS ||--o{ TENANT_FACTURA_DETALLES : "se registra en"
+        </pre>
+      </div>
+
+      <!-- Código Mermaid Oculto para Copiado -->
+      <textarea id="raw-diag-02-erd" class="hidden">erDiagram
+    %% ESQUEMA PUBLIC (GLOBAL)
+    PUBLIC_TENANTS {
+        varchar id PK "Slug único del negocio (ej. 'pasteleriatest')"
+        varchar nombre "Nombre comercial de la empresa"
+        varchar schema_name UK "Nombre del esquema exclusivo ('tenant_...')"
+        varchar brand_color "Color hexadecimal corporativo ('#0F172A')"
+        varchar business_type "Rubro (Panadería, Boutiques, Restaurante)"
+        text logo "URL o base64 del logotipo optimizado WebP"
+        jsonb active_modules "Módulos activos: ['pos','inventory','invoices','kpis']"
+        timestamp created_at "Fecha y hora de aprovisionamiento"
+    }
+
+    PUBLIC_USERS {
+        serial id PK "Identificador único de usuario"
+        varchar email UK "Correo electrónico de acceso institucional"
+        varchar password_hash "Hash seguro con Argon2 / Bcrypt"
+        varchar nombre "Nombre y apellidos del usuario"
+        varchar rol "SUPERADMIN | TENANT_ADMIN | CASHIER"
+        boolean activo "Estado de la cuenta"
+        timestamp created_at "Fecha de registro"
+    }
+
+    PUBLIC_USER_TENANTS {
+        int user_id PK,FK "Referencia a PUBLIC_USERS.id"
+        varchar tenant_id PK,FK "Referencia a PUBLIC_TENANTS.id"
+        varchar role "Rol del usuario en este negocio específico"
+        timestamp assigned_at "Fecha de asignación"
+    }
+
+    %% ESQUEMA TENANT EXCLUSIVO (tenant_{slug})
+    TENANT_PRODUCTOS {
+        serial id PK "Identificador interno del artículo"
+        varchar nombre "Nombre del producto (ej. 'Croissant Francés')"
+        numeric precio "Precio unitario de venta"
+        varchar rubro "Categoría comercial (Cafetería, Panadería, etc.)"
+        varchar emoji "Icono representativo visual"
+        int stock "Existencias disponibles en tiempo real"
+        text descripcion "Detalle y características del producto"
+        timestamp created_at "Fecha de alta en inventario"
+    }
+
+    TENANT_FACTURAS {
+        int id PK "Consecutivo fiscal único (1001, 1002...)"
+        varchar numero_factura UK "Código de comprobante (FAC-1001, REC-1002)"
+        varchar cliente "Nombre o razón social del comprador"
+        numeric subtotal "Monto antes de impuestos"
+        numeric impuestos "IVA u otros gravámenes calculados"
+        numeric total "Importe total liquidado de la venta"
+        varchar estado "TIMBRADA / APROBADA | PENDIENTE_OFFLINE | ANULADA"
+        varchar folio_fiscal "CUFE fiscal sha384 único"
+        int items_count "Cantidad de artículos en la transacción"
+        varchar metodo_pago "Efectivo | Tarjeta Débito | Tarjeta Crédito | QR"
+        timestamp created_at "Estampa cronológica exacta de emisión"
+    }
+
+    TENANT_FACTURA_DETALLES {
+        serial id PK "Identificador único de la línea de detalle"
+        int factura_id FK "Referencia a TENANT_FACTURAS.id"
+        int producto_id FK "Referencia a TENANT_PRODUCTOS.id (opcional)"
+        varchar nombre_producto "Nombre congelado del artículo al momento de venta"
+        int cantidad "Unidades facturadas"
+        numeric precio_unitario "Precio unitario aplicado en la venta"
+        numeric subtotal "Subtotal de la línea (cantidad * precio_unitario)"
+    }
+
+    %% RELACIONES RELACIONALES
+    PUBLIC_USERS ||--o{ PUBLIC_USER_TENANTS : "tiene asignados"
+    PUBLIC_TENANTS ||--o{ PUBLIC_USER_TENANTS : "asigna a"
+    TENANT_FACTURAS ||--|{ TENANT_FACTURA_DETALLES : "contiene líneas"
+    TENANT_PRODUCTOS ||--o{ TENANT_FACTURA_DETALLES : "se registra en"</textarea>
+    </article>
+
+
+    <!-- DIAGRAMA 03: UML-01 -->
+    <article 
+      id="diag-03-uc-pos" 
+      data-category="usecases" 
+      data-title="casos de uso: operación de terminal pos & cobro en mostrador" 
+      data-code="uml-01"
+      class="diagram-card bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
+    >
+      <!-- Cabecera del Diagrama -->
+      <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-800/80">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+              #03 • UML-01
+            </span>
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] text-slate-400 bg-slate-900 border border-slate-800">
+              Casos de Uso
+            </span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black text-white mt-2">Casos de Uso: Operación de Terminal POS & Cobro en Mostrador</h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-4xl leading-relaxed">Interacciones del Cajero y el Cliente en el mostrador: selección de artículos, cálculo en vivo de subtotales, cobro omnicanal, emisión de tickets térmicos y funcionamiento ininterrumpido en modo Offline.</p>
+        </div>
+
+        <!-- Botones de Descarga del Diagrama -->
+        <div class="flex items-center gap-2 no-print shrink-0">
+          <button 
+            onclick="downloadPNG('diag-03-uc-pos', 'UML-01_Casos_de_Uso__Operaci_n_de_Terminal_POS___Cobro_en_Mostrador')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-sky-400 border border-slate-700 hover:border-sky-500 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar en formato PNG de Alta Resolución"
+          >
+            <span>🖼️ Descargar PNG</span>
+          </button>
+          <button 
+            onclick="downloadSVG('diag-03-uc-pos', 'UML-01_Casos_de_Uso__Operaci_n_de_Terminal_POS___Cobro_en_Mostrador')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar Vector SVG Nítido Escalable"
+          >
+            <span>📐 Descargar SVG</span>
+          </button>
+          <button 
+            onclick="copyMermaidCode('diag-03-uc-pos')"
+            class="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition cursor-pointer"
+            title="Copiar código fuente Mermaid"
+          >
+            <span>📋 Código</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lienzo de Renderizado Mermaid -->
+      <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 overflow-x-auto flex items-center justify-center min-h-[320px] diagram-canvas-container">
+        <pre class="mermaid text-center w-full" id="mermaid-diag-03-uc-pos">
+flowchart LR
+    Cajero((👤 Cajero))
+    Cliente((👥 Cliente Mostrador))
+
+    subgraph POS_System["🖥️ Terminal Punto de Venta (POS)"]
+        UC1(["🛒 Iniciar Carrito & Seleccionar Artículos"])
+        UC2(["🔍 Buscar por Rubro & Filtrar Catálogo"])
+        UC3(["➕ Modificar Cantidades & Aplicar Descuentos"])
+        UC4(["💳 Elegir Medio de Pago (Efectivo/Tarjeta/QR)"])
+        UC5(["⚡ Emitir Venta & Factura Electrónica"])
+        UC6(["📴 Operar en Modo Offline (Sin Red)"])
+        UC7(["🔄 Sincronizar Ventas Pendientes con Neon"])
+        UC8(["🖨️ Imprimir Ticket Térmico 80mm"])
+        UC9(["📦 Descontar Existencias de Inventario"])
+    end
+
+    Cajero --> UC1
+    Cajero --> UC2
+    Cajero --> UC3
+    Cajero --> UC4
+    Cajero --> UC5
+    Cajero --> UC6
+    Cajero --> UC7
+    Cajero --> UC8
+    Cliente --> UC4
+
+    UC5 -.->|<<includes>>| UC9
+    UC5 -.->|<<includes>>| UC8
+    UC6 -.->|<<extends>>| UC5
+    UC7 -.->|<<extends>>| UC6
+        </pre>
+      </div>
+
+      <!-- Código Mermaid Oculto para Copiado -->
+      <textarea id="raw-diag-03-uc-pos" class="hidden">flowchart LR
+    Cajero((👤 Cajero))
+    Cliente((👥 Cliente Mostrador))
+
+    subgraph POS_System["🖥️ Terminal Punto de Venta (POS)"]
+        UC1(["🛒 Iniciar Carrito & Seleccionar Artículos"])
+        UC2(["🔍 Buscar por Rubro & Filtrar Catálogo"])
+        UC3(["➕ Modificar Cantidades & Aplicar Descuentos"])
+        UC4(["💳 Elegir Medio de Pago (Efectivo/Tarjeta/QR)"])
+        UC5(["⚡ Emitir Venta & Factura Electrónica"])
+        UC6(["📴 Operar en Modo Offline (Sin Red)"])
+        UC7(["🔄 Sincronizar Ventas Pendientes con Neon"])
+        UC8(["🖨️ Imprimir Ticket Térmico 80mm"])
+        UC9(["📦 Descontar Existencias de Inventario"])
+    end
+
+    Cajero --> UC1
+    Cajero --> UC2
+    Cajero --> UC3
+    Cajero --> UC4
+    Cajero --> UC5
+    Cajero --> UC6
+    Cajero --> UC7
+    Cajero --> UC8
+    Cliente --> UC4
+
+    UC5 -.->|<<includes>>| UC9
+    UC5 -.->|<<includes>>| UC8
+    UC6 -.->|<<extends>>| UC5
+    UC7 -.->|<<extends>>| UC6</textarea>
+    </article>
+
+
+    <!-- DIAGRAMA 04: UML-02 -->
+    <article 
+      id="diag-04-uc-onboarding" 
+      data-category="usecases" 
+      data-title="casos de uso: aprovisionamiento multi-tenant & onboarding" 
+      data-code="uml-02"
+      class="diagram-card bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
+    >
+      <!-- Cabecera del Diagrama -->
+      <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-800/80">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+              #04 • UML-02
+            </span>
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] text-slate-400 bg-slate-900 border border-slate-800">
+              Casos de Uso
+            </span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black text-white mt-2">Casos de Uso: Aprovisionamiento Multi-Tenant & Onboarding</h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-4xl leading-relaxed">Flujo de registro y configuración inicial de nuevos comercios, creación dinámica del esquema PostgreSQL, personalización de paleta corporativa y activación modular a la carta.</p>
+        </div>
+
+        <!-- Botones de Descarga del Diagrama -->
+        <div class="flex items-center gap-2 no-print shrink-0">
+          <button 
+            onclick="downloadPNG('diag-04-uc-onboarding', 'UML-02_Casos_de_Uso__Aprovisionamiento_Multi_Tenant___Onboarding')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-sky-400 border border-slate-700 hover:border-sky-500 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar en formato PNG de Alta Resolución"
+          >
+            <span>🖼️ Descargar PNG</span>
+          </button>
+          <button 
+            onclick="downloadSVG('diag-04-uc-onboarding', 'UML-02_Casos_de_Uso__Aprovisionamiento_Multi_Tenant___Onboarding')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar Vector SVG Nítido Escalable"
+          >
+            <span>📐 Descargar SVG</span>
+          </button>
+          <button 
+            onclick="copyMermaidCode('diag-04-uc-onboarding')"
+            class="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition cursor-pointer"
+            title="Copiar código fuente Mermaid"
+          >
+            <span>📋 Código</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lienzo de Renderizado Mermaid -->
+      <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 overflow-x-auto flex items-center justify-center min-h-[320px] diagram-canvas-container">
+        <pre class="mermaid text-center w-full" id="mermaid-diag-04-uc-onboarding">
+flowchart LR
+    Owner((👔 Propietario / Negocio))
+    Admin((🛡️ SuperAdmin TASKMASTER))
+
+    subgraph Onboarding_System["🏢 Sistema de Aprovisionamiento Multitenant"]
+        UC10(["📝 Registrar Datos Comerciales"])
+        UC11(["🏷️ Seleccionar Slug Único de Esquema"])
+        UC12(["🎨 Definir Paleta de Color & Identidad"])
+        UC13(["🧩 Configurar Módulos a la Carta"])
+        UC14(["⚙️ Ejecutar DDL Crear Esquema Aislado"])
+        UC15(["📦 Sembrar Catálogo Inicial de Productos"])
+        UC16(["🔑 Generar Credenciales de Acceso"])
+        UC17(["📊 Auditar Inquilinos en la Plataforma"])
+    end
+
+    Owner --> UC10
+    Owner --> UC11
+    Owner --> UC12
+    Owner --> UC13
+    Owner --> UC16
+
+    Admin --> UC17
+    Admin --> UC14
+
+    UC10 -.->|<<includes>>| UC11
+    UC10 -.->|<<includes>>| UC14
+    UC14 -.->|<<includes>>| UC15
+        </pre>
+      </div>
+
+      <!-- Código Mermaid Oculto para Copiado -->
+      <textarea id="raw-diag-04-uc-onboarding" class="hidden">flowchart LR
+    Owner((👔 Propietario / Negocio))
+    Admin((🛡️ SuperAdmin TASKMASTER))
+
+    subgraph Onboarding_System["🏢 Sistema de Aprovisionamiento Multitenant"]
+        UC10(["📝 Registrar Datos Comerciales"])
+        UC11(["🏷️ Seleccionar Slug Único de Esquema"])
+        UC12(["🎨 Definir Paleta de Color & Identidad"])
+        UC13(["🧩 Configurar Módulos a la Carta"])
+        UC14(["⚙️ Ejecutar DDL Crear Esquema Aislado"])
+        UC15(["📦 Sembrar Catálogo Inicial de Productos"])
+        UC16(["🔑 Generar Credenciales de Acceso"])
+        UC17(["📊 Auditar Inquilinos en la Plataforma"])
+    end
+
+    Owner --> UC10
+    Owner --> UC11
+    Owner --> UC12
+    Owner --> UC13
+    Owner --> UC16
+
+    Admin --> UC17
+    Admin --> UC14
+
+    UC10 -.->|<<includes>>| UC11
+    UC10 -.->|<<includes>>| UC14
+    UC14 -.->|<<includes>>| UC15</textarea>
+    </article>
+
+
+    <!-- DIAGRAMA 05: UML-03 -->
+    <article 
+      id="diag-05-uc-soap" 
+      data-category="usecases" 
+      data-title="casos de uso: facturación fiscal soap & consulta wsdl" 
+      data-code="uml-03"
+      class="diagram-card bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
+    >
+      <!-- Cabecera del Diagrama -->
+      <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-800/80">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+              #05 • UML-03
+            </span>
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] text-slate-400 bg-slate-900 border border-slate-800">
+              Casos de Uso
+            </span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black text-white mt-2">Casos de Uso: Facturación Fiscal SOAP & Consulta WSDL</h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-4xl leading-relaxed">Interacciones del sistema con la autoridad tributaria: generación del sobre XML SOAP, validación contra esquemas XSD, cálculo de CUFE y manejo de SOAP Faults.</p>
+        </div>
+
+        <!-- Botones de Descarga del Diagrama -->
+        <div class="flex items-center gap-2 no-print shrink-0">
+          <button 
+            onclick="downloadPNG('diag-05-uc-soap', 'UML-03_Casos_de_Uso__Facturaci_n_Fiscal_SOAP___Consulta_WSDL')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-sky-400 border border-slate-700 hover:border-sky-500 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar en formato PNG de Alta Resolución"
+          >
+            <span>🖼️ Descargar PNG</span>
+          </button>
+          <button 
+            onclick="downloadSVG('diag-05-uc-soap', 'UML-03_Casos_de_Uso__Facturaci_n_Fiscal_SOAP___Consulta_WSDL')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar Vector SVG Nítido Escalable"
+          >
+            <span>📐 Descargar SVG</span>
+          </button>
+          <button 
+            onclick="copyMermaidCode('diag-05-uc-soap')"
+            class="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition cursor-pointer"
+            title="Copiar código fuente Mermaid"
+          >
+            <span>📋 Código</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lienzo de Renderizado Mermaid -->
+      <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 overflow-x-auto flex items-center justify-center min-h-[320px] diagram-canvas-container">
+        <pre class="mermaid text-center w-full" id="mermaid-diag-05-uc-soap">
+flowchart LR
+    Auditor((👨‍💼 Auditor Fiscal))
+    DianServer((🏛️ Servidor Fiscal DIAN))
+
+    subgraph Soap_System["📡 Pasarela Fiscal SOAP / WSDL"]
+        UC18(["📜 Consultar WSDL del Servicio"])
+        UC19(["✉️ Generar XML SOAP Envelope"])
+        UC20(["🔐 Generar Código Único CUFE"])
+        UC21(["🛡️ Validar Payload contra Esquema XSD"])
+        UC22(["📡 Enviar Factura a Enlace Fiscal"])
+        UC23(["⚠️ Procesar SOAP Fault & Excepciones"])
+        UC24(["📋 Inspeccionar Raw XML Request/Response"])
+    end
+
+    Auditor --> UC18
+    Auditor --> UC22
+    Auditor --> UC24
+    UC22 <--> DianServer
+
+    UC22 -.->|<<includes>>| UC19
+    UC22 -.->|<<includes>>| UC20
+    UC22 -.->|<<includes>>| UC21
+    UC22 -.->|<<extends>>| UC23
+        </pre>
+      </div>
+
+      <!-- Código Mermaid Oculto para Copiado -->
+      <textarea id="raw-diag-05-uc-soap" class="hidden">flowchart LR
+    Auditor((👨‍💼 Auditor Fiscal))
+    DianServer((🏛️ Servidor Fiscal DIAN))
+
+    subgraph Soap_System["📡 Pasarela Fiscal SOAP / WSDL"]
+        UC18(["📜 Consultar WSDL del Servicio"])
+        UC19(["✉️ Generar XML SOAP Envelope"])
+        UC20(["🔐 Generar Código Único CUFE"])
+        UC21(["🛡️ Validar Payload contra Esquema XSD"])
+        UC22(["📡 Enviar Factura a Enlace Fiscal"])
+        UC23(["⚠️ Procesar SOAP Fault & Excepciones"])
+        UC24(["📋 Inspeccionar Raw XML Request/Response"])
+    end
+
+    Auditor --> UC18
+    Auditor --> UC22
+    Auditor --> UC24
+    UC22 <--> DianServer
+
+    UC22 -.->|<<includes>>| UC19
+    UC22 -.->|<<includes>>| UC20
+    UC22 -.->|<<includes>>| UC21
+    UC22 -.->|<<extends>>| UC23</textarea>
+    </article>
+
+
+    <!-- DIAGRAMA 06: UML-04 -->
+    <article 
+      id="diag-06-class-tenant" 
+      data-category="classes" 
+      data-title="diagrama de clases: dominio multi-tenant & aprovisionamiento" 
+      data-code="uml-04"
+      class="diagram-card bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
+    >
+      <!-- Cabecera del Diagrama -->
+      <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-800/80">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+              #06 • UML-04
+            </span>
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] text-slate-400 bg-slate-900 border border-slate-800">
+              Clases & Paquetes
+            </span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black text-white mt-2">Diagrama de Clases: Dominio Multi-Tenant & Aprovisionamiento</h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-4xl leading-relaxed">Modelado de objetos del motor multi-tenant: gestión de inquilinos, aislamiento por `search_path`, provisionador dinámico de base de datos y control de módulos a la carta.</p>
+        </div>
+
+        <!-- Botones de Descarga del Diagrama -->
+        <div class="flex items-center gap-2 no-print shrink-0">
+          <button 
+            onclick="downloadPNG('diag-06-class-tenant', 'UML-04_Diagrama_de_Clases__Dominio_Multi_Tenant___Aprovisionamiento')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-sky-400 border border-slate-700 hover:border-sky-500 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar en formato PNG de Alta Resolución"
+          >
+            <span>🖼️ Descargar PNG</span>
+          </button>
+          <button 
+            onclick="downloadSVG('diag-06-class-tenant', 'UML-04_Diagrama_de_Clases__Dominio_Multi_Tenant___Aprovisionamiento')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar Vector SVG Nítido Escalable"
+          >
+            <span>📐 Descargar SVG</span>
+          </button>
+          <button 
+            onclick="copyMermaidCode('diag-06-class-tenant')"
+            class="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition cursor-pointer"
+            title="Copiar código fuente Mermaid"
+          >
+            <span>📋 Código</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lienzo de Renderizado Mermaid -->
+      <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 overflow-x-auto flex items-center justify-center min-h-[320px] diagram-canvas-container">
+        <pre class="mermaid text-center w-full" id="mermaid-diag-06-class-tenant">
+classDiagram
+    class Tenant {
+        +string id
+        +string nombre
+        +string schemaName
+        +string brandColor
+        +string businessType
+        +string logo
+        +string[] activeModules
+        +Date createdAt
+        +getCleanId() string
+        +hasModule(moduleName: string) boolean
+    }
+
+    class TenantProvisioner {
+        -Pool dbPool
+        +provisionTenant(dto: CreateTenantDTO) Tenant
+        -createDedicatedSchema(schemaName: string) void
+        -createTenantTables(schemaName: string) void
+        -seedInitialProducts(schemaName: string, businessType: string) void
+    }
+
+    class TenantContextManager {
+        -Pool dbPool
+        +withTenantContext(schemaName: string, callback: Function) Promise~T~
+        -sanitizeSchemaName(rawId: string) string
+    }
+
+    class ModularProfileConfig {
+        +string id
+        +string name
+        +string emoji
+        +string[] modules
+        +applyPreset(tenant: Tenant, presetKey: string) void
+    }
+
+    TenantProvisioner --> Tenant : crea
+    TenantContextManager ..> Tenant : aísla contexto de
+    Tenant *-- ModularProfileConfig : configura
+        </pre>
+      </div>
+
+      <!-- Código Mermaid Oculto para Copiado -->
+      <textarea id="raw-diag-06-class-tenant" class="hidden">classDiagram
+    class Tenant {
+        +string id
+        +string nombre
+        +string schemaName
+        +string brandColor
+        +string businessType
+        +string logo
+        +string[] activeModules
+        +Date createdAt
+        +getCleanId() string
+        +hasModule(moduleName: string) boolean
+    }
+
+    class TenantProvisioner {
+        -Pool dbPool
+        +provisionTenant(dto: CreateTenantDTO) Tenant
+        -createDedicatedSchema(schemaName: string) void
+        -createTenantTables(schemaName: string) void
+        -seedInitialProducts(schemaName: string, businessType: string) void
+    }
+
+    class TenantContextManager {
+        -Pool dbPool
+        +withTenantContext(schemaName: string, callback: Function) Promise~T~
+        -sanitizeSchemaName(rawId: string) string
+    }
+
+    class ModularProfileConfig {
+        +string id
+        +string name
+        +string emoji
+        +string[] modules
+        +applyPreset(tenant: Tenant, presetKey: string) void
+    }
+
+    TenantProvisioner --> Tenant : crea
+    TenantContextManager ..> Tenant : aísla contexto de
+    Tenant *-- ModularProfileConfig : configura</textarea>
+    </article>
+
+
+    <!-- DIAGRAMA 07: UML-05 -->
+    <article 
+      id="diag-07-class-invoice" 
+      data-category="classes" 
+      data-title="diagrama de clases: módulo de facturación & comprobantes" 
+      data-code="uml-05"
+      class="diagram-card bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
+    >
+      <!-- Cabecera del Diagrama -->
+      <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-800/80">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+              #07 • UML-05
+            </span>
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] text-slate-400 bg-slate-900 border border-slate-800">
+              Clases & Paquetes
+            </span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black text-white mt-2">Diagrama de Clases: Módulo de Facturación & Comprobantes</h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-4xl leading-relaxed">Estructura de clases responsable de la emisión de comprobantes fiscales, cálculo de impuestos, generación de CUFE y formateo de tickets térmicos.</p>
+        </div>
+
+        <!-- Botones de Descarga del Diagrama -->
+        <div class="flex items-center gap-2 no-print shrink-0">
+          <button 
+            onclick="downloadPNG('diag-07-class-invoice', 'UML-05_Diagrama_de_Clases__M_dulo_de_Facturaci_n___Comprobantes')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-sky-400 border border-slate-700 hover:border-sky-500 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar en formato PNG de Alta Resolución"
+          >
+            <span>🖼️ Descargar PNG</span>
+          </button>
+          <button 
+            onclick="downloadSVG('diag-07-class-invoice', 'UML-05_Diagrama_de_Clases__M_dulo_de_Facturaci_n___Comprobantes')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar Vector SVG Nítido Escalable"
+          >
+            <span>📐 Descargar SVG</span>
+          </button>
+          <button 
+            onclick="copyMermaidCode('diag-07-class-invoice')"
+            class="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition cursor-pointer"
+            title="Copiar código fuente Mermaid"
+          >
+            <span>📋 Código</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lienzo de Renderizado Mermaid -->
+      <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 overflow-x-auto flex items-center justify-center min-h-[320px] diagram-canvas-container">
+        <pre class="mermaid text-center w-full" id="mermaid-diag-07-class-invoice">
+classDiagram
+    class Invoice {
+        +number id
+        +string numeroFactura
+        +string cliente
+        +number subtotal
+        +number impuestos
+        +number total
+        +string estado
+        +string folioFiscal
+        +number itemsCount
+        +string metodoPago
+        +Date createdAt
+        +InvoiceDetail[] items
+        +isTaxCompliant() boolean
+    }
+
+    class InvoiceDetail {
+        +number id
+        +number facturaId
+        +number productoId
+        +string nombreProducto
+        +number cantidad
+        +number precioUnitario
+        +number subtotal
+        +calculateSubtotal() number
+    }
+
+    class InvoiceService {
+        -TenantContextManager contextManager
+        +listInvoices(tenantId: string, page: number, limit: number, search: string) PaginatedResult
+        +createInvoice(tenantId: string, dto: CreateInvoiceDTO) Invoice
+        +getInvoiceDetails(tenantId: string, invoiceId: number) InvoiceDetail[]
+    }
+
+    class CufeGenerator {
+        +generateCufe(tenantSlug: string, consecutive: number, total: number) string
+        -computeSha384(payload: string) string
+    }
+
+    class ThermalReceiptFormatter {
+        +formatReceipt(invoice: Invoice, tenant: Tenant) string
+        +printTicket(invoiceId: number) void
+    }
+
+    Invoice "1" *-- "many" InvoiceDetail : compone
+    InvoiceService --> Invoice : gestiona
+    InvoiceService ..> CufeGenerator : genera firma con
+    InvoiceService ..> ThermalReceiptFormatter : formatea con
+        </pre>
+      </div>
+
+      <!-- Código Mermaid Oculto para Copiado -->
+      <textarea id="raw-diag-07-class-invoice" class="hidden">classDiagram
+    class Invoice {
+        +number id
+        +string numeroFactura
+        +string cliente
+        +number subtotal
+        +number impuestos
+        +number total
+        +string estado
+        +string folioFiscal
+        +number itemsCount
+        +string metodoPago
+        +Date createdAt
+        +InvoiceDetail[] items
+        +isTaxCompliant() boolean
+    }
+
+    class InvoiceDetail {
+        +number id
+        +number facturaId
+        +number productoId
+        +string nombreProducto
+        +number cantidad
+        +number precioUnitario
+        +number subtotal
+        +calculateSubtotal() number
+    }
+
+    class InvoiceService {
+        -TenantContextManager contextManager
+        +listInvoices(tenantId: string, page: number, limit: number, search: string) PaginatedResult
+        +createInvoice(tenantId: string, dto: CreateInvoiceDTO) Invoice
+        +getInvoiceDetails(tenantId: string, invoiceId: number) InvoiceDetail[]
+    }
+
+    class CufeGenerator {
+        +generateCufe(tenantSlug: string, consecutive: number, total: number) string
+        -computeSha384(payload: string) string
+    }
+
+    class ThermalReceiptFormatter {
+        +formatReceipt(invoice: Invoice, tenant: Tenant) string
+        +printTicket(invoiceId: number) void
+    }
+
+    Invoice "1" *-- "many" InvoiceDetail : compone
+    InvoiceService --> Invoice : gestiona
+    InvoiceService ..> CufeGenerator : genera firma con
+    InvoiceService ..> ThermalReceiptFormatter : formatea con</textarea>
+    </article>
+
+
+    <!-- DIAGRAMA 08: UML-06 -->
+    <article 
+      id="diag-08-class-product" 
+      data-category="classes" 
+      data-title="diagrama de clases: módulo de catálogo & caché en memoria" 
+      data-code="uml-06"
+      class="diagram-card bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
+    >
+      <!-- Cabecera del Diagrama -->
+      <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-800/80">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+              #08 • UML-06
+            </span>
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] text-slate-400 bg-slate-900 border border-slate-800">
+              Clases & Paquetes
+            </span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black text-white mt-2">Diagrama de Clases: Módulo de Catálogo & Caché en Memoria</h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-4xl leading-relaxed">Clases para administración de artículos, control de existencias, control de inventario y servicio de caché en memoria con TTL de 60 segundos.</p>
+        </div>
+
+        <!-- Botones de Descarga del Diagrama -->
+        <div class="flex items-center gap-2 no-print shrink-0">
+          <button 
+            onclick="downloadPNG('diag-08-class-product', 'UML-06_Diagrama_de_Clases__M_dulo_de_Cat_logo___Cach__en_Memoria')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-sky-400 border border-slate-700 hover:border-sky-500 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar en formato PNG de Alta Resolución"
+          >
+            <span>🖼️ Descargar PNG</span>
+          </button>
+          <button 
+            onclick="downloadSVG('diag-08-class-product', 'UML-06_Diagrama_de_Clases__M_dulo_de_Cat_logo___Cach__en_Memoria')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar Vector SVG Nítido Escalable"
+          >
+            <span>📐 Descargar SVG</span>
+          </button>
+          <button 
+            onclick="copyMermaidCode('diag-08-class-product')"
+            class="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition cursor-pointer"
+            title="Copiar código fuente Mermaid"
+          >
+            <span>📋 Código</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lienzo de Renderizado Mermaid -->
+      <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 overflow-x-auto flex items-center justify-center min-h-[320px] diagram-canvas-container">
+        <pre class="mermaid text-center w-full" id="mermaid-diag-08-class-product">
+classDiagram
+    class Product {
+        +number id
+        +string nombre
+        +number precio
+        +string rubro
+        +string emoji
+        +number stock
+        +string descripcion
+        +Date createdAt
+        +hasStock(qty: number) boolean
+        +deductStock(qty: number) void
+    }
+
+    class ProductCacheService {
+        -Map~string, CacheEntry~ cacheStore
+        -number defaultTTL
+        +get(tenantId: string) Product[]
+        +set(tenantId: string, data: Product[]) void
+        +invalidate(tenantId: string) void
+    }
+
+    class CacheEntry {
+        +Product[] data
+        +number expiresAt
+        +isExpired() boolean
+    }
+
+    class ProductController {
+        -ProductCacheService cacheService
+        +listProducts(tenantId: string) Product[]
+        +createProduct(tenantId: string, dto: CreateProductDTO) Product
+        +updateStock(tenantId: string, productId: number, delta: number) void
+    }
+
+    ProductController --> ProductCacheService : utiliza
+    ProductCacheService *-- CacheEntry : almacena
+    CacheEntry o-- Product : contiene
+        </pre>
+      </div>
+
+      <!-- Código Mermaid Oculto para Copiado -->
+      <textarea id="raw-diag-08-class-product" class="hidden">classDiagram
+    class Product {
+        +number id
+        +string nombre
+        +number precio
+        +string rubro
+        +string emoji
+        +number stock
+        +string descripcion
+        +Date createdAt
+        +hasStock(qty: number) boolean
+        +deductStock(qty: number) void
+    }
+
+    class ProductCacheService {
+        -Map~string, CacheEntry~ cacheStore
+        -number defaultTTL
+        +get(tenantId: string) Product[]
+        +set(tenantId: string, data: Product[]) void
+        +invalidate(tenantId: string) void
+    }
+
+    class CacheEntry {
+        +Product[] data
+        +number expiresAt
+        +isExpired() boolean
+    }
+
+    class ProductController {
+        -ProductCacheService cacheService
+        +listProducts(tenantId: string) Product[]
+        +createProduct(tenantId: string, dto: CreateProductDTO) Product
+        +updateStock(tenantId: string, productId: number, delta: number) void
+    }
+
+    ProductController --> ProductCacheService : utiliza
+    ProductCacheService *-- CacheEntry : almacena
+    CacheEntry o-- Product : contiene</textarea>
+    </article>
+
+
+    <!-- DIAGRAMA 09: UML-07 -->
+    <article 
+      id="diag-09-class-auth" 
+      data-category="classes" 
+      data-title="diagrama de clases: seguridad, autenticación & rbac" 
+      data-code="uml-07"
+      class="diagram-card bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
+    >
+      <!-- Cabecera del Diagrama -->
+      <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-800/80">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+              #09 • UML-07
+            </span>
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] text-slate-400 bg-slate-900 border border-slate-800">
+              Clases & Paquetes
+            </span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black text-white mt-2">Diagrama de Clases: Seguridad, Autenticación & RBAC</h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-4xl leading-relaxed">Modelo de control de acceso, credenciales cifradas con hash, generación y verificación de JWT Bearer y control de pertenencia a inquilinos.</p>
+        </div>
+
+        <!-- Botones de Descarga del Diagrama -->
+        <div class="flex items-center gap-2 no-print shrink-0">
+          <button 
+            onclick="downloadPNG('diag-09-class-auth', 'UML-07_Diagrama_de_Clases__Seguridad__Autenticaci_n___RBAC')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-sky-400 border border-slate-700 hover:border-sky-500 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar en formato PNG de Alta Resolución"
+          >
+            <span>🖼️ Descargar PNG</span>
+          </button>
+          <button 
+            onclick="downloadSVG('diag-09-class-auth', 'UML-07_Diagrama_de_Clases__Seguridad__Autenticaci_n___RBAC')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar Vector SVG Nítido Escalable"
+          >
+            <span>📐 Descargar SVG</span>
+          </button>
+          <button 
+            onclick="copyMermaidCode('diag-09-class-auth')"
+            class="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition cursor-pointer"
+            title="Copiar código fuente Mermaid"
+          >
+            <span>📋 Código</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lienzo de Renderizado Mermaid -->
+      <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 overflow-x-auto flex items-center justify-center min-h-[320px] diagram-canvas-container">
+        <pre class="mermaid text-center w-full" id="mermaid-diag-09-class-auth">
+classDiagram
+    class User {
+        +number id
+        +string email
+        +string passwordHash
+        +string nombre
+        +string rol
+        +boolean activo
+        +validatePassword(plain: string) boolean
+    }
+
+    class UserTenantMembership {
+        +number userId
+        +string tenantId
+        +string role
+        +Date assignedAt
+    }
+
+    class AuthService {
+        -Pool dbPool
+        -JwtTokenService jwtService
+        +register(dto: RegisterDTO) AuthResult
+        +login(credentials: LoginDTO) AuthResult
+        +getCurrentUser(token: string) User
+    }
+
+    class JwtTokenService {
+        -string secretKey
+        -string expiresIn
+        +generateToken(user: User, tenantId: string) string
+        +verifyToken(token: string) JwtPayload
+    }
+
+    class AuthGuardMiddleware {
+        +verifySession(req: Request, res: Response, next: Next) void
+        +requireTenantAccess(tenantId: string) Middleware
+    }
+
+    AuthService --> User : autentica
+    AuthService --> JwtTokenService : firma con
+    AuthGuardMiddleware ..> JwtTokenService : valida con
+    User "1" -- "many" UserTenantMembership : posee
+        </pre>
+      </div>
+
+      <!-- Código Mermaid Oculto para Copiado -->
+      <textarea id="raw-diag-09-class-auth" class="hidden">classDiagram
+    class User {
+        +number id
+        +string email
+        +string passwordHash
+        +string nombre
+        +string rol
+        +boolean activo
+        +validatePassword(plain: string) boolean
+    }
+
+    class UserTenantMembership {
+        +number userId
+        +string tenantId
+        +string role
+        +Date assignedAt
+    }
+
+    class AuthService {
+        -Pool dbPool
+        -JwtTokenService jwtService
+        +register(dto: RegisterDTO) AuthResult
+        +login(credentials: LoginDTO) AuthResult
+        +getCurrentUser(token: string) User
+    }
+
+    class JwtTokenService {
+        -string secretKey
+        -string expiresIn
+        +generateToken(user: User, tenantId: string) string
+        +verifyToken(token: string) JwtPayload
+    }
+
+    class AuthGuardMiddleware {
+        +verifySession(req: Request, res: Response, next: Next) void
+        +requireTenantAccess(tenantId: string) Middleware
+    }
+
+    AuthService --> User : autentica
+    AuthService --> JwtTokenService : firma con
+    AuthGuardMiddleware ..> JwtTokenService : valida con
+    User "1" -- "many" UserTenantMembership : posee</textarea>
+    </article>
+
+
+    <!-- DIAGRAMA 10: UML-08 -->
+    <article 
+      id="diag-10-package-hex" 
+      data-category="classes" 
+      data-title="diagrama de paquetes: arquitectura modular hexagonal" 
+      data-code="uml-08"
+      class="diagram-card bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
+    >
+      <!-- Cabecera del Diagrama -->
+      <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-800/80">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+              #10 • UML-08
+            </span>
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] text-slate-400 bg-slate-900 border border-slate-800">
+              Clases & Paquetes
+            </span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black text-white mt-2">Diagrama de Paquetes: Arquitectura Modular Hexagonal</h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-4xl leading-relaxed">Estructura de paquetes en capas limpias y desacopladas: módulos de dominio, adaptadores de base de datos, middlewares de seguridad y utilidades de resiliencia.</p>
+        </div>
+
+        <!-- Botones de Descarga del Diagrama -->
+        <div class="flex items-center gap-2 no-print shrink-0">
+          <button 
+            onclick="downloadPNG('diag-10-package-hex', 'UML-08_Diagrama_de_Paquetes__Arquitectura_Modular_Hexagonal')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-sky-400 border border-slate-700 hover:border-sky-500 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar en formato PNG de Alta Resolución"
+          >
+            <span>🖼️ Descargar PNG</span>
+          </button>
+          <button 
+            onclick="downloadSVG('diag-10-package-hex', 'UML-08_Diagrama_de_Paquetes__Arquitectura_Modular_Hexagonal')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar Vector SVG Nítido Escalable"
+          >
+            <span>📐 Descargar SVG</span>
+          </button>
+          <button 
+            onclick="copyMermaidCode('diag-10-package-hex')"
+            class="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition cursor-pointer"
+            title="Copiar código fuente Mermaid"
+          >
+            <span>📋 Código</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lienzo de Renderizado Mermaid -->
+      <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 overflow-x-auto flex items-center justify-center min-h-[320px] diagram-canvas-container">
+        <pre class="mermaid text-center w-full" id="mermaid-diag-10-package-hex">
+flowchart TB
+    subgraph CoreDomain["📦 core / dominio"]
+        Types["types (DTOs & Interfaces)"]
+        Errors["errors (AppError, SoapFault)"]
+    end
+
+    subgraph Modules["📦 modules (Vertical Slices)"]
+        AuthMod["modules/auth"]
+        TenantMod["modules/tenants"]
+        InvoiceMod["modules/invoices"]
+        ProductMod["modules/products"]
+        SoapMod["modules/soap"]
+    end
+
+    subgraph Infrastructure["📦 infrastructure / adaptadores"]
+        DbClient["services/tenantDbClient"]
+        DbPool["config/database"]
+        CacheService["services/productCache"]
+        RateLimiter["middlewares/rateLimiter"]
+        ErrorHandler["middlewares/errorHandler"]
+        CorsConfig["config/cors"]
+    end
+
+    subgraph Presentation["📦 presentation / controladores"]
+        ApiRoutes["server.ts (API Gateway Router)"]
+    end
+
+    Presentation --> Modules
+    Modules --> CoreDomain
+    Modules --> Infrastructure
+    Infrastructure --> CoreDomain
+        </pre>
+      </div>
+
+      <!-- Código Mermaid Oculto para Copiado -->
+      <textarea id="raw-diag-10-package-hex" class="hidden">flowchart TB
+    subgraph CoreDomain["📦 core / dominio"]
+        Types["types (DTOs & Interfaces)"]
+        Errors["errors (AppError, SoapFault)"]
+    end
+
+    subgraph Modules["📦 modules (Vertical Slices)"]
+        AuthMod["modules/auth"]
+        TenantMod["modules/tenants"]
+        InvoiceMod["modules/invoices"]
+        ProductMod["modules/products"]
+        SoapMod["modules/soap"]
+    end
+
+    subgraph Infrastructure["📦 infrastructure / adaptadores"]
+        DbClient["services/tenantDbClient"]
+        DbPool["config/database"]
+        CacheService["services/productCache"]
+        RateLimiter["middlewares/rateLimiter"]
+        ErrorHandler["middlewares/errorHandler"]
+        CorsConfig["config/cors"]
+    end
+
+    subgraph Presentation["📦 presentation / controladores"]
+        ApiRoutes["server.ts (API Gateway Router)"]
+    end
+
+    Presentation --> Modules
+    Modules --> CoreDomain
+    Modules --> Infrastructure
+    Infrastructure --> CoreDomain</textarea>
+    </article>
+
+
+    <!-- DIAGRAMA 11: UML-09 -->
+    <article 
+      id="diag-11-comp-frontend" 
+      data-category="components" 
+      data-title="diagrama de componentes: frontend react spa & hooks" 
+      data-code="uml-09"
+      class="diagram-card bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
+    >
+      <!-- Cabecera del Diagrama -->
+      <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-800/80">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+              #11 • UML-09
+            </span>
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] text-slate-400 bg-slate-900 border border-slate-800">
+              Componentes & Despliegue
+            </span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black text-white mt-2">Diagrama de Componentes: Frontend React SPA & Hooks</h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-4xl leading-relaxed">Componentes de interfaz de usuario desacoplados con React.lazy, ErrorBoundary protector, hooks de negocio (`useInvoices`, `useTenant`, `useAuth`) y utilidades de cola offline.</p>
+        </div>
+
+        <!-- Botones de Descarga del Diagrama -->
+        <div class="flex items-center gap-2 no-print shrink-0">
+          <button 
+            onclick="downloadPNG('diag-11-comp-frontend', 'UML-09_Diagrama_de_Componentes__Frontend_React_SPA___Hooks')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-sky-400 border border-slate-700 hover:border-sky-500 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar en formato PNG de Alta Resolución"
+          >
+            <span>🖼️ Descargar PNG</span>
+          </button>
+          <button 
+            onclick="downloadSVG('diag-11-comp-frontend', 'UML-09_Diagrama_de_Componentes__Frontend_React_SPA___Hooks')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar Vector SVG Nítido Escalable"
+          >
+            <span>📐 Descargar SVG</span>
+          </button>
+          <button 
+            onclick="copyMermaidCode('diag-11-comp-frontend')"
+            class="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition cursor-pointer"
+            title="Copiar código fuente Mermaid"
+          >
+            <span>📋 Código</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lienzo de Renderizado Mermaid -->
+      <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 overflow-x-auto flex items-center justify-center min-h-[320px] diagram-canvas-container">
+        <pre class="mermaid text-center w-full" id="mermaid-diag-11-comp-frontend">
+flowchart TD
+    subgraph AppContainer["🖥️ Contenedor Principal (App.jsx)"]
+        ErrorBoundary["🛡️ ErrorBoundary"]
+        PosLayout["📱 PosLayout (Navbar Dinámico)"]
+        ErrorBoundary --> PosLayout
+    end
+
+    subgraph CoreViews["🧩 Vistas Principales (Eager / Lazy)"]
+        PosTerminal["🛒 PosTerminal (POS Mostrador)"]
+        LedgerTable["📑 LedgerTable (Libro Comprobantes)"]
+        InventoryMgr["📦 InventoryManager (Lazy)"]
+        KpiGrid["📊 KpiGrid (Lazy)"]
+        SoapConsole["📡 SoapConsole (Lazy)"]
+        ThemeModal["🎨 ThemeCustomizerModal (Lazy)"]
+    end
+
+    subgraph CustomHooks["🪝 Capa de Hooks Personalizados"]
+        useAuth["useAuth()"]
+        useTenant["useTenant()"]
+        useInvoices["useInvoices()"]
+        useCart["useCart()"]
+        useSoapClient["useSoapClient()"]
+    end
+
+    subgraph LocalStorageAdapters["💾 Resiliencia en Cliente"]
+        OfflineQueue["offlineQueue.js (Cola de Ventas)"]
+        LocalCache["localStorage (Tokens / Config Módulos)"]
+    end
+
+    PosLayout --> CoreViews
+    PosTerminal --> useCart
+    PosTerminal --> useInvoices
+    PosTerminal --> OfflineQueue
+    LedgerTable --> useInvoices
+    InventoryMgr --> useTenant
+    ThemeModal --> useTenant
+    CoreViews --> useTenant
+    CoreViews --> useAuth
+    useTenant --> LocalCache
+    useAuth --> LocalCache
+        </pre>
+      </div>
+
+      <!-- Código Mermaid Oculto para Copiado -->
+      <textarea id="raw-diag-11-comp-frontend" class="hidden">flowchart TD
+    subgraph AppContainer["🖥️ Contenedor Principal (App.jsx)"]
+        ErrorBoundary["🛡️ ErrorBoundary"]
+        PosLayout["📱 PosLayout (Navbar Dinámico)"]
+        ErrorBoundary --> PosLayout
+    end
+
+    subgraph CoreViews["🧩 Vistas Principales (Eager / Lazy)"]
+        PosTerminal["🛒 PosTerminal (POS Mostrador)"]
+        LedgerTable["📑 LedgerTable (Libro Comprobantes)"]
+        InventoryMgr["📦 InventoryManager (Lazy)"]
+        KpiGrid["📊 KpiGrid (Lazy)"]
+        SoapConsole["📡 SoapConsole (Lazy)"]
+        ThemeModal["🎨 ThemeCustomizerModal (Lazy)"]
+    end
+
+    subgraph CustomHooks["🪝 Capa de Hooks Personalizados"]
+        useAuth["useAuth()"]
+        useTenant["useTenant()"]
+        useInvoices["useInvoices()"]
+        useCart["useCart()"]
+        useSoapClient["useSoapClient()"]
+    end
+
+    subgraph LocalStorageAdapters["💾 Resiliencia en Cliente"]
+        OfflineQueue["offlineQueue.js (Cola de Ventas)"]
+        LocalCache["localStorage (Tokens / Config Módulos)"]
+    end
+
+    PosLayout --> CoreViews
+    PosTerminal --> useCart
+    PosTerminal --> useInvoices
+    PosTerminal --> OfflineQueue
+    LedgerTable --> useInvoices
+    InventoryMgr --> useTenant
+    ThemeModal --> useTenant
+    CoreViews --> useTenant
+    CoreViews --> useAuth
+    useTenant --> LocalCache
+    useAuth --> LocalCache</textarea>
+    </article>
+
+
+    <!-- DIAGRAMA 12: UML-10 -->
+    <article 
+      id="diag-12-deployment" 
+      data-category="components" 
+      data-title="diagrama de despliegue: infraestructura cloud & multi-región" 
+      data-code="uml-10"
+      class="diagram-card bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
+    >
+      <!-- Cabecera del Diagrama -->
+      <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-800/80">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+              #12 • UML-10
+            </span>
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] text-slate-400 bg-slate-900 border border-slate-800">
+              Componentes & Despliegue
+            </span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black text-white mt-2">Diagrama de Despliegue: Infraestructura Cloud & Multi-Región</h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-4xl leading-relaxed">Despliegue distribuido de alto rendimiento: Cloudflare Pages / Workers para distribución estática perimetral, Render Linux Container para backend Node.js y Neon Cloud PostgreSQL Serverless.</p>
+        </div>
+
+        <!-- Botones de Descarga del Diagrama -->
+        <div class="flex items-center gap-2 no-print shrink-0">
+          <button 
+            onclick="downloadPNG('diag-12-deployment', 'UML-10_Diagrama_de_Despliegue__Infraestructura_Cloud___Multi_Regi_n')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-sky-400 border border-slate-700 hover:border-sky-500 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar en formato PNG de Alta Resolución"
+          >
+            <span>🖼️ Descargar PNG</span>
+          </button>
+          <button 
+            onclick="downloadSVG('diag-12-deployment', 'UML-10_Diagrama_de_Despliegue__Infraestructura_Cloud___Multi_Regi_n')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar Vector SVG Nítido Escalable"
+          >
+            <span>📐 Descargar SVG</span>
+          </button>
+          <button 
+            onclick="copyMermaidCode('diag-12-deployment')"
+            class="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition cursor-pointer"
+            title="Copiar código fuente Mermaid"
+          >
+            <span>📋 Código</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lienzo de Renderizado Mermaid -->
+      <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 overflow-x-auto flex items-center justify-center min-h-[320px] diagram-canvas-container">
+        <pre class="mermaid text-center w-full" id="mermaid-diag-12-deployment">
+flowchart TB
+    subgraph EdgeNode["☁️ Nodo Perimetral: Cloudflare Global Edge"]
+        EdgeDNS["DNS / SSL Anycast"]
+        CFWorkers["Cloudflare Pages / Workers
+(dist/ - SPA Assets)"]
+    end
+
+    subgraph RenderNode["☁️ Nodo de Cómputo: Render Cloud (Oregon / Virginia)"]
+        DockerContainer["Contenedor Linux / Node.js 22 LTS"]
+        subgraph ServerRuntime["Proceso Express API (Port 3000 / 10000)"]
+            TsServer["server.js (Compilado con tsup)"]
+            InMemoryStore["In-Memory Cache (RAM 512MB)"]
+        end
+        DockerContainer --> ServerRuntime
+    end
+
+    subgraph NeonNode["☁️ Nodo de Datos: Neon Serverless PostgreSQL (AWS us-east-2)"]
+        NeonProxy["Neon Connection Pooler (PgBouncer)"]
+        DatabaseInstance[("Postgres Instance
+Direct SSL / TLS
+Schemas: public + tenant_*")]
+        NeonProxy --> DatabaseInstance
+    end
+
+    subgraph ClientNode["📱 Dispositivo del Usuario"]
+        LocalBrowser["Navegador Chrome / Safari / Edge"]
+        IndexedLocal["LocalStorage / Cache API"]
+    end
+
+    LocalBrowser <--> IndexedLocal
+    LocalBrowser -->|"HTTPS GET Static Assets"| EdgeDNS
+    EdgeDNS --> CFWorkers
+    LocalBrowser -->|"HTTPS REST / SOAP APIs"| TsServer
+    TsServer <-->|"SSL Encrypted Pool Connection"| NeonProxy
+        </pre>
+      </div>
+
+      <!-- Código Mermaid Oculto para Copiado -->
+      <textarea id="raw-diag-12-deployment" class="hidden">flowchart TB
+    subgraph EdgeNode["☁️ Nodo Perimetral: Cloudflare Global Edge"]
+        EdgeDNS["DNS / SSL Anycast"]
+        CFWorkers["Cloudflare Pages / Workers
+(dist/ - SPA Assets)"]
+    end
+
+    subgraph RenderNode["☁️ Nodo de Cómputo: Render Cloud (Oregon / Virginia)"]
+        DockerContainer["Contenedor Linux / Node.js 22 LTS"]
+        subgraph ServerRuntime["Proceso Express API (Port 3000 / 10000)"]
+            TsServer["server.js (Compilado con tsup)"]
+            InMemoryStore["In-Memory Cache (RAM 512MB)"]
+        end
+        DockerContainer --> ServerRuntime
+    end
+
+    subgraph NeonNode["☁️ Nodo de Datos: Neon Serverless PostgreSQL (AWS us-east-2)"]
+        NeonProxy["Neon Connection Pooler (PgBouncer)"]
+        DatabaseInstance[("Postgres Instance
+Direct SSL / TLS
+Schemas: public + tenant_*")]
+        NeonProxy --> DatabaseInstance
+    end
+
+    subgraph ClientNode["📱 Dispositivo del Usuario"]
+        LocalBrowser["Navegador Chrome / Safari / Edge"]
+        IndexedLocal["LocalStorage / Cache API"]
+    end
+
+    LocalBrowser <--> IndexedLocal
+    LocalBrowser -->|"HTTPS GET Static Assets"| EdgeDNS
+    EdgeDNS --> CFWorkers
+    LocalBrowser -->|"HTTPS REST / SOAP APIs"| TsServer
+    TsServer <-->|"SSL Encrypted Pool Connection"| NeonProxy</textarea>
+    </article>
+
+
+    <!-- DIAGRAMA 13: UML-11 -->
+    <article 
+      id="diag-13-seq-auth" 
+      data-category="sequence" 
+      data-title="diagrama de secuencia: autenticación & resolución de inquilino" 
+      data-code="uml-11"
+      class="diagram-card bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
+    >
+      <!-- Cabecera del Diagrama -->
+      <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-800/80">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+              #13 • UML-11
+            </span>
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] text-slate-400 bg-slate-900 border border-slate-800">
+              Secuencia
+            </span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black text-white mt-2">Diagrama de Secuencia: Autenticación & Resolución de Inquilino</h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-4xl leading-relaxed">Flujo paso a paso de inicio de sesión: verificación de credenciales con Argon2/Bcrypt, generación de JWT firmado y resolución del inquilino predeterminado del usuario.</p>
+        </div>
+
+        <!-- Botones de Descarga del Diagrama -->
+        <div class="flex items-center gap-2 no-print shrink-0">
+          <button 
+            onclick="downloadPNG('diag-13-seq-auth', 'UML-11_Diagrama_de_Secuencia__Autenticaci_n___Resoluci_n_de_Inquilino')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-sky-400 border border-slate-700 hover:border-sky-500 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar en formato PNG de Alta Resolución"
+          >
+            <span>🖼️ Descargar PNG</span>
+          </button>
+          <button 
+            onclick="downloadSVG('diag-13-seq-auth', 'UML-11_Diagrama_de_Secuencia__Autenticaci_n___Resoluci_n_de_Inquilino')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar Vector SVG Nítido Escalable"
+          >
+            <span>📐 Descargar SVG</span>
+          </button>
+          <button 
+            onclick="copyMermaidCode('diag-13-seq-auth')"
+            class="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition cursor-pointer"
+            title="Copiar código fuente Mermaid"
+          >
+            <span>📋 Código</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lienzo de Renderizado Mermaid -->
+      <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 overflow-x-auto flex items-center justify-center min-h-[320px] diagram-canvas-container">
+        <pre class="mermaid text-center w-full" id="mermaid-diag-13-seq-auth">
+sequenceDiagram
+    autonumber
+    actor Usuario
+    participant UI as AuthView (React)
+    participant Hook as useAuth()
+    participant Server as auth.controller (Express)
+    participant DB as Neon PostgreSQL (public)
+    participant JWT as jsonwebtoken
+
+    Usuario->>UI: Ingresa correo y contraseña
+    UI->>Hook: login(email, password)
+    Hook->>Server: POST /api/auth/login {email, password}
+    Server->>DB: SELECT * FROM public.users WHERE email = $1
+    DB-->>Server: Retorna registro de usuario
+    Server->>Server: Comparar Hash de Contraseña
+    Server->>DB: SELECT t.* FROM public.tenants t JOIN public.user_tenants ut ON t.id = ut.tenant_id WHERE ut.user_id = $2
+    DB-->>Server: Retorna lista de negocios autorizados
+    Server->>JWT: sign({userId, tenantId, role}, SECRET, {expiresIn: '24h'})
+    JWT-->>Server: Token JWT generado
+    Server-->>Hook: 200 OK {token, user, tenant}
+    Hook->>Hook: Guardar token en localStorage
+    Hook-->>UI: Sesión iniciada con éxito
+    UI-->>Usuario: Redirecciona a la Terminal POS del Inquilino
+        </pre>
+      </div>
+
+      <!-- Código Mermaid Oculto para Copiado -->
+      <textarea id="raw-diag-13-seq-auth" class="hidden">sequenceDiagram
+    autonumber
+    actor Usuario
+    participant UI as AuthView (React)
+    participant Hook as useAuth()
+    participant Server as auth.controller (Express)
+    participant DB as Neon PostgreSQL (public)
+    participant JWT as jsonwebtoken
+
+    Usuario->>UI: Ingresa correo y contraseña
+    UI->>Hook: login(email, password)
+    Hook->>Server: POST /api/auth/login {email, password}
+    Server->>DB: SELECT * FROM public.users WHERE email = $1
+    DB-->>Server: Retorna registro de usuario
+    Server->>Server: Comparar Hash de Contraseña
+    Server->>DB: SELECT t.* FROM public.tenants t JOIN public.user_tenants ut ON t.id = ut.tenant_id WHERE ut.user_id = $2
+    DB-->>Server: Retorna lista de negocios autorizados
+    Server->>JWT: sign({userId, tenantId, role}, SECRET, {expiresIn: '24h'})
+    JWT-->>Server: Token JWT generado
+    Server-->>Hook: 200 OK {token, user, tenant}
+    Hook->>Hook: Guardar token en localStorage
+    Hook-->>UI: Sesión iniciada con éxito
+    UI-->>Usuario: Redirecciona a la Terminal POS del Inquilino</textarea>
+    </article>
+
+
+    <!-- DIAGRAMA 14: UML-12 -->
+    <article 
+      id="diag-14-seq-pos-sale" 
+      data-category="sequence" 
+      data-title="diagrama de secuencia: emisión de venta pos & descuento de stock" 
+      data-code="uml-12"
+      class="diagram-card bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
+    >
+      <!-- Cabecera del Diagrama -->
+      <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-800/80">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+              #14 • UML-12
+            </span>
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] text-slate-400 bg-slate-900 border border-slate-800">
+              Secuencia
+            </span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black text-white mt-2">Diagrama de Secuencia: Emisión de Venta POS & Descuento de Stock</h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-4xl leading-relaxed">Ciclo de una venta en mostrador: cálculo de totales, emisión de factura en PostgreSQL con search_path de inquilino, descuento atómico de stock e invalidación de caché.</p>
+        </div>
+
+        <!-- Botones de Descarga del Diagrama -->
+        <div class="flex items-center gap-2 no-print shrink-0">
+          <button 
+            onclick="downloadPNG('diag-14-seq-pos-sale', 'UML-12_Diagrama_de_Secuencia__Emisi_n_de_Venta_POS___Descuento_de_Stock')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-sky-400 border border-slate-700 hover:border-sky-500 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar en formato PNG de Alta Resolución"
+          >
+            <span>🖼️ Descargar PNG</span>
+          </button>
+          <button 
+            onclick="downloadSVG('diag-14-seq-pos-sale', 'UML-12_Diagrama_de_Secuencia__Emisi_n_de_Venta_POS___Descuento_de_Stock')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar Vector SVG Nítido Escalable"
+          >
+            <span>📐 Descargar SVG</span>
+          </button>
+          <button 
+            onclick="copyMermaidCode('diag-14-seq-pos-sale')"
+            class="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition cursor-pointer"
+            title="Copiar código fuente Mermaid"
+          >
+            <span>📋 Código</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lienzo de Renderizado Mermaid -->
+      <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 overflow-x-auto flex items-center justify-center min-h-[320px] diagram-canvas-container">
+        <pre class="mermaid text-center w-full" id="mermaid-diag-14-seq-pos-sale">
+sequenceDiagram
+    autonumber
+    actor Cajero
+    participant POS as PosTerminal (React)
+    participant Hook as useInvoices()
+    participant Controller as invoice.controller.ts
+    participant Cache as product.controller (Caché RAM)
+    participant Context as withTenantContext (DB Pool)
+    participant DB as Neon DB (tenant_{slug})
+
+    Cajero->>POS: Presiona "Emitir Venta & Cobrar"
+    POS->>Hook: emitInvoice(orderData, tenant)
+    Hook->>Controller: POST /api/tenants/:id/invoices {items, subtotal, impuestos, total, metodo_pago}
+    Controller->>Context: withTenantContext('tenant_pasteleria', tx)
+    Context->>DB: SET search_path TO "tenant_pasteleria"
+    Context->>DB: SELECT COALESCE(MAX(id), 1000) + 1 AS next_id FROM facturas
+    DB-->>Context: next_id = 1005
+    Context->>DB: INSERT INTO facturas (id, numero_factura, cliente, total, cufe...) VALUES (...)
+    loop Para cada producto vendido
+        Context->>DB: INSERT INTO factura_detalles (factura_id, producto_id, cantidad, precio...)
+        Context->>DB: UPDATE productos SET stock = GREATEST(0, stock - $1) WHERE id = $2
+    end
+    Context-->>Controller: Retorna factura creada con detalles
+    Controller->>Cache: invalidateProductsCache('pasteleria')
+    Note over Cache: Memoria RAM liberada para forzar recarga de stock exacto
+    Controller-->>Hook: 201 Created {success: true, invoice}
+    Hook-->>POS: Muestra Ticket Térmico con CUFE
+    POS-->>Cajero: Reproduce sonido de éxito y vacía carrito
+        </pre>
+      </div>
+
+      <!-- Código Mermaid Oculto para Copiado -->
+      <textarea id="raw-diag-14-seq-pos-sale" class="hidden">sequenceDiagram
+    autonumber
+    actor Cajero
+    participant POS as PosTerminal (React)
+    participant Hook as useInvoices()
+    participant Controller as invoice.controller.ts
+    participant Cache as product.controller (Caché RAM)
+    participant Context as withTenantContext (DB Pool)
+    participant DB as Neon DB (tenant_{slug})
+
+    Cajero->>POS: Presiona "Emitir Venta & Cobrar"
+    POS->>Hook: emitInvoice(orderData, tenant)
+    Hook->>Controller: POST /api/tenants/:id/invoices {items, subtotal, impuestos, total, metodo_pago}
+    Controller->>Context: withTenantContext('tenant_pasteleria', tx)
+    Context->>DB: SET search_path TO "tenant_pasteleria"
+    Context->>DB: SELECT COALESCE(MAX(id), 1000) + 1 AS next_id FROM facturas
+    DB-->>Context: next_id = 1005
+    Context->>DB: INSERT INTO facturas (id, numero_factura, cliente, total, cufe...) VALUES (...)
+    loop Para cada producto vendido
+        Context->>DB: INSERT INTO factura_detalles (factura_id, producto_id, cantidad, precio...)
+        Context->>DB: UPDATE productos SET stock = GREATEST(0, stock - $1) WHERE id = $2
+    end
+    Context-->>Controller: Retorna factura creada con detalles
+    Controller->>Cache: invalidateProductsCache('pasteleria')
+    Note over Cache: Memoria RAM liberada para forzar recarga de stock exacto
+    Controller-->>Hook: 201 Created {success: true, invoice}
+    Hook-->>POS: Muestra Ticket Térmico con CUFE
+    POS-->>Cajero: Reproduce sonido de éxito y vacía carrito</textarea>
+    </article>
+
+
+    <!-- DIAGRAMA 15: UML-13 -->
+    <article 
+      id="diag-15-seq-offline" 
+      data-category="sequence" 
+      data-title="diagrama de secuencia: transacción resiliente offline & auto-sync" 
+      data-code="uml-13"
+      class="diagram-card bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
+    >
+      <!-- Cabecera del Diagrama -->
+      <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-800/80">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+              #15 • UML-13
+            </span>
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] text-slate-400 bg-slate-900 border border-slate-800">
+              Secuencia
+            </span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black text-white mt-2">Diagrama de Secuencia: Transacción Resiliente Offline & Auto-Sync</h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-4xl leading-relaxed">Mecanismo de tolerancia a fallos: emisión en cola local cuando no hay conexión, generación de ticket provisional `REC-OFF-...` y sincronización masiva al volver la red.</p>
+        </div>
+
+        <!-- Botones de Descarga del Diagrama -->
+        <div class="flex items-center gap-2 no-print shrink-0">
+          <button 
+            onclick="downloadPNG('diag-15-seq-offline', 'UML-13_Diagrama_de_Secuencia__Transacci_n_Resiliente_Offline___Auto_Sync')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-sky-400 border border-slate-700 hover:border-sky-500 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar en formato PNG de Alta Resolución"
+          >
+            <span>🖼️ Descargar PNG</span>
+          </button>
+          <button 
+            onclick="downloadSVG('diag-15-seq-offline', 'UML-13_Diagrama_de_Secuencia__Transacci_n_Resiliente_Offline___Auto_Sync')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar Vector SVG Nítido Escalable"
+          >
+            <span>📐 Descargar SVG</span>
+          </button>
+          <button 
+            onclick="copyMermaidCode('diag-15-seq-offline')"
+            class="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition cursor-pointer"
+            title="Copiar código fuente Mermaid"
+          >
+            <span>📋 Código</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lienzo de Renderizado Mermaid -->
+      <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 overflow-x-auto flex items-center justify-center min-h-[320px] diagram-canvas-container">
+        <pre class="mermaid text-center w-full" id="mermaid-diag-15-seq-offline">
+sequenceDiagram
+    autonumber
+    actor Cajero
+    participant POS as PosTerminal (React)
+    participant Queue as offlineQueue.js
+    participant Storage as localStorage
+    participant Window as window (Eventos de Red)
+    participant Server as invoice.controller.ts
+    participant DB as Neon PostgreSQL
+
+    Note over POS,Window: ⚠️ Se interrumpe la conexión a Internet en el comercio
+    Cajero->>POS: Cobra venta en mostrador
+    POS->>POS: Detecta navigator.onLine === false
+    POS->>Queue: enqueueOfflineSale(tenantId, orderData)
+    Queue->>Storage: Guarda venta con ID provisional (REC-OFF-4821)
+    Queue-->>POS: Retorna comprobante simulado offline
+    POS-->>Cajero: Muestra ticket provisional y badge "Modo Offline (1 pendiente)"
+    
+    Note over POS,Window: 🌐 El enlace a Internet se restablece en el local
+    Window->>POS: Dispara evento 'online'
+    POS->>POS: Actualiza badge: "1 Comprobante listo para subir"
+    Cajero->>POS: Presiona botón "Subir a la Nube"
+    POS->>Queue: syncOfflineQueue(tenant, emitInvoice)
+    loop Por cada venta en cola
+        Queue->>Server: POST /api/tenants/:id/invoices (skipOfflineFallback: true)
+        Server->>DB: Registra comprobante definitivo y descuenta inventario
+        DB-->>Server: Factura timbrada (FAC-1006)
+        Server-->>Queue: 201 OK
+        Queue->>Storage: Elimina venta de la cola local
+    end
+    Queue-->>POS: Sincronización completada (1 sincronizados, 0 fallidos)
+    POS-->>Cajero: Alerta "¡Todas las ventas han sido subidas a Neon DB!"
+        </pre>
+      </div>
+
+      <!-- Código Mermaid Oculto para Copiado -->
+      <textarea id="raw-diag-15-seq-offline" class="hidden">sequenceDiagram
+    autonumber
+    actor Cajero
+    participant POS as PosTerminal (React)
+    participant Queue as offlineQueue.js
+    participant Storage as localStorage
+    participant Window as window (Eventos de Red)
+    participant Server as invoice.controller.ts
+    participant DB as Neon PostgreSQL
+
+    Note over POS,Window: ⚠️ Se interrumpe la conexión a Internet en el comercio
+    Cajero->>POS: Cobra venta en mostrador
+    POS->>POS: Detecta navigator.onLine === false
+    POS->>Queue: enqueueOfflineSale(tenantId, orderData)
+    Queue->>Storage: Guarda venta con ID provisional (REC-OFF-4821)
+    Queue-->>POS: Retorna comprobante simulado offline
+    POS-->>Cajero: Muestra ticket provisional y badge "Modo Offline (1 pendiente)"
+    
+    Note over POS,Window: 🌐 El enlace a Internet se restablece en el local
+    Window->>POS: Dispara evento 'online'
+    POS->>POS: Actualiza badge: "1 Comprobante listo para subir"
+    Cajero->>POS: Presiona botón "Subir a la Nube"
+    POS->>Queue: syncOfflineQueue(tenant, emitInvoice)
+    loop Por cada venta en cola
+        Queue->>Server: POST /api/tenants/:id/invoices (skipOfflineFallback: true)
+        Server->>DB: Registra comprobante definitivo y descuenta inventario
+        DB-->>Server: Factura timbrada (FAC-1006)
+        Server-->>Queue: 201 OK
+        Queue->>Storage: Elimina venta de la cola local
+    end
+    Queue-->>POS: Sincronización completada (1 sincronizados, 0 fallidos)
+    POS-->>Cajero: Alerta "¡Todas las ventas han sido subidas a Neon DB!"</textarea>
+    </article>
+
+
+    <!-- DIAGRAMA 16: UML-14 -->
+    <article 
+      id="diag-16-seq-soap" 
+      data-category="sequence" 
+      data-title="diagrama de secuencia: consulta y validación fiscal soap" 
+      data-code="uml-14"
+      class="diagram-card bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
+    >
+      <!-- Cabecera del Diagrama -->
+      <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-800/80">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+              #16 • UML-14
+            </span>
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] text-slate-400 bg-slate-900 border border-slate-800">
+              Secuencia
+            </span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black text-white mt-2">Diagrama de Secuencia: Consulta y Validación Fiscal SOAP</h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-4xl leading-relaxed">Procesamiento de peticiones SOAP sobre HTTP: extracción de envelope XML, validación de sintaxis contra XSD, procesamiento de acciones y retorno de respuesta formateada.</p>
+        </div>
+
+        <!-- Botones de Descarga del Diagrama -->
+        <div class="flex items-center gap-2 no-print shrink-0">
+          <button 
+            onclick="downloadPNG('diag-16-seq-soap', 'UML-14_Diagrama_de_Secuencia__Consulta_y_Validaci_n_Fiscal_SOAP')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-sky-400 border border-slate-700 hover:border-sky-500 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar en formato PNG de Alta Resolución"
+          >
+            <span>🖼️ Descargar PNG</span>
+          </button>
+          <button 
+            onclick="downloadSVG('diag-16-seq-soap', 'UML-14_Diagrama_de_Secuencia__Consulta_y_Validaci_n_Fiscal_SOAP')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar Vector SVG Nítido Escalable"
+          >
+            <span>📐 Descargar SVG</span>
+          </button>
+          <button 
+            onclick="copyMermaidCode('diag-16-seq-soap')"
+            class="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition cursor-pointer"
+            title="Copiar código fuente Mermaid"
+          >
+            <span>📋 Código</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lienzo de Renderizado Mermaid -->
+      <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 overflow-x-auto flex items-center justify-center min-h-[320px] diagram-canvas-container">
+        <pre class="mermaid text-center w-full" id="mermaid-diag-16-seq-soap">
+sequenceDiagram
+    autonumber
+    actor Auditor
+    participant Client as SoapConsole (React)
+    participant Server as server.ts (Express)
+    participant SoapRouter as soap.routes.ts
+    participant Validator as XSD Validator (libxmljs2)
+    participant Service as SoapFiscalService
+    participant DB as Neon DB (tenant_{slug})
+
+    Auditor->>Client: Presiona "Consultar Comprobante por SOAP"
+    Client->>Server: POST /ws/facturacion (Content-Type: text/xml, SOAPAction: "ConsultarFactura")
+    Server->>SoapRouter: Pasa cuerpo XML sin procesar (express.text)
+    SoapRouter->>Validator: Validar sintaxis contra schema.xsd
+    alt XML Inválido o Mal Formado
+        Validator-->>SoapRouter: Error de Validación XSD
+        SoapRouter-->>Client: 500 SOAP Fault (<faultcode>SOAP-ENV:Client</faultcode>)
+    else XML Válido
+        Validator-->>SoapRouter: Validación Exitosa
+        SoapRouter->>Service: parseEnvelope(xml) & extraer invoiceId
+        Service->>DB: SELECT * FROM facturas WHERE id = $1
+        DB-->>Service: Registro fiscal con CUFE
+        Service->>Service: Construir <soap:Envelope> con <ConsultarFacturaResponse>
+        Service-->>SoapRouter: XML Response completo
+        SoapRouter-->>Client: 200 OK (Content-Type: application/xml)
+        Client-->>Auditor: Muestra inspección de cabeceras, latencia y árbol XML
+        </pre>
+      </div>
+
+      <!-- Código Mermaid Oculto para Copiado -->
+      <textarea id="raw-diag-16-seq-soap" class="hidden">sequenceDiagram
+    autonumber
+    actor Auditor
+    participant Client as SoapConsole (React)
+    participant Server as server.ts (Express)
+    participant SoapRouter as soap.routes.ts
+    participant Validator as XSD Validator (libxmljs2)
+    participant Service as SoapFiscalService
+    participant DB as Neon DB (tenant_{slug})
+
+    Auditor->>Client: Presiona "Consultar Comprobante por SOAP"
+    Client->>Server: POST /ws/facturacion (Content-Type: text/xml, SOAPAction: "ConsultarFactura")
+    Server->>SoapRouter: Pasa cuerpo XML sin procesar (express.text)
+    SoapRouter->>Validator: Validar sintaxis contra schema.xsd
+    alt XML Inválido o Mal Formado
+        Validator-->>SoapRouter: Error de Validación XSD
+        SoapRouter-->>Client: 500 SOAP Fault (<faultcode>SOAP-ENV:Client</faultcode>)
+    else XML Válido
+        Validator-->>SoapRouter: Validación Exitosa
+        SoapRouter->>Service: parseEnvelope(xml) & extraer invoiceId
+        Service->>DB: SELECT * FROM facturas WHERE id = $1
+        DB-->>Service: Registro fiscal con CUFE
+        Service->>Service: Construir <soap:Envelope> con <ConsultarFacturaResponse>
+        Service-->>SoapRouter: XML Response completo
+        SoapRouter-->>Client: 200 OK (Content-Type: application/xml)
+        Client-->>Auditor: Muestra inspección de cabeceras, latencia y árbol XML</textarea>
+    </article>
+
+
+    <!-- DIAGRAMA 17: UML-15 -->
+    <article 
+      id="diag-17-seq-provisioning" 
+      data-category="sequence" 
+      data-title="diagrama de secuencia: aprovisionamiento automático de schema" 
+      data-code="uml-15"
+      class="diagram-card bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
+    >
+      <!-- Cabecera del Diagrama -->
+      <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-800/80">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+              #17 • UML-15
+            </span>
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] text-slate-400 bg-slate-900 border border-slate-800">
+              Secuencia
+            </span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black text-white mt-2">Diagrama de Secuencia: Aprovisionamiento Automático de Schema</h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-4xl leading-relaxed">Creación desatendida de un nuevo entorno de inquilino: validación del slug, registro en el catálogo maestro y ejecución DDL del esquema y tablas correspondientes.</p>
+        </div>
+
+        <!-- Botones de Descarga del Diagrama -->
+        <div class="flex items-center gap-2 no-print shrink-0">
+          <button 
+            onclick="downloadPNG('diag-17-seq-provisioning', 'UML-15_Diagrama_de_Secuencia__Aprovisionamiento_Autom_tico_de_Schema')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-sky-400 border border-slate-700 hover:border-sky-500 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar en formato PNG de Alta Resolución"
+          >
+            <span>🖼️ Descargar PNG</span>
+          </button>
+          <button 
+            onclick="downloadSVG('diag-17-seq-provisioning', 'UML-15_Diagrama_de_Secuencia__Aprovisionamiento_Autom_tico_de_Schema')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar Vector SVG Nítido Escalable"
+          >
+            <span>📐 Descargar SVG</span>
+          </button>
+          <button 
+            onclick="copyMermaidCode('diag-17-seq-provisioning')"
+            class="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition cursor-pointer"
+            title="Copiar código fuente Mermaid"
+          >
+            <span>📋 Código</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lienzo de Renderizado Mermaid -->
+      <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 overflow-x-auto flex items-center justify-center min-h-[320px] diagram-canvas-container">
+        <pre class="mermaid text-center w-full" id="mermaid-diag-17-seq-provisioning">
+sequenceDiagram
+    autonumber
+    actor Dueño
+    participant Wizard as NewTenantWizard (React)
+    participant Controller as tenant.controller.ts
+    participant Provisioner as tenant.provisioner.ts
+    participant DB as Neon PostgreSQL
+
+    Dueño->>Wizard: Completa datos de negocio y módulos a la carta
+    Wizard->>Controller: POST /api/tenants {id, nombre, brand_color, business_type, active_modules}
+    Controller->>Provisioner: provisionTenant(dto)
+    Provisioner->>DB: INSERT INTO public.tenants (id, nombre, schema_name, brand_color, active_modules) VALUES (...)
+    Provisioner->>DB: CREATE SCHEMA IF NOT EXISTS "tenant_nuevonegocio"
+    Provisioner->>DB: CREATE TABLE "tenant_nuevonegocio".facturas (...)
+    Provisioner->>DB: CREATE TABLE "tenant_nuevonegocio".factura_detalles (...)
+    Provisioner->>DB: CREATE TABLE "tenant_nuevonegocio".productos (...)
+    Provisioner->>DB: INSERT INTO "tenant_nuevonegocio".productos (semillas por rubro)
+    DB-->>Provisioner: Tablas e índices creados con éxito
+    Provisioner-->>Controller: Tenant aprovisionado completamente
+    Controller-->>Wizard: 201 Created {success: true, tenant}
+    Wizard-->>Dueño: "¡Bienvenido a tu nuevo espacio de trabajo!"
+        </pre>
+      </div>
+
+      <!-- Código Mermaid Oculto para Copiado -->
+      <textarea id="raw-diag-17-seq-provisioning" class="hidden">sequenceDiagram
+    autonumber
+    actor Dueño
+    participant Wizard as NewTenantWizard (React)
+    participant Controller as tenant.controller.ts
+    participant Provisioner as tenant.provisioner.ts
+    participant DB as Neon PostgreSQL
+
+    Dueño->>Wizard: Completa datos de negocio y módulos a la carta
+    Wizard->>Controller: POST /api/tenants {id, nombre, brand_color, business_type, active_modules}
+    Controller->>Provisioner: provisionTenant(dto)
+    Provisioner->>DB: INSERT INTO public.tenants (id, nombre, schema_name, brand_color, active_modules) VALUES (...)
+    Provisioner->>DB: CREATE SCHEMA IF NOT EXISTS "tenant_nuevonegocio"
+    Provisioner->>DB: CREATE TABLE "tenant_nuevonegocio".facturas (...)
+    Provisioner->>DB: CREATE TABLE "tenant_nuevonegocio".factura_detalles (...)
+    Provisioner->>DB: CREATE TABLE "tenant_nuevonegocio".productos (...)
+    Provisioner->>DB: INSERT INTO "tenant_nuevonegocio".productos (semillas por rubro)
+    DB-->>Provisioner: Tablas e índices creados con éxito
+    Provisioner-->>Controller: Tenant aprovisionado completamente
+    Controller-->>Wizard: 201 Created {success: true, tenant}
+    Wizard-->>Dueño: "¡Bienvenido a tu nuevo espacio de trabajo!"</textarea>
+    </article>
+
+
+    <!-- DIAGRAMA 18: UML-16 -->
+    <article 
+      id="diag-18-seq-modular" 
+      data-category="sequence" 
+      data-title="diagrama de secuencia: actualización modular a la carta" 
+      data-code="uml-16"
+      class="diagram-card bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
+    >
+      <!-- Cabecera del Diagrama -->
+      <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-800/80">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+              #18 • UML-16
+            </span>
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] text-slate-400 bg-slate-900 border border-slate-800">
+              Secuencia
+            </span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black text-white mt-2">Diagrama de Secuencia: Actualización Modular a la Carta</h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-4xl leading-relaxed">Persistencia reactiva de la selección de módulos: salvado optimista en localStorage, petición preflight CORS OPTIONS y persistencia remota mediante PATCH y PUT.</p>
+        </div>
+
+        <!-- Botones de Descarga del Diagrama -->
+        <div class="flex items-center gap-2 no-print shrink-0">
+          <button 
+            onclick="downloadPNG('diag-18-seq-modular', 'UML-16_Diagrama_de_Secuencia__Actualizaci_n_Modular_a_la_Carta')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-sky-400 border border-slate-700 hover:border-sky-500 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar en formato PNG de Alta Resolución"
+          >
+            <span>🖼️ Descargar PNG</span>
+          </button>
+          <button 
+            onclick="downloadSVG('diag-18-seq-modular', 'UML-16_Diagrama_de_Secuencia__Actualizaci_n_Modular_a_la_Carta')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar Vector SVG Nítido Escalable"
+          >
+            <span>📐 Descargar SVG</span>
+          </button>
+          <button 
+            onclick="copyMermaidCode('diag-18-seq-modular')"
+            class="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition cursor-pointer"
+            title="Copiar código fuente Mermaid"
+          >
+            <span>📋 Código</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lienzo de Renderizado Mermaid -->
+      <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 overflow-x-auto flex items-center justify-center min-h-[320px] diagram-canvas-container">
+        <pre class="mermaid text-center w-full" id="mermaid-diag-18-seq-modular">
+sequenceDiagram
+    autonumber
+    actor Comerciante
+    participant Modal as ThemeCustomizerModal
+    participant Hook as useTenant()
+    participant Browser as Motor CORS del Navegador
+    participant Server as server.ts & tenant.routes.ts
+    participant DB as Neon PostgreSQL (public.tenants)
+
+    Comerciante->>Modal: Desmarca o activa módulos y hace clic en "Guardar"
+    Modal->>Hook: updateActiveModules(['pos', 'inventory', 'invoices'])
+    Hook->>Hook: Guarda de inmediato en localStorage ('taskmaster_modules_...')
+    Note over Hook: ✨ Persistencia optimista: la UI oculta pestañas al instante
+    Hook->>Browser: Enviar PATCH /api/tenants/:id/modules
+    Browser->>Server: OPTIONS Preflight (Access-Control-Request-Method: PATCH)
+    Server-->>Browser: 200 OK (Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE)
+    Browser->>Server: PATCH /api/tenants/:id/modules {active_modules}
+    Server->>DB: UPDATE public.tenants SET active_modules = $1 WHERE id = $2
+    DB-->>Server: 1 fila actualizada
+    Server-->>Hook: 200 OK {success: true, active_modules}
+    Hook-->>Modal: Muestra mensaje verde "¡Módulos guardados en Neon DB!"
+        </pre>
+      </div>
+
+      <!-- Código Mermaid Oculto para Copiado -->
+      <textarea id="raw-diag-18-seq-modular" class="hidden">sequenceDiagram
+    autonumber
+    actor Comerciante
+    participant Modal as ThemeCustomizerModal
+    participant Hook as useTenant()
+    participant Browser as Motor CORS del Navegador
+    participant Server as server.ts & tenant.routes.ts
+    participant DB as Neon PostgreSQL (public.tenants)
+
+    Comerciante->>Modal: Desmarca o activa módulos y hace clic en "Guardar"
+    Modal->>Hook: updateActiveModules(['pos', 'inventory', 'invoices'])
+    Hook->>Hook: Guarda de inmediato en localStorage ('taskmaster_modules_...')
+    Note over Hook: ✨ Persistencia optimista: la UI oculta pestañas al instante
+    Hook->>Browser: Enviar PATCH /api/tenants/:id/modules
+    Browser->>Server: OPTIONS Preflight (Access-Control-Request-Method: PATCH)
+    Server-->>Browser: 200 OK (Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE)
+    Browser->>Server: PATCH /api/tenants/:id/modules {active_modules}
+    Server->>DB: UPDATE public.tenants SET active_modules = $1 WHERE id = $2
+    DB-->>Server: 1 fila actualizada
+    Server-->>Hook: 200 OK {success: true, active_modules}
+    Hook-->>Modal: Muestra mensaje verde "¡Módulos guardados en Neon DB!"</textarea>
+    </article>
+
+
+    <!-- DIAGRAMA 19: UML-17 -->
+    <article 
+      id="diag-19-act-pos" 
+      data-category="activity" 
+      data-title="diagrama de actividades: flujo integral de cobro en terminal pos" 
+      data-code="uml-17"
+      class="diagram-card bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
+    >
+      <!-- Cabecera del Diagrama -->
+      <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-800/80">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+              #19 • UML-17
+            </span>
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] text-slate-400 bg-slate-900 border border-slate-800">
+              Actividades
+            </span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black text-white mt-2">Diagrama de Actividades: Flujo Integral de Cobro en Terminal POS</h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-4xl leading-relaxed">Flujo paso a paso desde el inicio de un pedido en caja, verificación de existencias, cálculo de impuestos, decisión de conectividad y culminación de la venta.</p>
+        </div>
+
+        <!-- Botones de Descarga del Diagrama -->
+        <div class="flex items-center gap-2 no-print shrink-0">
+          <button 
+            onclick="downloadPNG('diag-19-act-pos', 'UML-17_Diagrama_de_Actividades__Flujo_Integral_de_Cobro_en_Terminal_POS')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-sky-400 border border-slate-700 hover:border-sky-500 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar en formato PNG de Alta Resolución"
+          >
+            <span>🖼️ Descargar PNG</span>
+          </button>
+          <button 
+            onclick="downloadSVG('diag-19-act-pos', 'UML-17_Diagrama_de_Actividades__Flujo_Integral_de_Cobro_en_Terminal_POS')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar Vector SVG Nítido Escalable"
+          >
+            <span>📐 Descargar SVG</span>
+          </button>
+          <button 
+            onclick="copyMermaidCode('diag-19-act-pos')"
+            class="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition cursor-pointer"
+            title="Copiar código fuente Mermaid"
+          >
+            <span>📋 Código</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lienzo de Renderizado Mermaid -->
+      <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 overflow-x-auto flex items-center justify-center min-h-[320px] diagram-canvas-container">
+        <pre class="mermaid text-center w-full" id="mermaid-diag-19-act-pos">
+flowchart TD
+    Start([🟢 Inicio: Carrito Vacío]) --> SelectProducts[Seleccionar Productos del Catálogo]
+    SelectProducts --> HasStock{"¿Hay existencias suficientes?"}
+    HasStock -- No --> ShowStockWarning[Mostrar Alerta de Stock Bajo/Agotado]
+    ShowStockWarning --> SelectProducts
+    HasStock -- Sí --> AddToCart[Añadir Producto al Carrito]
+    AddToCart --> MoreProducts{"¿Añadir más productos?"}
+    MoreProducts -- Sí --> SelectProducts
+    MoreProducts -- No --> SelectPayment[Seleccionar Medio de Pago: Efectivo, Tarjeta o QR]
+    SelectPayment --> ApplyIVA{"¿Aplica IVA 19%?"}
+    ApplyIVA -- Sí --> CalcTax[Calcular Impuestos y Subtotal Totalizado]
+    ApplyIVA -- No --> CalcBase[Totalizar sin Impuestos]
+    CalcTax --> ClickPay[Presionar Botón 'Emitir Venta & Cobrar']
+    CalcBase --> ClickPay
+    ClickPay --> CheckNet{"¿Hay Conexión a Internet?"}
+    CheckNet -- Sí --> SendAPI[Enviar POST /api/tenants/:id/invoices]
+    SendAPI --> GenCUFE[Generar CUFE Fiscal y Descontar Stock]
+    GenCUFE --> PrintTicket[Imprimir Ticket Térmico en Pantalla]
+    CheckNet -- No --> SaveQueue[Guardar en Cola Offline LocalStorage]
+    SaveQueue --> GenOfflineTicket[Generar Recibo Provisional REC-OFF-...]
+    GenOfflineTicket --> PrintTicket
+    PrintTicket --> ClearCart[Vaciar Carrito y Preparar Próxima Venta]
+    ClearCart --> End([🏁 Fin de la Transacción])
+        </pre>
+      </div>
+
+      <!-- Código Mermaid Oculto para Copiado -->
+      <textarea id="raw-diag-19-act-pos" class="hidden">flowchart TD
+    Start([🟢 Inicio: Carrito Vacío]) --> SelectProducts[Seleccionar Productos del Catálogo]
+    SelectProducts --> HasStock{"¿Hay existencias suficientes?"}
+    HasStock -- No --> ShowStockWarning[Mostrar Alerta de Stock Bajo/Agotado]
+    ShowStockWarning --> SelectProducts
+    HasStock -- Sí --> AddToCart[Añadir Producto al Carrito]
+    AddToCart --> MoreProducts{"¿Añadir más productos?"}
+    MoreProducts -- Sí --> SelectProducts
+    MoreProducts -- No --> SelectPayment[Seleccionar Medio de Pago: Efectivo, Tarjeta o QR]
+    SelectPayment --> ApplyIVA{"¿Aplica IVA 19%?"}
+    ApplyIVA -- Sí --> CalcTax[Calcular Impuestos y Subtotal Totalizado]
+    ApplyIVA -- No --> CalcBase[Totalizar sin Impuestos]
+    CalcTax --> ClickPay[Presionar Botón 'Emitir Venta & Cobrar']
+    CalcBase --> ClickPay
+    ClickPay --> CheckNet{"¿Hay Conexión a Internet?"}
+    CheckNet -- Sí --> SendAPI[Enviar POST /api/tenants/:id/invoices]
+    SendAPI --> GenCUFE[Generar CUFE Fiscal y Descontar Stock]
+    GenCUFE --> PrintTicket[Imprimir Ticket Térmico en Pantalla]
+    CheckNet -- No --> SaveQueue[Guardar en Cola Offline LocalStorage]
+    SaveQueue --> GenOfflineTicket[Generar Recibo Provisional REC-OFF-...]
+    GenOfflineTicket --> PrintTicket
+    PrintTicket --> ClearCart[Vaciar Carrito y Preparar Próxima Venta]
+    ClearCart --> End([🏁 Fin de la Transacción])</textarea>
+    </article>
+
+
+    <!-- DIAGRAMA 20: UML-18 -->
+    <article 
+      id="diag-20-act-onboarding" 
+      data-category="activity" 
+      data-title="diagrama de actividades: flujo de aprovisionamiento de inquilino" 
+      data-code="uml-18"
+      class="diagram-card bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
+    >
+      <!-- Cabecera del Diagrama -->
+      <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-800/80">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+              #20 • UML-18
+            </span>
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] text-slate-400 bg-slate-900 border border-slate-800">
+              Actividades
+            </span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black text-white mt-2">Diagrama de Actividades: Flujo de Aprovisionamiento de Inquilino</h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-4xl leading-relaxed">Flujo de pasos del asistente de configuración para crear una empresa, validar su slug y construir su esquema exclusivo en la base de datos.</p>
+        </div>
+
+        <!-- Botones de Descarga del Diagrama -->
+        <div class="flex items-center gap-2 no-print shrink-0">
+          <button 
+            onclick="downloadPNG('diag-20-act-onboarding', 'UML-18_Diagrama_de_Actividades__Flujo_de_Aprovisionamiento_de_Inquilino')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-sky-400 border border-slate-700 hover:border-sky-500 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar en formato PNG de Alta Resolución"
+          >
+            <span>🖼️ Descargar PNG</span>
+          </button>
+          <button 
+            onclick="downloadSVG('diag-20-act-onboarding', 'UML-18_Diagrama_de_Actividades__Flujo_de_Aprovisionamiento_de_Inquilino')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar Vector SVG Nítido Escalable"
+          >
+            <span>📐 Descargar SVG</span>
+          </button>
+          <button 
+            onclick="copyMermaidCode('diag-20-act-onboarding')"
+            class="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition cursor-pointer"
+            title="Copiar código fuente Mermaid"
+          >
+            <span>📋 Código</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lienzo de Renderizado Mermaid -->
+      <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 overflow-x-auto flex items-center justify-center min-h-[320px] diagram-canvas-container">
+        <pre class="mermaid text-center w-full" id="mermaid-diag-20-act-onboarding">
+flowchart TD
+    Start([🟢 Inicio: Registro de Negocio]) --> EnterInfo[Ingresar Nombre y Slug Comercial]
+    EnterInfo --> CheckSlug{"¿Slug disponible y válido?"}
+    CheckSlug -- No --> ErrorSlug[Mostrar error de duplicado o caracteres inválidos]
+    ErrorSlug --> EnterInfo
+    CheckSlug -- Sí --> SelectType[Seleccionar Tipo de Negocio: Panadería, Boutique, Retail]
+    SelectType --> CustomizeBrand[Elegir Color Corporativo y Tipografía]
+    CustomizeBrand --> SelectModules[Seleccionar Módulos a la Carta: POS, Inventario, KPIs, SOAP]
+    SelectModules --> SubmitWizard[Enviar Formulario de Aprovisionamiento]
+    SubmitWizard --> ExecDDL[Backend ejecuta CREATE SCHEMA 'tenant_{slug}']
+    ExecDDL --> CreateTables[Crear tablas facturas, detalles y productos]
+    CreateTables --> SeedCatalog[Insertar catálogo inicial según rubro seleccionado]
+    SeedCatalog --> GenToken[Generar sesión JWT asociada al inquilino]
+    GenToken --> RedirectPOS[Abrir Terminal de Venta del Comercio]
+    RedirectPOS --> End([🏁 Negocio Operativo])
+        </pre>
+      </div>
+
+      <!-- Código Mermaid Oculto para Copiado -->
+      <textarea id="raw-diag-20-act-onboarding" class="hidden">flowchart TD
+    Start([🟢 Inicio: Registro de Negocio]) --> EnterInfo[Ingresar Nombre y Slug Comercial]
+    EnterInfo --> CheckSlug{"¿Slug disponible y válido?"}
+    CheckSlug -- No --> ErrorSlug[Mostrar error de duplicado o caracteres inválidos]
+    ErrorSlug --> EnterInfo
+    CheckSlug -- Sí --> SelectType[Seleccionar Tipo de Negocio: Panadería, Boutique, Retail]
+    SelectType --> CustomizeBrand[Elegir Color Corporativo y Tipografía]
+    CustomizeBrand --> SelectModules[Seleccionar Módulos a la Carta: POS, Inventario, KPIs, SOAP]
+    SelectModules --> SubmitWizard[Enviar Formulario de Aprovisionamiento]
+    SubmitWizard --> ExecDDL[Backend ejecuta CREATE SCHEMA 'tenant_{slug}']
+    ExecDDL --> CreateTables[Crear tablas facturas, detalles y productos]
+    CreateTables --> SeedCatalog[Insertar catálogo inicial según rubro seleccionado]
+    SeedCatalog --> GenToken[Generar sesión JWT asociada al inquilino]
+    GenToken --> RedirectPOS[Abrir Terminal de Venta del Comercio]
+    RedirectPOS --> End([🏁 Negocio Operativo])</textarea>
+    </article>
+
+
+    <!-- DIAGRAMA 21: UML-19 -->
+    <article 
+      id="diag-21-act-inventory" 
+      data-category="activity" 
+      data-title="diagrama de actividades: gestión y reabastecimiento de inventario" 
+      data-code="uml-19"
+      class="diagram-card bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
+    >
+      <!-- Cabecera del Diagrama -->
+      <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-800/80">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+              #21 • UML-19
+            </span>
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] text-slate-400 bg-slate-900 border border-slate-800">
+              Actividades
+            </span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black text-white mt-2">Diagrama de Actividades: Gestión y Reabastecimiento de Inventario</h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-4xl leading-relaxed">Ciclo de control de artículos: consulta de stock, alerta de existencias mínimas, alta de nuevos productos e invalidación de caché en memoria.</p>
+        </div>
+
+        <!-- Botones de Descarga del Diagrama -->
+        <div class="flex items-center gap-2 no-print shrink-0">
+          <button 
+            onclick="downloadPNG('diag-21-act-inventory', 'UML-19_Diagrama_de_Actividades__Gesti_n_y_Reabastecimiento_de_Inventario')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-sky-400 border border-slate-700 hover:border-sky-500 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar en formato PNG de Alta Resolución"
+          >
+            <span>🖼️ Descargar PNG</span>
+          </button>
+          <button 
+            onclick="downloadSVG('diag-21-act-inventory', 'UML-19_Diagrama_de_Actividades__Gesti_n_y_Reabastecimiento_de_Inventario')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar Vector SVG Nítido Escalable"
+          >
+            <span>📐 Descargar SVG</span>
+          </button>
+          <button 
+            onclick="copyMermaidCode('diag-21-act-inventory')"
+            class="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition cursor-pointer"
+            title="Copiar código fuente Mermaid"
+          >
+            <span>📋 Código</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lienzo de Renderizado Mermaid -->
+      <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 overflow-x-auto flex items-center justify-center min-h-[320px] diagram-canvas-container">
+        <pre class="mermaid text-center w-full" id="mermaid-diag-21-act-inventory">
+flowchart TD
+    Start([🟢 Abrir Módulo de Inventario]) --> CheckCache{"¿Existe catálogo en caché RAM?"}
+    CheckCache -- Sí (HIT) --> RenderCatalog[Renderizar Lista en <2ms]
+    CheckCache -- No (MISS) --> QueryDB[Consultar Neon DB con search_path del tenant]
+    QueryDB --> StoreCache[Guardar en Caché RAM con TTL de 60s]
+    StoreCache --> RenderCatalog
+    RenderCatalog --> UserAction{"¿Qué acción realiza el usuario?"}
+    UserAction -- Nuevo Producto --> OpenModal[Abrir Modal 'Agregar Producto']
+    OpenModal --> FillForm[Ingresar Nombre, Precio, Rubro y Stock Inicial]
+    FillForm --> SaveProd[Enviar POST /api/tenants/:id/products]
+    SaveProd --> InvalidateCache[Invalidar Entrada de Caché del Inquilino]
+    InvalidateCache --> RefreshGrid[Recargar Lista de Productos]
+    UserAction -- Venta Realizada --> AutoDeduct[Descuento Automático de Stock por Venta]
+    AutoDeduct --> InvalidateCache
+    RefreshGrid --> End([🏁 Catálogo Actualizado])
+        </pre>
+      </div>
+
+      <!-- Código Mermaid Oculto para Copiado -->
+      <textarea id="raw-diag-21-act-inventory" class="hidden">flowchart TD
+    Start([🟢 Abrir Módulo de Inventario]) --> CheckCache{"¿Existe catálogo en caché RAM?"}
+    CheckCache -- Sí (HIT) --> RenderCatalog[Renderizar Lista en <2ms]
+    CheckCache -- No (MISS) --> QueryDB[Consultar Neon DB con search_path del tenant]
+    QueryDB --> StoreCache[Guardar en Caché RAM con TTL de 60s]
+    StoreCache --> RenderCatalog
+    RenderCatalog --> UserAction{"¿Qué acción realiza el usuario?"}
+    UserAction -- Nuevo Producto --> OpenModal[Abrir Modal 'Agregar Producto']
+    OpenModal --> FillForm[Ingresar Nombre, Precio, Rubro y Stock Inicial]
+    FillForm --> SaveProd[Enviar POST /api/tenants/:id/products]
+    SaveProd --> InvalidateCache[Invalidar Entrada de Caché del Inquilino]
+    InvalidateCache --> RefreshGrid[Recargar Lista de Productos]
+    UserAction -- Venta Realizada --> AutoDeduct[Descuento Automático de Stock por Venta]
+    AutoDeduct --> InvalidateCache
+    RefreshGrid --> End([🏁 Catálogo Actualizado])</textarea>
+    </article>
+
+
+    <!-- DIAGRAMA 22: UML-20 -->
+    <article 
+      id="diag-22-act-ledger" 
+      data-category="activity" 
+      data-title="diagrama de actividades: consulta y auditoría de comprobantes" 
+      data-code="uml-20"
+      class="diagram-card bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
+    >
+      <!-- Cabecera del Diagrama -->
+      <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-800/80">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+              #22 • UML-20
+            </span>
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] text-slate-400 bg-slate-900 border border-slate-800">
+              Actividades
+            </span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black text-white mt-2">Diagrama de Actividades: Consulta y Auditoría de Comprobantes</h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-4xl leading-relaxed">Flujo de inspección del libro diario de ventas: búsqueda instantánea, paginación del servidor, descarga de reportes en CSV y visualización del ticket.</p>
+        </div>
+
+        <!-- Botones de Descarga del Diagrama -->
+        <div class="flex items-center gap-2 no-print shrink-0">
+          <button 
+            onclick="downloadPNG('diag-22-act-ledger', 'UML-20_Diagrama_de_Actividades__Consulta_y_Auditor_a_de_Comprobantes')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-sky-400 border border-slate-700 hover:border-sky-500 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar en formato PNG de Alta Resolución"
+          >
+            <span>🖼️ Descargar PNG</span>
+          </button>
+          <button 
+            onclick="downloadSVG('diag-22-act-ledger', 'UML-20_Diagrama_de_Actividades__Consulta_y_Auditor_a_de_Comprobantes')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar Vector SVG Nítido Escalable"
+          >
+            <span>📐 Descargar SVG</span>
+          </button>
+          <button 
+            onclick="copyMermaidCode('diag-22-act-ledger')"
+            class="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition cursor-pointer"
+            title="Copiar código fuente Mermaid"
+          >
+            <span>📋 Código</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lienzo de Renderizado Mermaid -->
+      <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 overflow-x-auto flex items-center justify-center min-h-[320px] diagram-canvas-container">
+        <pre class="mermaid text-center w-full" id="mermaid-diag-22-act-ledger">
+flowchart TD
+    Start([🟢 Abrir Libro de Comprobantes]) --> FetchPage[Solicitar Página 1 al Backend con Limit 25]
+    FetchPage --> RenderTable[Mostrar Tabla con Comprobantes y Folios Fiscales]
+    RenderTable --> FilterSearch{"¿El usuario busca o filtra?"}
+    FilterSearch -- Búsqueda por Texto --> QuerySearch[Filtrar por Cliente o N° Factura en Neon DB]
+    QuerySearch --> RenderTable
+    FilterSearch -- Cambio de Página --> LoadNextPage[Cargar Página Solicitada: Anterior / Siguiente]
+    LoadNextPage --> RenderTable
+    FilterSearch -- Exportar Datos --> ClickCSV[Presionar 'Exportar Reporte CSV']
+    ClickCSV --> BuildCSV[Generar Archivo CSV UTF-8 en el Navegador]
+    BuildCSV --> TriggerDownload[Descarga Automática de reporte_ventas.csv]
+    FilterSearch -- Inspeccionar Ticket --> ClickRow[Hacer clic en Comprobante Específico]
+    ClickRow --> ShowThermal[Mostrar Vista Previa de Ticket Térmico con CUFE]
+    ShowThermal --> End([🏁 Auditoría Finalizada])
+    TriggerDownload --> End
+        </pre>
+      </div>
+
+      <!-- Código Mermaid Oculto para Copiado -->
+      <textarea id="raw-diag-22-act-ledger" class="hidden">flowchart TD
+    Start([🟢 Abrir Libro de Comprobantes]) --> FetchPage[Solicitar Página 1 al Backend con Limit 25]
+    FetchPage --> RenderTable[Mostrar Tabla con Comprobantes y Folios Fiscales]
+    RenderTable --> FilterSearch{"¿El usuario busca o filtra?"}
+    FilterSearch -- Búsqueda por Texto --> QuerySearch[Filtrar por Cliente o N° Factura en Neon DB]
+    QuerySearch --> RenderTable
+    FilterSearch -- Cambio de Página --> LoadNextPage[Cargar Página Solicitada: Anterior / Siguiente]
+    LoadNextPage --> RenderTable
+    FilterSearch -- Exportar Datos --> ClickCSV[Presionar 'Exportar Reporte CSV']
+    ClickCSV --> BuildCSV[Generar Archivo CSV UTF-8 en el Navegador]
+    BuildCSV --> TriggerDownload[Descarga Automática de reporte_ventas.csv]
+    FilterSearch -- Inspeccionar Ticket --> ClickRow[Hacer clic en Comprobante Específico]
+    ClickRow --> ShowThermal[Mostrar Vista Previa de Ticket Térmico con CUFE]
+    ShowThermal --> End([🏁 Auditoría Finalizada])
+    TriggerDownload --> End</textarea>
+    </article>
+
+
+    <!-- DIAGRAMA 23: UML-21 -->
+    <article 
+      id="diag-23-state-invoice" 
+      data-category="state" 
+      data-title="diagrama de estados: ciclo de vida del comprobante fiscal" 
+      data-code="uml-21"
+      class="diagram-card bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
+    >
+      <!-- Cabecera del Diagrama -->
+      <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-800/80">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+              #23 • UML-21
+            </span>
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] text-slate-400 bg-slate-900 border border-slate-800">
+              Estados & Seguridad
+            </span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black text-white mt-2">Diagrama de Estados: Ciclo de Vida del Comprobante Fiscal</h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-4xl leading-relaxed">Transiciones de estado de una factura: desde borrador en el carrito del POS hasta timbrado definitivo, paso provisional por cola offline y anulación contable.</p>
+        </div>
+
+        <!-- Botones de Descarga del Diagrama -->
+        <div class="flex items-center gap-2 no-print shrink-0">
+          <button 
+            onclick="downloadPNG('diag-23-state-invoice', 'UML-21_Diagrama_de_Estados__Ciclo_de_Vida_del_Comprobante_Fiscal')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-sky-400 border border-slate-700 hover:border-sky-500 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar en formato PNG de Alta Resolución"
+          >
+            <span>🖼️ Descargar PNG</span>
+          </button>
+          <button 
+            onclick="downloadSVG('diag-23-state-invoice', 'UML-21_Diagrama_de_Estados__Ciclo_de_Vida_del_Comprobante_Fiscal')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar Vector SVG Nítido Escalable"
+          >
+            <span>📐 Descargar SVG</span>
+          </button>
+          <button 
+            onclick="copyMermaidCode('diag-23-state-invoice')"
+            class="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition cursor-pointer"
+            title="Copiar código fuente Mermaid"
+          >
+            <span>📋 Código</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lienzo de Renderizado Mermaid -->
+      <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 overflow-x-auto flex items-center justify-center min-h-[320px] diagram-canvas-container">
+        <pre class="mermaid text-center w-full" id="mermaid-diag-23-state-invoice">
+stateDiagram-v2
+    [*] --> CarritoEnConstruccion : Cajero selecciona productos
+    CarritoEnConstruccion --> CarritoEnConstruccion : Modifica cantidades o aplica descuento
+    CarritoEnConstruccion --> [*] : Cancela pedido / Vacía carrito
+
+    CarritoEnConstruccion --> EmitiendoVenta : Presiona 'Emitir Venta & Cobrar'
+
+    state EmitiendoVenta {
+        [*] --> EvaluandoRed
+        EvaluandoRed --> EncolandoOffline : Sin Conexión a Internet
+        EvaluandoRed --> RegistrandoRemoto : Conexión Online Disponible
+    }
+
+    EncolandoOffline --> PendienteSincronizacion : Recibo local REC-OFF generado
+    PendienteSincronizacion --> Sincronizando : Red reanudada y subida manual/automática
+    Sincronizando --> TimbradaAprobada : Registro en Neon DB completado con éxito
+    Sincronizando --> PendienteSincronizacion : Error de Red (Reintento pendiente)
+
+    RegistrandoRemoto --> TimbradaAprobada : CUFE generado e insertado en BD
+
+    TimbradaAprobada --> ReportadaDIAN : Petición SOAP enviada y aceptada
+    TimbradaAprobada --> AnuladaNotaCredito : Devolución o anulación por auditor
+    ReportadaDIAN --> AnuladaNotaCredito : Nota Crédito Electrónica emitida
+
+    AnuladaNotaCredito --> [*]
+    ReportadaDIAN --> [*]
+        </pre>
+      </div>
+
+      <!-- Código Mermaid Oculto para Copiado -->
+      <textarea id="raw-diag-23-state-invoice" class="hidden">stateDiagram-v2
+    [*] --> CarritoEnConstruccion : Cajero selecciona productos
+    CarritoEnConstruccion --> CarritoEnConstruccion : Modifica cantidades o aplica descuento
+    CarritoEnConstruccion --> [*] : Cancela pedido / Vacía carrito
+
+    CarritoEnConstruccion --> EmitiendoVenta : Presiona 'Emitir Venta & Cobrar'
+
+    state EmitiendoVenta {
+        [*] --> EvaluandoRed
+        EvaluandoRed --> EncolandoOffline : Sin Conexión a Internet
+        EvaluandoRed --> RegistrandoRemoto : Conexión Online Disponible
+    }
+
+    EncolandoOffline --> PendienteSincronizacion : Recibo local REC-OFF generado
+    PendienteSincronizacion --> Sincronizando : Red reanudada y subida manual/automática
+    Sincronizando --> TimbradaAprobada : Registro en Neon DB completado con éxito
+    Sincronizando --> PendienteSincronizacion : Error de Red (Reintento pendiente)
+
+    RegistrandoRemoto --> TimbradaAprobada : CUFE generado e insertado en BD
+
+    TimbradaAprobada --> ReportadaDIAN : Petición SOAP enviada y aceptada
+    TimbradaAprobada --> AnuladaNotaCredito : Devolución o anulación por auditor
+    ReportadaDIAN --> AnuladaNotaCredito : Nota Crédito Electrónica emitida
+
+    AnuladaNotaCredito --> [*]
+    ReportadaDIAN --> [*]</textarea>
+    </article>
+
+
+    <!-- DIAGRAMA 24: UML-22 -->
+    <article 
+      id="diag-24-state-offline" 
+      data-category="state" 
+      data-title="diagrama de estados: conectividad y cola offline en pos" 
+      data-code="uml-22"
+      class="diagram-card bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
+    >
+      <!-- Cabecera del Diagrama -->
+      <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-800/80">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+              #24 • UML-22
+            </span>
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] text-slate-400 bg-slate-900 border border-slate-800">
+              Estados & Seguridad
+            </span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black text-white mt-2">Diagrama de Estados: Conectividad y Cola Offline en POS</h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-4xl leading-relaxed">Máquina de estados del subsistema de conectividad en el navegador: monitoreo de red, activación del modo offline, encolamiento y vaciado automático de la cola.</p>
+        </div>
+
+        <!-- Botones de Descarga del Diagrama -->
+        <div class="flex items-center gap-2 no-print shrink-0">
+          <button 
+            onclick="downloadPNG('diag-24-state-offline', 'UML-22_Diagrama_de_Estados__Conectividad_y_Cola_Offline_en_POS')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-sky-400 border border-slate-700 hover:border-sky-500 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar en formato PNG de Alta Resolución"
+          >
+            <span>🖼️ Descargar PNG</span>
+          </button>
+          <button 
+            onclick="downloadSVG('diag-24-state-offline', 'UML-22_Diagrama_de_Estados__Conectividad_y_Cola_Offline_en_POS')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar Vector SVG Nítido Escalable"
+          >
+            <span>📐 Descargar SVG</span>
+          </button>
+          <button 
+            onclick="copyMermaidCode('diag-24-state-offline')"
+            class="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition cursor-pointer"
+            title="Copiar código fuente Mermaid"
+          >
+            <span>📋 Código</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lienzo de Renderizado Mermaid -->
+      <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 overflow-x-auto flex items-center justify-center min-h-[320px] diagram-canvas-container">
+        <pre class="mermaid text-center w-full" id="mermaid-diag-24-state-offline">
+stateDiagram-v2
+    [*] --> ModoEnLinea : Inicialización con navigator.onLine === true
+
+    ModoEnLinea --> ModoFueraDeLinea : Evento 'offline' / Fallo de Fetch
+    ModoFueraDeLinea --> ModoFueraDeLinea : Se emite venta (Guardada en LocalStorage)
+
+    ModoFueraDeLinea --> SincronizandoVentas : Evento 'online' o Clic en 'Subir a la Nube'
+
+    state SincronizandoVentas {
+        [*] --> LeyendoColaLocal
+        LeyendoColaLocal --> EnviandoComprobante : Hay ventas en cola
+        EnviandoComprobante --> EliminandoDeCola : Éxito 201 Created
+        EliminandoDeCola --> LeyendoColaLocal
+        EnviandoComprobante --> RegistroFallido : Error de Servidor
+        RegistroFallido --> LeyendoColaLocal : Conservar para siguiente ciclo
+    }
+
+    SincronizandoVentas --> ModoEnLinea : Cola vacía (Todas las ventas en Neon DB)
+    SincronizandoVentas --> ModoFueraDeLinea : Pérdida de red durante sincronización
+        </pre>
+      </div>
+
+      <!-- Código Mermaid Oculto para Copiado -->
+      <textarea id="raw-diag-24-state-offline" class="hidden">stateDiagram-v2
+    [*] --> ModoEnLinea : Inicialización con navigator.onLine === true
+
+    ModoEnLinea --> ModoFueraDeLinea : Evento 'offline' / Fallo de Fetch
+    ModoFueraDeLinea --> ModoFueraDeLinea : Se emite venta (Guardada en LocalStorage)
+
+    ModoFueraDeLinea --> SincronizandoVentas : Evento 'online' o Clic en 'Subir a la Nube'
+
+    state SincronizandoVentas {
+        [*] --> LeyendoColaLocal
+        LeyendoColaLocal --> EnviandoComprobante : Hay ventas en cola
+        EnviandoComprobante --> EliminandoDeCola : Éxito 201 Created
+        EliminandoDeCola --> LeyendoColaLocal
+        EnviandoComprobante --> RegistroFallido : Error de Servidor
+        RegistroFallido --> LeyendoColaLocal : Conservar para siguiente ciclo
+    }
+
+    SincronizandoVentas --> ModoEnLinea : Cola vacía (Todas las ventas en Neon DB)
+    SincronizandoVentas --> ModoFueraDeLinea : Pérdida de red durante sincronización</textarea>
+    </article>
+
+
+    <!-- DIAGRAMA 25: UML-23 -->
+    <article 
+      id="diag-25-state-session" 
+      data-category="state" 
+      data-title="diagrama de estados: sesión de usuario & contexto de inquilino" 
+      data-code="uml-23"
+      class="diagram-card bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
+    >
+      <!-- Cabecera del Diagrama -->
+      <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-800/80">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+              #25 • UML-23
+            </span>
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] text-slate-400 bg-slate-900 border border-slate-800">
+              Estados & Seguridad
+            </span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black text-white mt-2">Diagrama de Estados: Sesión de Usuario & Contexto de Inquilino</h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-4xl leading-relaxed">Ciclo de autenticación del usuario en el frontend: invitado, credenciales validadas, conmutación entre negocios autorizados y expiración del token JWT.</p>
+        </div>
+
+        <!-- Botones de Descarga del Diagrama -->
+        <div class="flex items-center gap-2 no-print shrink-0">
+          <button 
+            onclick="downloadPNG('diag-25-state-session', 'UML-23_Diagrama_de_Estados__Sesi_n_de_Usuario___Contexto_de_Inquilino')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-sky-400 border border-slate-700 hover:border-sky-500 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar en formato PNG de Alta Resolución"
+          >
+            <span>🖼️ Descargar PNG</span>
+          </button>
+          <button 
+            onclick="downloadSVG('diag-25-state-session', 'UML-23_Diagrama_de_Estados__Sesi_n_de_Usuario___Contexto_de_Inquilino')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar Vector SVG Nítido Escalable"
+          >
+            <span>📐 Descargar SVG</span>
+          </button>
+          <button 
+            onclick="copyMermaidCode('diag-25-state-session')"
+            class="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition cursor-pointer"
+            title="Copiar código fuente Mermaid"
+          >
+            <span>📋 Código</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lienzo de Renderizado Mermaid -->
+      <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 overflow-x-auto flex items-center justify-center min-h-[320px] diagram-canvas-container">
+        <pre class="mermaid text-center w-full" id="mermaid-diag-25-state-session">
+stateDiagram-v2
+    [*] --> NoAutenticado : Usuario ingresa a la Landing Page
+    NoAutenticado --> Autenticando : Envía formulario de Login / Registro
+    Autenticando --> NoAutenticado : Credenciales inválidas (401)
+    
+    Autenticando --> SesionActivaSinTenant : Token JWT emitido pero sin negocio seleccionado
+    Autenticando --> SesionOperativaTenant : Token emitido con Tenant asignado (Pastelería, etc.)
+    SesionActivaSinTenant --> AsistenteNuevoTenant : Crea su primer comercio (Wizard)
+    AsistenteNuevoTenant --> SesionOperativaTenant : Esquema aprovisionado
+
+    state SesionOperativaTenant {
+        [*] --> OperandoPOS
+        OperandoPOS --> GestionandoInventario : Cambia de pestaña
+        GestionandoInventario --> AuditoriaComprobantes : Cambia de pestaña
+        AuditoriaComprobantes --> PersonalizandoModulos : Abre personalizador
+        PersonalizandoModulos --> OperandoPOS : Guarda preferencias
+    }
+
+    SesionOperativaTenant --> NoAutenticado : Clic en 'Cerrar Sesión'
+    SesionOperativaTenant --> NoAutenticado : Token JWT Expirado (403 / 401)
+        </pre>
+      </div>
+
+      <!-- Código Mermaid Oculto para Copiado -->
+      <textarea id="raw-diag-25-state-session" class="hidden">stateDiagram-v2
+    [*] --> NoAutenticado : Usuario ingresa a la Landing Page
+    NoAutenticado --> Autenticando : Envía formulario de Login / Registro
+    Autenticando --> NoAutenticado : Credenciales inválidas (401)
+    
+    Autenticando --> SesionActivaSinTenant : Token JWT emitido pero sin negocio seleccionado
+    Autenticando --> SesionOperativaTenant : Token emitido con Tenant asignado (Pastelería, etc.)
+    SesionActivaSinTenant --> AsistenteNuevoTenant : Crea su primer comercio (Wizard)
+    AsistenteNuevoTenant --> SesionOperativaTenant : Esquema aprovisionado
+
+    state SesionOperativaTenant {
+        [*] --> OperandoPOS
+        OperandoPOS --> GestionandoInventario : Cambia de pestaña
+        GestionandoInventario --> AuditoriaComprobantes : Cambia de pestaña
+        AuditoriaComprobantes --> PersonalizandoModulos : Abre personalizador
+        PersonalizandoModulos --> OperandoPOS : Guarda preferencias
+    }
+
+    SesionOperativaTenant --> NoAutenticado : Clic en 'Cerrar Sesión'
+    SesionOperativaTenant --> NoAutenticado : Token JWT Expirado (403 / 401)</textarea>
+    </article>
+
+
+    <!-- DIAGRAMA 26: UML-24 -->
+    <article 
+      id="diag-26-comm-sale" 
+      data-category="state" 
+      data-title="diagrama de comunicación / colaboración: emisión de venta" 
+      data-code="uml-24"
+      class="diagram-card bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
+    >
+      <!-- Cabecera del Diagrama -->
+      <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-800/80">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+              #26 • UML-24
+            </span>
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] text-slate-400 bg-slate-900 border border-slate-800">
+              Estados & Seguridad
+            </span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black text-white mt-2">Diagrama de Comunicación / Colaboración: Emisión de Venta</h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-4xl leading-relaxed">Mensajes interactivos y colaboración secuencial entre los objetos del frontend y backend para la realización de una venta comercial.</p>
+        </div>
+
+        <!-- Botones de Descarga del Diagrama -->
+        <div class="flex items-center gap-2 no-print shrink-0">
+          <button 
+            onclick="downloadPNG('diag-26-comm-sale', 'UML-24_Diagrama_de_Comunicaci_n___Colaboraci_n__Emisi_n_de_Venta')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-sky-400 border border-slate-700 hover:border-sky-500 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar en formato PNG de Alta Resolución"
+          >
+            <span>🖼️ Descargar PNG</span>
+          </button>
+          <button 
+            onclick="downloadSVG('diag-26-comm-sale', 'UML-24_Diagrama_de_Comunicaci_n___Colaboraci_n__Emisi_n_de_Venta')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar Vector SVG Nítido Escalable"
+          >
+            <span>📐 Descargar SVG</span>
+          </button>
+          <button 
+            onclick="copyMermaidCode('diag-26-comm-sale')"
+            class="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition cursor-pointer"
+            title="Copiar código fuente Mermaid"
+          >
+            <span>📋 Código</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lienzo de Renderizado Mermaid -->
+      <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 overflow-x-auto flex items-center justify-center min-h-[320px] diagram-canvas-container">
+        <pre class="mermaid text-center w-full" id="mermaid-diag-26-comm-sale">
+flowchart LR
+    Terminal["1: TerminalPOS"]
+    Cart["2: CarritoService"]
+    InvCtrl["3: FacturaController"]
+    CtxMgr["4: TenantContextManager"]
+    DbPool["5: PostgresPool"]
+    Cache["6: CacheService"]
+
+    Terminal -->|"1: getItemsTotal()"| Cart
+    Terminal -->|"2: emitInvoice(payload)"| InvCtrl
+    InvCtrl -->|"3: withTenantContext('tenant_...')"| CtxMgr
+    CtxMgr -->|"4: SET search_path & INSERT factura"| DbPool
+    CtxMgr -->|"5: UPDATE stock WHERE id = $1"| DbPool
+    InvCtrl -->|"6: invalidateProductsCache()"| Cache
+    InvCtrl -->>|"7: return Invoice & Ticket"| Terminal
+        </pre>
+      </div>
+
+      <!-- Código Mermaid Oculto para Copiado -->
+      <textarea id="raw-diag-26-comm-sale" class="hidden">flowchart LR
+    Terminal["1: TerminalPOS"]
+    Cart["2: CarritoService"]
+    InvCtrl["3: FacturaController"]
+    CtxMgr["4: TenantContextManager"]
+    DbPool["5: PostgresPool"]
+    Cache["6: CacheService"]
+
+    Terminal -->|"1: getItemsTotal()"| Cart
+    Terminal -->|"2: emitInvoice(payload)"| InvCtrl
+    InvCtrl -->|"3: withTenantContext('tenant_...')"| CtxMgr
+    CtxMgr -->|"4: SET search_path & INSERT factura"| DbPool
+    CtxMgr -->|"5: UPDATE stock WHERE id = $1"| DbPool
+    InvCtrl -->|"6: invalidateProductsCache()"| Cache
+    InvCtrl -->>|"7: return Invoice & Ticket"| Terminal</textarea>
+    </article>
+
+
+    <!-- DIAGRAMA 27: UML-25 -->
+    <article 
+      id="diag-27-sec-perimeter" 
+      data-category="state" 
+      data-title="diagrama de perfil de seguridad y aislamiento perimetral" 
+      data-code="uml-25"
+      class="diagram-card bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
+    >
+      <!-- Cabecera del Diagrama -->
+      <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-800/80">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">
+              #27 • UML-25
+            </span>
+            <span class="px-2.5 py-0.5 rounded-md font-mono text-[11px] text-slate-400 bg-slate-900 border border-slate-800">
+              Estados & Seguridad
+            </span>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-black text-white mt-2">Diagrama de Perfil de Seguridad y Aislamiento Perimetral</h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-4xl leading-relaxed">Arquitectura de defensa en profundidad: Cloudflare WAF, CORS Header Preflight, Rate Limiting, autenticación JWT Bearer y enclaustramiento de esquemas PostgreSQL.</p>
+        </div>
+
+        <!-- Botones de Descarga del Diagrama -->
+        <div class="flex items-center gap-2 no-print shrink-0">
+          <button 
+            onclick="downloadPNG('diag-27-sec-perimeter', 'UML-25_Diagrama_de_Perfil_de_Seguridad_y_Aislamiento_Perimetral')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-sky-400 border border-slate-700 hover:border-sky-500 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar en formato PNG de Alta Resolución"
+          >
+            <span>🖼️ Descargar PNG</span>
+          </button>
+          <button 
+            onclick="downloadSVG('diag-27-sec-perimeter', 'UML-25_Diagrama_de_Perfil_de_Seguridad_y_Aislamiento_Perimetral')"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Descargar Vector SVG Nítido Escalable"
+          >
+            <span>📐 Descargar SVG</span>
+          </button>
+          <button 
+            onclick="copyMermaidCode('diag-27-sec-perimeter')"
+            class="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition cursor-pointer"
+            title="Copiar código fuente Mermaid"
+          >
+            <span>📋 Código</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lienzo de Renderizado Mermaid -->
+      <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 overflow-x-auto flex items-center justify-center min-h-[320px] diagram-canvas-container">
+        <pre class="mermaid text-center w-full" id="mermaid-diag-27-sec-perimeter">
+flowchart TD
+    subgraph Perimeter["🛡️ Capa 1: Borde & Perímetro (Cloudflare)"]
+        WAF["WAF & Reglas Anti-DDoS"]
+        TLS["Cifrado TLS 1.3 / Certificado SSL Obligatorio"]
+        WAF --> TLS
+    end
+
+    subgraph AppSecurity["🔐 Capa 2: Seguridad a Nivel Aplicación (Express API)"]
+        CORS["CORS Policy: GET, POST, PUT, PATCH, DELETE"]
+        Limiter["Rate Limiter: Max 300 peticiones / 15 min"]
+        Sanitizer["Sanitizador de Entradas (Anti-SQLi & XSS)"]
+        JWTAuth["JWT Bearer Token Guard (HMAC-SHA256)"]
+        TLS --> CORS
+        CORS --> Limiter
+        Limiter --> Sanitizer
+        Sanitizer --> JWTAuth
+    end
+
+    subgraph TenantIsolation["🏛️ Capa 3: Aislamiento Criptográfico y de Esquemas"]
+        TenantContext["Search-Path Jail: SET search_path TO 'tenant_{id}'"]
+        NoCrossTenant["Imposibilidad de Cross-Tenant Query"]
+        JWTAuth --> TenantContext
+        TenantContext --> NoCrossTenant
+    end
+
+    subgraph DataAtRest["🗄️ Capa 4: Persistencia y Reposo (Neon Cloud)"]
+        StorageAES["Cifrado de Almacenamiento AES-256 en Reposo"]
+        SSLConnection["Conexión Forzada sslmode=require (TLS en Tránsito)"]
+        NoCrossTenant --> SSLConnection
+        SSLConnection --> StorageAES
+    end
+        </pre>
+      </div>
+
+      <!-- Código Mermaid Oculto para Copiado -->
+      <textarea id="raw-diag-27-sec-perimeter" class="hidden">flowchart TD
+    subgraph Perimeter["🛡️ Capa 1: Borde & Perímetro (Cloudflare)"]
+        WAF["WAF & Reglas Anti-DDoS"]
+        TLS["Cifrado TLS 1.3 / Certificado SSL Obligatorio"]
+        WAF --> TLS
+    end
+
+    subgraph AppSecurity["🔐 Capa 2: Seguridad a Nivel Aplicación (Express API)"]
+        CORS["CORS Policy: GET, POST, PUT, PATCH, DELETE"]
+        Limiter["Rate Limiter: Max 300 peticiones / 15 min"]
+        Sanitizer["Sanitizador de Entradas (Anti-SQLi & XSS)"]
+        JWTAuth["JWT Bearer Token Guard (HMAC-SHA256)"]
+        TLS --> CORS
+        CORS --> Limiter
+        Limiter --> Sanitizer
+        Sanitizer --> JWTAuth
+    end
+
+    subgraph TenantIsolation["🏛️ Capa 3: Aislamiento Criptográfico y de Esquemas"]
+        TenantContext["Search-Path Jail: SET search_path TO 'tenant_{id}'"]
+        NoCrossTenant["Imposibilidad de Cross-Tenant Query"]
+        JWTAuth --> TenantContext
+        TenantContext --> NoCrossTenant
+    end
+
+    subgraph DataAtRest["🗄️ Capa 4: Persistencia y Reposo (Neon Cloud)"]
+        StorageAES["Cifrado de Almacenamiento AES-256 en Reposo"]
+        SSLConnection["Conexión Forzada sslmode=require (TLS en Tránsito)"]
+        NoCrossTenant --> SSLConnection
+        SSLConnection --> StorageAES
+    end</textarea>
+    </article>
+
+
+  </main>
+
+  <!-- Footer Informativo -->
+  <footer class="border-t border-slate-800 bg-slate-950 py-10 mt-20 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 space-y-2">
+      <p class="font-bold text-slate-400">TASKMASTER POS Engine — Plataforma Multi-Tenant Resiliente</p>
+      <p>Diseño de Arquitectura de Software, Modelo Entidad-Relación y Especificación Formal UML 2.5</p>
+      <p class="font-mono text-[10px] text-slate-600 mt-2">Generado para auditoría técnica, certificación contable y documentación de ingeniería.</p>
+    </div>
+  </footer>
+
+  <!-- Script de Inicialización y Exportación de Diagramas -->
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        darkMode: true,
+        background: '#0B1120',
+        primaryColor: '#0EA5E9',
+        primaryTextColor: '#FFFFFF',
+        primaryBorderColor: '#38BDF8',
+        lineColor: '#64748B',
+        secondaryColor: '#6366F1',
+        tertiaryColor: '#1E293B',
+        fontFamily: 'Outfit, sans-serif',
+        fontSize: '13px'
+      },
+      securityLevel: 'loose'
+    });
+
+    // Filtro por Categorías
+    function filterCategory(cat) {
+      document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.classList.remove('bg-sky-600', 'text-white');
+        btn.classList.add('bg-slate-900', 'text-slate-400');
+      });
+      const activeBtn = document.getElementById('btn-' + cat);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-sky-600', 'text-white');
+        activeBtn.classList.remove('bg-slate-900', 'text-slate-400');
+      }
+
+      document.querySelectorAll('.diagram-card').forEach(card => {
+        if (cat === 'all' || card.getAttribute('data-category') === cat) {
+          card.classList.remove('hidden');
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+    }
+
+    // Búsqueda en tiempo real
+    function searchDiagrams() {
+      const q = document.getElementById('search-input').value.toLowerCase().trim();
+      document.querySelectorAll('.diagram-card').forEach(card => {
+        const title = card.getAttribute('data-title') || '';
+        const code = card.getAttribute('data-code') || '';
+        if (title.includes(q) || code.includes(q)) {
+          card.classList.remove('hidden');
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+    }
+
+    // Copiar código Mermaid al portapapeles
+    function copyMermaidCode(id) {
+      const raw = document.getElementById('raw-' + id).value;
+      navigator.clipboard.writeText(raw).then(() => {
+        alert('¡Código Mermaid copiado al portapapeles!');
+      });
+    }
+
+    // Descargar como SVG individual
+    function downloadSVG(id, filename) {
+      const card = document.getElementById(id);
+      const svg = card.querySelector('svg');
+      if (!svg) {
+        alert('El diagrama aún se está renderizando. Espera un segundo.');
+        return;
+      }
+      const svgData = new XMLSerializer().serializeToString(svg);
+      const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename + '.svg';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
+    // Descargar como PNG individual con resolución retina (2x)
+    function downloadPNG(id, filename) {
+      const card = document.getElementById(id);
+      const svg = card.querySelector('svg');
+      if (!svg) {
+        alert('El diagrama aún se está renderizando. Espera un segundo.');
+        return;
+      }
+      const svgData = new XMLSerializer().serializeToString(svg);
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+
+      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(svgBlob);
+
+      img.onload = function() {
+        const scale = 2; // Alta resolución
+        const bbox = svg.getBoundingClientRect();
+        canvas.width = (bbox.width || 1200) * scale;
+        canvas.height = (bbox.height || 800) * scale;
+        ctx.fillStyle = '#0B1120'; // Fondo oscuro profesional
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(url);
+
+        canvas.toBlob(function(blob) {
+          const pngUrl = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = pngUrl;
+          link.download = filename + '.png';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(pngUrl);
+        }, 'image/png');
+      };
+      img.src = url;
+    }
+
+    // Descargar lote completo de SVGs
+    function downloadAllSVGs() {
+      const cards = document.querySelectorAll('.diagram-card');
+      let count = 0;
+      cards.forEach((card, idx) => {
+        setTimeout(() => {
+          const id = card.id;
+          const code = card.getAttribute('data-code').toUpperCase();
+          downloadSVG(id, 'TASKMASTER_' + code);
+        }, idx * 250);
+      });
+    }
+  </script>
+</body>
+</html>
