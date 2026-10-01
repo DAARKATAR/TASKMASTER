@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle, QrCode, AlertCircle, FileText } from 'lucide-react';
+import { CheckCircle, QrCode, AlertCircle, FileText, Printer } from 'lucide-react';
 
 export default function BakeryReceiptTicket({ tenant, invoiceData, cartItems }) {
   const brandColor = tenant?.brand_color || '#0F172A';
@@ -100,8 +100,8 @@ export default function BakeryReceiptTicket({ tenant, invoiceData, cartItems }) 
             <span>${subtotal}</span>
           </div>
           <div className="flex justify-between text-slate-600">
-            <span>IVA Estimado (19%):</span>
-            <span>${impuestos}</span>
+            <span>IVA / Impuestos:</span>
+            <span>{parseFloat(invoiceData?.impuestos || 0) > 0 ? `${impuestos}` : "Exento (0%)"}</span>
           </div>
           <div className="flex justify-between items-baseline font-bold text-slate-900 text-sm pt-1">
             <span>TOTAL PAGADO:</span>
@@ -138,6 +138,19 @@ export default function BakeryReceiptTicket({ tenant, invoiceData, cartItems }) 
               <span>Registro de orden local</span>
             </div>
           </div>
+        </div>
+
+
+        {/* Botón de Impresión Térmica Directa */}
+        <div className="pt-2 print:hidden">
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="w-full py-2.5 px-4 rounded-2xl bg-slate-900 hover:bg-black text-white text-xs font-bold flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
+          >
+            <Printer className="w-3.5 h-3.5" />
+            <span>Imprimir Ticket Térmico (80mm)</span>
+          </button>
         </div>
 
         {/* Footer del Recibo */}
