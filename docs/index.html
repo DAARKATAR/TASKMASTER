@@ -77,6 +77,9 @@
         <button onclick="downloadAllSVGs()" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-sky-600 hover:bg-sky-500 text-white shadow-md shadow-sky-600/30 transition flex items-center gap-1.5 cursor-pointer">
           <span>📦 Descargar Lote SVG</span>
         </button>
+        <button onclick="downloadAllPNGs()" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/30 transition flex items-center gap-1.5 cursor-pointer">
+          <span>🖼️ Descargar Lote PNG (27)</span>
+        </button>
       </div>
     </div>
   </header>
@@ -3568,20 +3571,39 @@ flowchart TD
   <script>
     mermaid.initialize({
       startOnLoad: true,
-      theme: 'dark',
+      theme: "dark",
+      htmlLabels: false,
+      flowchart: {
+        htmlLabels: false,
+        useMaxWidth: true,
+        curve: "basis"
+      },
+      sequence: {
+        useMaxWidth: true,
+        showSequenceNumbers: true
+      },
+      class: {
+        htmlLabels: false
+      },
+      state: {
+        htmlLabels: false
+      },
+      er: {
+        useMaxWidth: true
+      },
       themeVariables: {
         darkMode: true,
-        background: '#0B1120',
-        primaryColor: '#0EA5E9',
-        primaryTextColor: '#FFFFFF',
-        primaryBorderColor: '#38BDF8',
-        lineColor: '#64748B',
-        secondaryColor: '#6366F1',
-        tertiaryColor: '#1E293B',
-        fontFamily: 'Outfit, sans-serif',
-        fontSize: '13px'
+        background: "#0B1120",
+        primaryColor: "#0EA5E9",
+        primaryTextColor: "#FFFFFF",
+        primaryBorderColor: "#38BDF8",
+        lineColor: "#64748B",
+        secondaryColor: "#6366F1",
+        tertiaryColor: "#1E293B",
+        fontFamily: "Outfit, sans-serif",
+        fontSize: "13px"
       },
-      securityLevel: 'loose'
+      securityLevel: "loose"
     });
 
     // Filtro por Categorías
@@ -3648,46 +3670,157 @@ flowchart TD
     }
 
     // Descargar como PNG individual con resolución retina (2x)
+    // Descargar como PNG individual con resolución retina (2x) 100% libre de tainting
     function downloadPNG(id, filename) {
       const card = document.getElementById(id);
-      const svg = card.querySelector('svg');
+      if (!card) return;
+      const svg = card.querySelector("svg");
       if (!svg) {
-        alert('El diagrama aún se está renderizando. Espera un segundo.');
+        alert("El diagrama aún se está procesando. Por favor espera 2 segundos e intenta de nuevo.");
         return;
       }
-      const svgData = new XMLSerializer().serializeToString(svg);
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const img = new Image();
 
-      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-      const url = URL.createObjectURL(svgBlob);
+      try {
+        // Clonar para no alterar el DOM visual
+        const svgCopy = svg.cloneNode(true);
 
-      img.onload = function() {
-        const scale = 2; // Alta resolución
-        const bbox = svg.getBoundingClientRect();
-        canvas.width = (bbox.width || 1200) * scale;
-        canvas.height = (bbox.height || 800) * scale;
-        ctx.fillStyle = '#0B1120'; // Fondo oscuro profesional
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        URL.revokeObjectURL(url);
+        // Asegurar namespaces XML válidos
+        if (!svgCopy.getAttribute("xmlns")) {
+          svgCopy.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+        }
+        if (!svgCopy.getAttribute("xmlns:xlink")) {
+          svgCopy.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
+        }
 
-        canvas.toBlob(function(blob) {
-          const pngUrl = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = pngUrl;
-          link.download = filename + '.png';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(pngUrl);
-        }, 'image/png');
-      };
-      img.src = url;
+        // Obtener dimensiones reales y viewBox
+        let width = 1200;
+        let height = 800;
+        const viewBoxAttr = svg.getAttribute("viewBox");
+        if (viewBoxAttr) {
+          const parts = viewBoxAttr.split(/[s,]+/).map(Number);
+          if (parts.length === 4 && parts[2] > 0 && parts[3] > 0) {
+            width = parts[2];
+            height = parts[3];
+          }
+        } else if (svg.viewBox && svg.viewBox.baseVal && svg.viewBox.baseVal.width > 0) {
+          width = svg.viewBox.baseVal.width;
+          height = svg.viewBox.baseVal.height;
+        } else {
+          const rect = svg.getBoundingClientRect();
+          if (rect.width > 0) width = rect.width;
+          if (rect.height > 0) height = rect.height;
+        }
+
+        // Fijar dimensiones exactas en el SVG clonado
+        svgCopy.setAttribute("width", width);
+        svgCopy.setAttribute("height", height);
+        svgCopy.style.width = width + "px";
+        svgCopy.style.height = height + "px";
+
+        // Convertir cualquier foreignObject restante a elementos SVG text nativos (anti-canvas tainting)
+        const foreignObjects = svgCopy.querySelectorAll("foreignObject");
+        foreignObjects.forEach(fo => {
+          const textContent = (fo.textContent || "").trim();
+          const x = parseFloat(fo.getAttribute("x") || 0);
+          const y = parseFloat(fo.getAttribute("y") || 0);
+          const w = parseFloat(fo.getAttribute("width") || 100);
+          const h = parseFloat(fo.getAttribute("height") || 30);
+
+          const textEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          textEl.setAttribute("x", x + w / 2);
+          textEl.setAttribute("y", y + h / 2 + 4);
+          textEl.setAttribute("text-anchor", "middle");
+          textEl.setAttribute("fill", "#F8FAFC");
+          textEl.setAttribute("font-family", "Outfit, sans-serif");
+          textEl.setAttribute("font-size", "12px");
+          textEl.textContent = textContent;
+
+          if (fo.parentNode) {
+            fo.parentNode.replaceChild(textEl, fo);
+          }
+        });
+
+        // Eliminar fuentes externas @import que bloquean la exportación en Chrome
+        const styleTags = svgCopy.querySelectorAll("style");
+        styleTags.forEach(st => {
+          if (st.textContent) {
+            st.textContent = st.textContent.replace(/@import[^;]+;/g, "");
+          }
+        });
+
+        // Insertar fondo oscuro profesional de respaldo
+        const bgRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        bgRect.setAttribute("width", "100%");
+        bgRect.setAttribute("height", "100%");
+        bgRect.setAttribute("fill", "#0B1120");
+        svgCopy.insertBefore(bgRect, svgCopy.firstChild);
+
+        // Serializar SVG a Base64 con soporte Unicode
+        const svgString = new XMLSerializer().serializeToString(svgCopy);
+        const base64Data = btoa(unescape(encodeURIComponent(svgString)));
+        const dataUrl = "data:image/svg+xml;base64," + base64Data;
+
+        const img = new Image();
+        img.onload = function() {
+          try {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+            const scale = 2; // Resolución Retina nítida
+            canvas.width = Math.round(width * scale);
+            canvas.height = Math.round(height * scale);
+
+            // Fondo slate oscuro
+            ctx.fillStyle = "#0B1120";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Dibujar imagen rasterizada
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            canvas.toBlob(function(blob) {
+              if (!blob) {
+                // Fallback directo a SVG
+                downloadSVG(id, filename);
+                return;
+              }
+              const pngUrl = URL.createObjectURL(blob);
+              const link = document.createElement("a");
+              link.href = pngUrl;
+              link.download = filename + ".png";
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              setTimeout(() => URL.revokeObjectURL(pngUrl), 1000);
+            }, "image/png");
+          } catch (canvasErr) {
+            console.warn("Canvas export fallback a SVG:", canvasErr);
+            downloadSVG(id, filename);
+          }
+        };
+
+        img.onerror = function(loadErr) {
+          console.warn("Image load fallback a SVG:", loadErr);
+          downloadSVG(id, filename);
+        };
+
+        img.src = dataUrl;
+      } catch (err) {
+        console.error("Error en downloadPNG:", err);
+        downloadSVG(id, filename);
+      }
     }
 
     // Descargar lote completo de SVGs
+    function downloadAllPNGs() {
+      const cards = document.querySelectorAll(".diagram-card");
+      cards.forEach((card, idx) => {
+        setTimeout(() => {
+          const id = card.id;
+          const code = card.getAttribute("data-code").toUpperCase();
+          downloadPNG(id, "TASKMASTER_" + code);
+        }, idx * 400);
+      });
+    }
+
     function downloadAllSVGs() {
       const cards = document.querySelectorAll('.diagram-card');
       let count = 0;
