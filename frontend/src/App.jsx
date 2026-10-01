@@ -1,21 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import TaskMasterLanding from './components/TaskMasterLanding';
 import AuthView from './components/AuthView';
-import NewTenantWizard from './components/NewTenantWizard';
 import PosTerminal from './components/PosTerminal';
-import KpiGrid from './components/KpiGrid';
 import LedgerTable from './components/LedgerTable';
-import SoapConsole from './components/SoapConsole';
-import ArchitectureView from './components/ArchitectureView';
-import ThemeCustomizerModal from './components/ThemeCustomizerModal';
 import PosLayout from './components/PosLayout';
-import { Sliders } from 'lucide-react';
+import { Sliders, Loader2 } from 'lucide-react';
+
+// Code-Splitting con React.lazy para componentes no críticos en carga inicial
+const NewTenantWizard = lazy(() => import('./components/NewTenantWizard'));
+const KpiGrid = lazy(() => import('./components/KpiGrid'));
+const SoapConsole = lazy(() => import('./components/SoapConsole'));
+const ArchitectureView = lazy(() => import('./components/ArchitectureView'));
+const ThemeCustomizerModal = lazy(() => import('./components/ThemeCustomizerModal'));
 
 import { useAuth } from './hooks/useAuth';
 import { useTenant } from './hooks/useTenant';
 import { useInvoices } from './hooks/useInvoices';
 import { useThemePreferences } from './hooks/useThemePreferences';
 import { useSoapClient } from './hooks/useSoapClient';
+
+function SuspenseFallback({ message = 'Cargando módulo...' }) {
+  return (
+    <div className="py-20 flex flex-col items-center justify-center text-slate-500 text-xs gap-3">
+      <Loader2 className="w-6 h-6 animate-spin text-slate-800" />
+      <span>{message}</span>
+    </div>
+  );
+}
 
 export default function App() {
   // 1. Navegación de vistas principales: 'landing' | 'auth' | 'wizard' | 'pos'
@@ -121,29 +132,31 @@ export default function App() {
           />
         )}
 
-        {activeTab === 'kpis' && (
-          <KpiGrid
-            tenant={currentTenant}
-            metrics={metrics}
-            loading={loadingMetrics}
-            onRefresh={() => loadMetrics(currentTenant.id)}
-          />
-        )}
+        <Suspense fallback={<SuspenseFallback />}>
+          {activeTab === 'kpis' && (
+            <KpiGrid
+              tenant={currentTenant}
+              metrics={metrics}
+              loading={loadingMetrics}
+              onRefresh={() => loadMetrics(currentTenant.id)}
+            />
+          )}
 
-        {activeTab === 'console' && (
-          <SoapConsole
-            tenant={currentTenant}
-            lastResponse={lastResponse}
-            loading={loadingSoap}
-            latency={latency}
-            httpStatus={httpStatus}
-            onExecuteSoap={executeSoapCall}
-          />
-        )}
+          {activeTab === 'console' && (
+            <SoapConsole
+              tenant={currentTenant}
+              lastResponse={lastResponse}
+              loading={loadingSoap}
+              latency={latency}
+              httpStatus={httpStatus}
+              onExecuteSoap={executeSoapCall}
+            />
+          )}
 
-        {activeTab === 'architecture' && (
-          <ArchitectureView tenant={currentTenant} />
-        )}
+          {activeTab === 'architecture' && (
+            <ArchitectureView tenant={currentTenant} />
+          )}
+        </Suspense>
       </div>
     );
   };
@@ -191,14 +204,16 @@ export default function App() {
         </div>
       )}
 
-      {/* 3. WIZARD DE REGISTRO DE TENANT */}
+      {/* 3. WIZARD DE REGISTRO CON CODE-SPLITTING */}
       {currentView === 'wizard' && (
         <div className="min-h-screen flex items-center justify-center p-4 sm:p-8">
-          <NewTenantWizard
-            initialData={wizardInitData}
-            onComplete={handleTenantCreated}
-            onCancel={() => setCurrentView('landing')}
-          />
+          <Suspense fallback={<SuspenseFallback message="Cargando asistente de configuración..." />}>
+            <NewTenantWizard
+              initialData={wizardInitData}
+              onComplete={handleTenantCreated}
+              onCancel={() => setCurrentView('landing')}
+            />
+          </Suspense>
         </div>
       )}
 
@@ -258,18 +273,22 @@ export default function App() {
         </>
       )}
 
-      {/* MODAL DE PERSONALIZACIÓN */}
-      <ThemeCustomizerModal
-        isOpen={showCustomizer}
-        onClose={() => setShowCustomizer(false)}
-        navbarPosition={navbarPosition}
-        onSelectNavbarPosition={selectNavbarPosition}
-        bgTheme={bgTheme}
-        onSelectBgTheme={selectBgTheme}
-        showDebugTools={showDebugTools}
-        onToggleDebugTools={setShowDebugTools}
-        brandColor={currentTenant?.brand_color || '#0F172A'}
-      />
+      {/* MODAL DE PERSONALIZACIÓN CON CODE-SPLITTING */}
+      <Suspense fallback={null}>
+        {showCustomizer && (
+          <ThemeCustomizerModal
+            isOpen={showCustomizer}
+            onClose={() => setShowCustomizer(false)}
+            navbarPosition={navbarPosition}
+            onSelectNavbarPosition={selectNavbarPosition}
+            bgTheme={bgTheme}
+            onSelectBgTheme={selectBgTheme}
+            showDebugTools={showDebugTools}
+            onToggleDebugTools={setShowDebugTools}
+            brandColor={currentTenant?.brand_color || '#0F172A'}
+          />
+        )}
+      </Suspense>
     </div>
   );
 }

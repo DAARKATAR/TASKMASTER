@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle, QrCode, AlertCircle, FileText } from 'lucide-react';
+import { CheckCircle, QrCode, AlertCircle, FileText, Printer } from 'lucide-react';
 
 export default function BakeryReceiptTicket({ tenant, invoiceData, cartItems }) {
   const brandColor = tenant?.brand_color || '#0F172A';
@@ -138,6 +138,19 @@ export default function BakeryReceiptTicket({ tenant, invoiceData, cartItems }) 
               <span>Registro de orden local</span>
             </div>
           </div>
+        </div>
+
+
+        {/* Botón de Impresión Térmica Directa */}
+        <div className="pt-2 print:hidden">
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="w-full py-2.5 px-4 rounded-2xl bg-slate-900 hover:bg-black text-white text-xs font-bold flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
+          >
+            <Printer className="w-3.5 h-3.5" />
+            <span>Imprimir Ticket Térmico (80mm)</span>
+          </button>
         </div>
 
         {/* Footer del Recibo */}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Search, Printer, CheckCircle2, Calendar, User, DollarSign, Filter, AlertCircle, RefreshCw, Eye } from 'lucide-react';
+import { FileText, Search, Printer, CheckCircle2, Calendar, User, DollarSign, Filter, AlertCircle, RefreshCw, Eye, Download } from 'lucide-react';
 import BakeryReceiptTicket from './BakeryReceiptTicket';
 
 export default function LedgerTable({ tenant, invoices = [], onConsultSoap, loading, lastResponse, onRefresh }) {
@@ -7,6 +7,32 @@ export default function LedgerTable({ tenant, invoices = [], onConsultSoap, load
   const [selectedInvoice, setSelectedInvoice] = useState(null);
 
   const brandColor = tenant?.brand_color || '#0F172A';
+
+
+  const handleExportCSV = () => {
+    if (filteredInvoices.length === 0) return;
+    const headers = ["Numero Factura", "Cliente", "Subtotal", "Impuestos", "Total", "Metodo Pago", "Estado", "Folio Fiscal", "Fecha"];
+    const rows = filteredInvoices.map((inv) => [
+      `"${inv.numero_factura || ""}"`,
+      "\"" + (inv.cliente || "").split("\"").join("\"\"") + "\"",
+      inv.subtotal || 0,
+      inv.impuestos || 0,
+      inv.total || 0,
+      `"${inv.metodo_pago || "Efectivo"}"`,
+      `"${inv.estado || "EMITIDA"}"`,
+      `"${inv.folio_fiscal || ""}"`,
+      `"${inv.created_at || new Date().toISOString()}"`
+    ]);
+    const csvContent = "\uFEFF" + [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `reporte_ventas_${tenant?.slug || "tenant"}_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const filteredInvoices = invoices.filter(inv => {
     const term = searchTerm.toLowerCase();
@@ -38,6 +64,17 @@ export default function LedgerTable({ tenant, invoices = [], onConsultSoap, load
         </div>
 
         <div className="flex items-center gap-2">
+          
+          {filteredInvoices.length > 0 && (
+            <button
+              onClick={handleExportCSV}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition-colors cursor-pointer"
+              title="Descargar reporte en formato CSV compatible con Excel"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Exportar CSV</span>
+            </button>
+          )}
           {onRefresh && (
             <button
               onClick={onRefresh}
