@@ -43,7 +43,7 @@ export default function App() {
   const { authToken, currentUser, setCurrentUser, login, logout } = useAuth();
   const { currentTenant, setCurrentTenant, availableTenants, loadTenants, selectTenant, activeModules, updateActiveModules } =
     useTenant();
-  const { invoices, metrics, invoiceData, loadingInvoices, loadingMetrics, loadInvoices, loadMetrics, emitInvoice } =
+  const { invoices, pagination, metrics, invoiceData, loadingInvoices, loadingMetrics, loadInvoices, loadMetrics, emitInvoice } =
     useInvoices(currentTenant?.id, authToken);
   const { navbarPosition, selectNavbarPosition, bgTheme, selectBgTheme, showCustomizer, setShowCustomizer, themeColors } =
     useThemePreferences(currentTenant, currentView);
@@ -147,10 +147,12 @@ export default function App() {
           <LedgerTable
             tenant={currentTenant}
             invoices={invoices}
+            pagination={pagination}
+            onPageChange={(p) => loadInvoices(currentTenant.id, p, pagination?.limit || 25)}
             onConsultSoap={(inv) => executeSoapCall(inv)}
             loading={loadingInvoices || loadingSoap}
             lastResponse={invoiceData}
-            onRefresh={() => loadInvoices(currentTenant.id)}
+            onRefresh={() => loadInvoices(currentTenant.id, pagination?.page || 1, pagination?.limit || 25)}
           />
         )}
 

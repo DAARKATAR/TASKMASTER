@@ -94,7 +94,7 @@ export async function handleSoapAction(req, res) {
   }
 
   // Extraer número de factura o ID
-  const rawQuery = params.numero_factura || params.id || '';
+  const rawQuery = params.numero_factura || params.numeroFactura || params.id || '';
   const queryStr = String(rawQuery).trim();
   const numericId = parseInt(queryStr.replace(/\D/g, ''), 10) || 0;
 

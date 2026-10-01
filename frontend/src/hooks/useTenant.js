@@ -15,10 +15,15 @@ export function useTenant(initialTenant = null) {
     try {
       const res = await fetch(`${API_BASE_URL}/api/tenants`);
       if (res.ok) {
-        const list = await res.json();
-        setAvailableTenants(list);
-        if (list.length > 0 && !currentTenant) {
-          setCurrentTenant(list[0]);
+        const contentType = res.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const list = await res.json();
+          if (Array.isArray(list)) {
+            setAvailableTenants(list);
+            if (list.length > 0 && !currentTenant) {
+              setCurrentTenant(list[0]);
+            }
+          }
         }
       }
     } catch (err) {

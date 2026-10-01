@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { FileText, Search, Printer, CheckCircle2, Calendar, User, DollarSign, Filter, AlertCircle, RefreshCw, Eye, Download } from 'lucide-react';
+import { FileText, Search, Printer, CheckCircle2, Calendar, User, DollarSign, Filter, AlertCircle, RefreshCw, Eye, Download, ChevronLeft, ChevronRight, CloudOff } from 'lucide-react';
 import BakeryReceiptTicket from './BakeryReceiptTicket';
 
-export default function LedgerTable({ tenant, invoices = [], onConsultSoap, loading, lastResponse, onRefresh }) {
+export default function LedgerTable({ tenant, invoices = [], onConsultSoap, loading, lastResponse, onRefresh, pagination, onPageChange }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedInvoice, setSelectedInvoice] = useState(null);
 
@@ -196,6 +196,36 @@ export default function LedgerTable({ tenant, invoices = [], onConsultSoap, load
                   })}
                 </tbody>
               </table>
+            </div>
+          )}
+
+
+          {/* Controles de Paginación */}
+          {pagination && pagination.totalPages > 1 && (
+            <div className="p-3 border-t border-slate-100 flex items-center justify-between gap-3 text-xs bg-slate-50/50">
+              <span className="text-slate-500 font-mono text-[11px]">
+                Página <strong>{pagination.page}</strong> de <strong>{pagination.totalPages}</strong> ({pagination.total} comprobantes)
+              </span>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => onPageChange && onPageChange(pagination.page - 1)}
+                  disabled={pagination.page <= 1 || loading}
+                  className="px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 disabled:opacity-30 disabled:pointer-events-none transition-colors flex items-center gap-1 font-semibold"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                  <span>Anterior</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onPageChange && onPageChange(pagination.page + 1)}
+                  disabled={pagination.page >= pagination.totalPages || loading}
+                  className="px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 disabled:opacity-30 disabled:pointer-events-none transition-colors flex items-center gap-1 font-semibold"
+                >
+                  <span>Siguiente</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
           )}
 

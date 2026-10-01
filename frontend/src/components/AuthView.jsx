@@ -42,10 +42,26 @@ export default function AuthView({
         })
       });
 
-      const data = await res.json();
+      const contentType = res.headers.get('content-type') || '';
+      let data = null;
+
+      if (contentType.includes('application/json')) {
+        try {
+          data = await res.json();
+        } catch {
+          data = null;
+        }
+      }
 
       if (!res.ok) {
-        throw new Error(data.error || 'Error al iniciar sesión.');
+        const errorMsg = data?.error || (res.status === 404
+          ? 'No se encontró el endpoint de autenticación (404 Not Found).'
+          : `Error del servidor de autenticación (HTTP ${res.status})`);
+        throw new Error(errorMsg);
+      }
+
+      if (!data) {
+        throw new Error('El servidor no retornó una sesión válida.');
       }
 
       // Éxito: entregar token, usuario y tenant autenticado
