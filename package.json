@@ -4,12 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "node --watch src/server.js",
-    "build": "npm --prefix frontend install && npm --prefix frontend run build",
+    "start": "node dist/server.js",
+    "dev": "tsx watch src/server.ts",
+    "build": "npm run build:server && npm --prefix frontend install && npm --prefix frontend run build",
     "tunnel": "node scripts/startTunnel.js",
     "seed": "node scripts/runSeed.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest run",
+    "build:server": "tsup src/server.ts --format esm --out-dir dist"
   },
   "keywords": [],
   "author": "",
@@ -24,5 +25,19 @@
     "jsonwebtoken": "^9.0.3",
     "morgan": "^1.12.0",
     "pg": "^8.23.0"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/morgan": "^1.9.10",
+    "@types/node": "^26.6.3",
+    "@types/pg": "^8.23.1",
+    "@types/supertest": "^7.2.1",
+    "supertest": "^7.3.0",
+    "tsup": "^8.5.1",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.3"
   }
 }

@@ -1,18 +1,18 @@
-# Dockerfile optimizado para Backend Puro en Render / Koyeb
-FROM node:20-alpine
+# Dockerfile Multi-Stage para Backend TypeScript optimizado en Render / Koyeb
+FROM node:20-alpine AS builder
 WORKDIR /app
+COPY package*.json tsconfig.json ./
+RUN npm ci
+COPY src/ ./src/
+RUN npm run build:server
 
+FROM node:20-alpine AS runner
+WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
-
-# Copiar archivos de dependencias e instalar solo las de producción
 COPY package*.json ./
 RUN npm ci --only=production
-
-# Copiar código del backend y scripts necesarios
-COPY src/ ./src/
+COPY --from=builder /app/dist ./dist
 COPY scripts/ ./scripts/
-
 EXPOSE 3000
-
-CMD ["node", "src/server.js"]
+CMD ["node", "dist/server.js"]
