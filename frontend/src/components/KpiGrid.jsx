@@ -1,5 +1,5 @@
 import React from 'react';
-import { DollarSign, ShoppingBag, Receipt, ArrowUpRight, TrendingUp, CreditCard, Clock, RefreshCw, BarChart3, AlertCircle } from 'lucide-react';
+import { DollarSign, ShoppingBag, Receipt, ArrowUpRight, TrendingUp, CreditCard, Clock, RefreshCw, BarChart3 } from 'lucide-react';
 
 export default function KpiGrid({ tenant, metrics, loading, onRefresh }) {
   const brandColor = tenant?.brand_color || '#0F172A';

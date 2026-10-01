@@ -1,5 +1,5 @@
 import React from 'react';
-import { Database, ShieldCheck, Lock, Layers, CheckCircle2 } from 'lucide-react';
+import { Database, Layers } from 'lucide-react';
 
 export default function ArchitectureView({ tenants }) {
   return (

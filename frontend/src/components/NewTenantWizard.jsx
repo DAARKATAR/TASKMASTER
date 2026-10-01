@@ -1,5 +1,7 @@
+import { optimizeImageToWebP, formatBytes } from '../utils/imageOptimizer';
+import { AVAILABLE_MODULES, PRESET_MODULAR_PROFILES, DEFAULT_ACTIVE_MODULES } from '../config/modules';
 import React, { useState, useRef, useEffect } from 'react';
-import { Palette, Upload, Image as ImageIcon, Layout, Check, ArrowRight, ArrowLeft, Smartphone, Monitor, AlertCircle, Sparkles, Store, Building, User, Mail, Lock, Loader2 } from 'lucide-react';
+import { Palette, Upload, Image as ImageIcon, Layout, Check, ArrowRight, ArrowLeft, Smartphone, Monitor, AlertCircle, Store, Loader2 } from 'lucide-react';
 import { API_BASE_URL } from '../config/api';
 
 export default function NewTenantWizard({ initialData, onComplete, onCancel }) {
@@ -25,13 +27,15 @@ export default function NewTenantWizard({ initialData, onComplete, onCancel }) {
   const [logoType, setLogoType] = useState('emoji'); // 'emoji' | 'upload'
   const [logoEmoji, setLogoEmoji] = useState('🍰');
   const [uploadedLogo, setUploadedLogo] = useState(null);
+  const [optimizingImage, setOptimizingImage] = useState(false);
+  const [optimizationStats, setOptimizationStats] = useState(null);
   const fileInputRef = useRef(null);
 
   // 3. Layout y regla de dispositivo
   const [navbarPosition, setNavbarPosition] = useState('top');
   const [isMobileSimulated, setIsMobileSimulated] = useState(false);
-  const [isDesktopScreen, setIsDesktopScreen] = useState(true);
   const [acceptedFiscalDisclaimer, setAcceptedFiscalDisclaimer] = useState(false);
+  const [selectedModules, setSelectedModules] = useState(DEFAULT_ACTIVE_MODULES);
 
   useEffect(() => {
     const checkScreen = () => {
@@ -70,16 +74,31 @@ export default function NewTenantWizard({ initialData, onComplete, onCancel }) {
     { emoji: '🍹', label: 'Bebidas & Coctelería' }
   ];
 
-  // Manejador de subida de archivo
-  const handleFileUpload = (e) => {
+  // Manejador de subida de archivo con optimización WebP en cliente
+  const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setUploadedLogo(event.target.result);
+      setOptimizingImage(true);
+      try {
+        const result = await optimizeImageToWebP(file, { maxWidth: 512, maxHeight: 512, quality: 0.82 });
+        setUploadedLogo(result.dataUrl);
         setLogoType('upload');
-      };
-      reader.readAsDataURL(file);
+        setOptimizationStats({
+          originalSize: result.originalSize,
+          optimizedSize: result.optimizedSize,
+          ratio: result.ratio
+        });
+      } catch (err) {
+        console.error("Error optimizando a WebP:", err);
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          setUploadedLogo(event.target.result);
+          setLogoType('upload');
+        };
+        reader.readAsDataURL(file);
+      } finally {
+        setOptimizingImage(false);
+      }
     }
   };
 
@@ -103,7 +122,8 @@ export default function NewTenantWizard({ initialData, onComplete, onCancel }) {
           businessType,
           ownerName: ownerName.trim() || 'Administrador',
           email: email.trim(),
-          password
+          password,
+          activeModules: selectedModules
         })
       });
 
@@ -376,14 +396,28 @@ export default function NewTenantWizard({ initialData, onComplete, onCancel }) {
                     className="hidden"
                   />
 
-                  {uploadedLogo ? (
+                  {optimizingImage ? (
+                    <div className="py-6 space-y-2">
+                      <Loader2 className="w-8 h-8 animate-spin mx-auto text-slate-800" />
+                      <span className="text-xs font-bold text-slate-800 block">Optimizando a formato WebP...</span>
+                      <span className="text-[10px] text-slate-400 block">Reduciendo dimensiones y peso</span>
+                    </div>
+                  ) : uploadedLogo ? (
                     <div className="space-y-2">
                       <img 
                         src={uploadedLogo} 
                         alt="Logo subido" 
                         className="w-20 h-20 object-contain mx-auto rounded-xl border border-slate-200 p-1 bg-white shadow-xs" 
                       />
-                      <span className="text-xs font-bold text-slate-900 block">✓ Logo cargado con éxito</span>
+                      <span className="text-xs font-bold text-slate-900 block">✓ Logo optimizado a WebP</span>
+                      {optimizationStats && (
+                        <div className="mt-1 p-2 bg-emerald-50 border border-emerald-200 rounded-xl text-[10px] text-emerald-800 flex items-center justify-between">
+                          <span className="font-semibold">Compresión WebP:</span>
+                          <span className="font-mono font-bold">
+                            {formatBytes(optimizationStats.originalSize)} → {formatBytes(optimizationStats.optimizedSize)} (-{optimizationStats.ratio}%)
+                          </span>
+                        </div>
+                      )}
                       <span className="text-[10px] text-slate-400">Haz clic para cambiar de imagen</span>
                     </div>
                   ) : (

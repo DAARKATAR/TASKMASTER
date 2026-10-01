@@ -1,4 +1,4 @@
-import React, { useState, Suspense, lazy } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import TaskMasterLanding from './components/TaskMasterLanding';
 import AuthView from './components/AuthView';
 import PosTerminal from './components/PosTerminal';
@@ -8,6 +8,7 @@ import { Sliders, Loader2 } from 'lucide-react';
 
 // Code-Splitting con React.lazy para componentes no críticos en carga inicial
 const NewTenantWizard = lazy(() => import('./components/NewTenantWizard'));
+const InventoryManager = lazy(() => import('./components/InventoryManager'));
 const KpiGrid = lazy(() => import('./components/KpiGrid'));
 const SoapConsole = lazy(() => import('./components/SoapConsole'));
 const ArchitectureView = lazy(() => import('./components/ArchitectureView'));
@@ -40,12 +41,24 @@ export default function App() {
 
   // 2. Custom Hooks desacoplados
   const { authToken, currentUser, setCurrentUser, login, logout } = useAuth();
-  const { currentTenant, setCurrentTenant, availableTenants, loadTenants, selectTenant } = useTenant();
+  const { currentTenant, setCurrentTenant, availableTenants, loadTenants, selectTenant, activeModules, updateActiveModules } =
+    useTenant();
   const { invoices, metrics, invoiceData, loadingInvoices, loadingMetrics, loadInvoices, loadMetrics, emitInvoice } =
     useInvoices(currentTenant?.id, authToken);
   const { navbarPosition, selectNavbarPosition, bgTheme, selectBgTheme, showCustomizer, setShowCustomizer, themeColors } =
     useThemePreferences(currentTenant, currentView);
   const { lastResponse, loadingSoap, latency, httpStatus, executeSoapCall } = useSoapClient(currentTenant);
+
+  // Si la pestaña actual se desactiva por configuración modular, cambiar a la primera activa
+  useEffect(() => {
+    if (activeModules && activeModules.length > 0) {
+      const mappedCurrent = activeTab === 'console' ? 'soap' : activeTab;
+      if (!activeModules.includes(mappedCurrent) && activeTab !== 'architecture') {
+        const firstAvailable = activeModules[0];
+        setActiveTab(firstAvailable === 'soap' ? 'console' : firstAvailable);
+      }
+    }
+  }, [activeModules, activeTab]);
 
   // Handlers
   const handleLoginSuccess = (authData) => {
@@ -83,7 +96,7 @@ export default function App() {
     }
   };
 
-  // Renderizador del contenido interno de la terminal POS
+  // Renderizador del contenido interno de la terminal POS según los módulos activos
   const renderPosContent = () => {
     if (!currentTenant) {
       return (
@@ -95,7 +108,7 @@ export default function App() {
             Sin Negocios Registrados
           </h3>
           <p className="text-xs text-slate-500 leading-relaxed">
-            Registra tu primer negocio para comenzar a operar el punto de venta y emitir comprobantes reales.
+            Registra tu primer negocio para comenzar a operar el punto de venta y configurar tus herramientas a la carta.
           </p>
           <button
             onClick={() => {
@@ -112,6 +125,7 @@ export default function App() {
 
     return (
       <div className="space-y-6">
+        {/* MÓDULO 1: TERMINAL POS */}
         {activeTab === 'pos' && (
           <PosTerminal
             tenant={currentTenant}
@@ -121,6 +135,14 @@ export default function App() {
           />
         )}
 
+        {/* MÓDULO 2: INVENTARIO & CATÁLOGO (NUEVO MÓDULO DEDICADO) */}
+        {activeTab === 'inventory' && (
+          <Suspense fallback={<SuspenseFallback message="Cargando catálogo e inventario..." />}>
+            <InventoryManager tenant={currentTenant} />
+          </Suspense>
+        )}
+
+        {/* MÓDULO 3: LIBRO DE COMPROBANTES */}
         {activeTab === 'invoices' && (
           <LedgerTable
             tenant={currentTenant}
@@ -132,6 +154,7 @@ export default function App() {
           />
         )}
 
+        {/* MÓDULO 4: MÉTRICAS Y KPIS */}
         <Suspense fallback={<SuspenseFallback />}>
           {activeTab === 'kpis' && (
             <KpiGrid
@@ -142,6 +165,7 @@ export default function App() {
             />
           )}
 
+          {/* MÓDULO 5: ENLACE FISCAL / SOAP */}
           {activeTab === 'console' && (
             <SoapConsole
               tenant={currentTenant}
@@ -153,6 +177,7 @@ export default function App() {
             />
           )}
 
+          {/* HERRAMIENTA DEV: ARQUITECTURA CLOUD */}
           {activeTab === 'architecture' && (
             <ArchitectureView tenant={currentTenant} />
           )}
@@ -262,13 +287,15 @@ export default function App() {
           <button
             onClick={() => setShowCustomizer(true)}
             className="fixed bottom-4 right-4 z-40 p-3 rounded-2xl bg-white text-slate-700 border border-slate-200 shadow-xl hover:shadow-2xl transition-all flex items-center gap-2 group cursor-pointer"
-            title="Personalizar Posición del Navbar y Fondo"
+            title="Personalizar Módulos Activos y Diseño"
           >
             <Sliders
               className="w-4 h-4 transition-transform group-hover:rotate-45"
               style={{ color: currentTenant?.brand_color || '#0F172A' }}
             />
-            <span className="text-xs font-bold hidden sm:inline">Navbars ({navbarPosition})</span>
+            <span className="text-xs font-bold hidden sm:inline">
+              Módulos & Estilo ({activeModules.length})
+            </span>
           </button>
         </>
       )}
@@ -286,6 +313,8 @@ export default function App() {
             showDebugTools={showDebugTools}
             onToggleDebugTools={setShowDebugTools}
             brandColor={currentTenant?.brand_color || '#0F172A'}
+            tenant={currentTenant}
+            onUpdateModules={updateActiveModules}
           />
         )}
       </Suspense>

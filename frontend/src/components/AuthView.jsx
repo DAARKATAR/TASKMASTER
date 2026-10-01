@@ -23,7 +23,7 @@ export default function AuthView({
   const [ownerName, setOwnerName] = useState('');
   const [registerEmail, setRegisterEmail] = useState('');
   const [registerPassword, setRegisterPassword] = useState('');
-  const [businessType, setBusinessType] = useState('Repostería & Café');
+  const [businessType] = useState('Repostería & Café');
   const [registerError, setRegisterError] = useState(null);
 
   // Iniciar sesión real contra Backend con JWT y Rate Limiting

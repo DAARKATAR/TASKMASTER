@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle, QrCode, AlertCircle, FileText, Printer } from 'lucide-react';
+import { CheckCircle, QrCode, AlertCircle, Printer } from 'lucide-react';
 
 export default function BakeryReceiptTicket({ tenant, invoiceData, cartItems }) {
   const brandColor = tenant?.brand_color || '#0F172A';
