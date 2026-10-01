@@ -17,8 +17,10 @@ export function useInvoices(tenantId, authToken) {
     try {
       const res = await fetch(`${API_BASE_URL}/api/tenants/${id}/invoices`);
       if (res.ok) {
-        const data = await res.json();
-        setInvoices(data);
+        const contentType = res.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const data = await res.json();
+          if (Array.isArray(data)) setInvoices(data);
         if (data.length > 0 && !invoiceData) {
           setInvoiceData({
             numero_factura: data[0].numero_factura,
@@ -32,6 +34,7 @@ export function useInvoices(tenantId, authToken) {
             metodo_pago: data[0].metodo_pago,
             emisor: id
           });
+        }
         }
       }
     } catch (err) {
@@ -47,8 +50,11 @@ export function useInvoices(tenantId, authToken) {
     try {
       const res = await fetch(`${API_BASE_URL}/api/tenants/${id}/metrics`);
       if (res.ok) {
-        const data = await res.json();
-        setMetrics(data);
+        const contentType = res.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const data = await res.json();
+          setMetrics(data);
+        }
       }
     } catch (err) {
       console.error('Error cargando métricas:', err);
@@ -76,9 +82,13 @@ export function useInvoices(tenantId, authToken) {
       body: JSON.stringify(orderData)
     });
 
-    const data = await res.json();
+    const contentType = res.headers.get('content-type') || '';
+    let data = null;
+    if (contentType.includes('application/json')) {
+      try { data = await res.json(); } catch { data = null; }
+    }
     if (!res.ok) {
-      throw new Error(data.error || 'Error emitiendo comprobante');
+      throw new Error(data?.error || `Error emitiendo comprobante (HTTP ${res.status})`);
     }
 
     const newInv = data.invoice;
