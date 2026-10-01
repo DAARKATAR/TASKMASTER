@@ -160,7 +160,7 @@
     <article 
       id="diag-01-arq" 
       data-category="arq" 
-      data-title="diagrama de arquitectura de microservicios (enterprise vpc & clúster kubernetes)" 
+      data-title="diagrama de arquitectura del sistema: monolito modular multi-tenant" 
       data-code="arq-01"
       class="diagram-card bg-slate-950 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6"
     >
@@ -175,21 +175,21 @@
               Arquitectura & ERD
             </span>
           </div>
-          <h2 class="text-xl sm:text-2xl font-black text-white mt-2">Diagrama de Arquitectura de Microservicios (Enterprise VPC & Clúster Kubernetes)</h2>
-          <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-4xl leading-relaxed">Arquitectura integral de microservicios según especificación empresarial: Red privada VPC, balanceadores Ingress internos, Service Mesh (Consul), Tiers de Microservicios (Python Auth, Go Transaccional, Java/TS Fiscal), Observabilidad (Prometheus, Alertmanager, ELK), Almacenamiento Distribuido (PostgreSQL Multitenant, Redis, RocketMQ) y pipeline CI/CD con Bastion Jump Hosts.</p>
+          <h2 class="text-xl sm:text-2xl font-black text-white mt-2">Diagrama de Arquitectura del Sistema: Monolito Modular Multi-Tenant</h2>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-4xl leading-relaxed">Formato empresarial en capas estructurado: Clientes SPA en el borde, Red pública Cloudflare (DNS/WAF/Pages), Gateway de Ingress, Núcleo de Aplicación como Monolito Modular en Node.js/Express (5 rebanadas verticales: Auth, Tenants, POS, Catálogo y SOAP), Persistencia PostgreSQL Multi-Tenant con esquemas dedicados (public vs tenant_{slug}), Pasarela Fiscal SOAP y Pipeline CI/CD automatizado.</p>
         </div>
 
         <!-- Botones de Descarga del Diagrama -->
         <div class="flex items-center gap-2 no-print shrink-0">
           <button 
-            onclick="downloadPNG('diag-01-arq', 'ARQ-01_Diagrama_de_Arquitectura_de_Microservicios__Enterprise_VPC___Cl_ster_Kubernetes_')"
+            onclick="downloadPNG('diag-01-arq', 'ARQ-01_Diagrama_de_Arquitectura_del_Sistema__Monolito_Modular_Multi_Tenant')"
             class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-sky-400 border border-slate-700 hover:border-sky-500 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
             title="Descargar en formato PNG de Alta Resolución"
           >
             <span>🖼️ Descargar PNG</span>
           </button>
           <button 
-            onclick="downloadSVG('diag-01-arq', 'ARQ-01_Diagrama_de_Arquitectura_de_Microservicios__Enterprise_VPC___Cl_ster_Kubernetes_')"
+            onclick="downloadSVG('diag-01-arq', 'ARQ-01_Diagrama_de_Arquitectura_del_Sistema__Monolito_Modular_Multi_Tenant')"
             class="px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 transition flex items-center gap-1.5 cursor-pointer shadow-xs"
             title="Descargar Vector SVG Nítido Escalable"
           >
@@ -210,390 +210,302 @@
         <pre class="mermaid text-center w-full" id="mermaid-diag-01-arq">
 flowchart TB
     %% =========================================================================
-    %% DIAGRAMA DE ARQUITECTURA DE MICROSERVICIOS (ENTERPRISE VPC & KUBERNETES)
+    %% DIAGRAMA DE ARQUITECTURA DEL SISTEMA: MONOLITO MODULAR MULTI-TENANT
+    %% Formato: Diagrama Empresarial en Capas (VPC, Borde, Monolito Modular, Datos)
     %% =========================================================================
 
-    subgraph CLIENTS["📱 Clientes & Dispositivos Externos"]
-        api_client["💻 apis (REST / SOAP Client)"]
-        pc_client["🖥️ pc (Web POS Terminal)"]
-        mobile_client["📱 phone (Móvil / Tablet Mostrador)"]
+    subgraph CLIENT_TIER["📱 Clientes & Puntos de Venta (Frontend SPA)"]
+        web_pos["🖥️ PC Terminal Mostrador
+(React + Vite + Tailwind)"]
+        mobile_pos["📱 Móvil / Tablet POS
+(Responsive Web App)"]
+        offline_store["💾 Cola Local Offline
+(LocalStorage REC-OFF)"]
+        web_pos <--> offline_store
+        mobile_pos <--> offline_store
     end
 
-    subgraph VPC["☁️ Red Privada Virtual (VPC TASKMASTER Cloud)"]
-        
-        subgraph PUBLIC_NET["🌐 Red Pública SLB & Borde"]
-            pub_slb["Red pública SLB / Cloudflare WAF"]
-            cdn_edge["CDN Anycast / DNS Edge"]
+    subgraph CLOUD_VPC["☁️ Entorno Cloud & Despliegue (Render + Cloudflare + Neon)"]
+
+        subgraph EDGE_LAYER["🛡️ Red Pública & Borde (Cloudflare Global Edge)"]
+            cf_dns["Cloudflare Anycast DNS & SSL
+(TLS 1.3 Terminado)"]
+            cf_waf["Cloudflare WAF
+(Protección DDoS & RateLimit)"]
+            cf_pages["Cloudflare Pages / Workers
+(Hosting SPA dist/)"]
+            cf_dns --> cf_waf --> cf_pages
         end
 
-        subgraph INTRANET_SLB["🔀 Intranet SLB & Ingress Gateway"]
-            ingress1["Ingress Controller 1
-(Adentro / Afuera)"]
-            ingress2["Ingress Controller 2
-(Adentro / Afuera)"]
+        subgraph INGRESS_LAYER["🔀 Gateway de Entrada & Control de Acceso (Render Cloud)"]
+            cors_guard["CORS Preflight Guard
+(GET, POST, PUT, PATCH, DELETE)"]
+            rate_limiter["Express Rate Limiter
+(Protección Anti-Abuso 300r/15m)"]
+            body_parser["Parser de Cargas
+(JSON REST & XML text/xml)"]
+            cors_guard --> rate_limiter --> body_parser
         end
 
-        subgraph KUBERNETES["☸️ Clúster de Microservicios (Kubernetes / Render Compute)"]
-            
-            subgraph SERVICE_DISCOVERY["🧭 Service Discovery & Mesh"]
-                consul1["Consul 1
-(Líder de Registro)"]
-                consul2["Consul 2
-(Nodo Réplica)"]
-                consul3["Consul 3
-(Nodo Réplica)"]
-                consul1 --- consul2 --- consul3
+        subgraph MODULAR_MONOLITH["🏛️ Núcleo de Aplicación: Monolito Modular (Express / TypeScript)"]
+
+            subgraph MODULE_AUTH["🔐 Módulo de Autenticación & RBAC"]
+                auth_ctrl["auth.controller.ts"]
+                jwt_engine["JWT Signer & Verifier"]
+                hash_engine["Argon2 / Bcrypt Hasher"]
+                auth_ctrl --- jwt_engine --- hash_engine
             end
 
-            subgraph API_GATEWAYS["🚪 API Gateways Internos"]
-                gw1["gateway 1
-(Express Router API)"]
-                gw2["gateway 2
-(SOAP / WSDL Proxy)"]
+            subgraph MODULE_TENANTS["🏢 Módulo de Inquilinos & Aprovisionamiento"]
+                tenant_ctrl["tenant.controller.ts"]
+                provisioner["tenant.provisioner.ts
+(DDL Dinámico)"]
+                context_mgr["tenantDbClient.ts
+(Search-Path Jail)"]
+                tenant_ctrl --- provisioner --- context_mgr
             end
 
-            subgraph TIER_PYTHON["🐍 Microservicios de Autenticación & Usuarios (Tier Python / Auth)"]
-                s_py1["serve 1
-(Auth & JWT)"]
-                s_py2["serve 2
-(RBAC Guard)"]
-                s_py3["serve 3
-(User Service)"]
-                s_py4["serve 4
-(Audit Interceptor)"]
+            subgraph MODULE_POS["🛒 Módulo Transaccional POS & Facturación"]
+                invoice_ctrl["invoice.controller.ts"]
+                cufe_gen["Generador de CUFE Fiscal"]
+                ticket_fmt["Formateador Ticket Térmico 80mm"]
+                invoice_ctrl --- cufe_gen --- ticket_fmt
             end
 
-            subgraph TIER_GOLANG["⚡ Microservicios Transaccionales & Multitenant (Tier Go / Transaccional)"]
-                s_go1["serve 1
-(Tenant Provisioner)"]
-                s_go2["serve 2
-(POS Cashier Engine)"]
-                s_go3["serve 3
-(Cart & Checkout)"]
-                s_go4["serve 4
-(Search-Path Router)"]
+            subgraph MODULE_CATALOG["📦 Módulo de Catálogo & Caché en Memoria"]
+                product_ctrl["product.controller.ts"]
+                ram_cache["productCache.ts
+(Caché LRU TTL 60s)"]
+                stock_guard["Control Atómico de Existencias"]
+                product_ctrl --- ram_cache --- stock_guard
             end
 
-            subgraph TIER_JAVA["☕ Microservicios Fiscales & Catálogo (Tier Java / Core Fiscal)"]
-                s_jv1["web 1
-(DIAN XML Signer)"]
-                s_jv2["web 2
-(CUFE Generator)"]
-                s_jv3["web 3
-(XSD Validator)"]
-                s_jv4["web 4
-(Product & Stock Engine)"]
-            end
-
-            subgraph OBSERVABILITY["📊 Monitoreo & Métricas"]
-                prometheus["Prometheus
-(Métricas Pods)"]
-                alertmgr["Alertmanager
-(Reglas de Alerta)"]
-                prometheus --> alertmgr
-            end
-
-            subgraph LOG_STACK["📑 Pipeline de Auditoría & Logs (ELK)"]
-                logstash["Logstash / Filebeat
-(Recolección)"]
-                elasticsearch[("Elasticsearch
-(Índice Central)")]
-                kibana["Kibana
-(Tablero de Control)"]
-                logstash --> elasticsearch --> kibana
+            subgraph MODULE_SOAP["📡 Pasarela Fiscal SOAP 1.1 / WSDL"]
+                soap_router["soap.routes.ts
+(/ws/facturacion)"]
+                xsd_validator["Validador XSD (libxmljs2)
+(Protección Anti-XXE)"]
+                wsdl_inspector["Inspector de WSDL & Envelopes"]
+                soap_router --- xsd_validator --- wsdl_inspector
             end
 
         end
 
-        subgraph DATA_TIER["🗄️ Capa de Datos & Almacenamiento Distribuido"]
-            oss_store[("📦 OSS / Cloudflare R2
-(Logos & Assets)")]
-            pg_db[("🐘 PostgreSQL / Neon
-(Esquemas Multitenant)")]
-            redis_cache[("⚡ Redis Cluster
-(Caché LRU & RateLimit)")]
-            rocket_mq[("📨 RocketMQ / RabbitMQ
-(Cola Resiliente Offline)")]
-            hbase_audit[("🏛️ HBase / Mongo
-(Histórico Fiscal CUFE)")]
-        end
+        subgraph DATA_TIER["🗄️ Capa de Datos & Persistencia (Neon PostgreSQL Serverless)"]
+            subgraph PUBLIC_SCHEMA["🏢 Esquema public (Global Multi-Tenant)"]
+                tbl_tenants[("tenants
+(Slug, Config Módulos, Color)")]
+                tbl_users[("users
+(Email, Hash, Roles)")]
+                tbl_user_tenants[("user_tenants
+(Membresías de Acceso)")]
+            end
 
-        subgraph BASTION["🛡️ Bastion & Gestión de Acceso"]
-            jump1["jump 1 (SSH Bastion)"]
-            jump2["jump 2 (VPN Gateway)"]
+            subgraph TENANT_SCHEMAS["🏬 Esquemas Aislados por Inquilino (tenant_{slug})"]
+                tbl_invoices[("facturas
+(Consecutivos, Totales, CUFE)")]
+                tbl_details[("factura_detalles
+(Líneas de Venta)")]
+                tbl_products[("productos
+(Existencias & Precios)")]
+            end
         end
 
     end
 
-    subgraph NOTIFICATIONS["🔔 Canales de Notificación"]
-        notif_email["📧 Email
-(Alertas Contables)"]
-        notif_phone["📞 phone / SMS
-(MFA & Alertas)"]
-        notif_wechat["💬 WeChat / Slack
-(Webhook Alertas)"]
+    subgraph FISCAL_DIAN["🏛️ Autoridad Fiscal Externa"]
+        dian_service["📡 Servicio DIAN / Pasarela Fiscal
+(Recepción de Comprobantes XML)"]
     end
 
-    subgraph DEVOPS_AREA["🏢 Área de Oficina & CI/CD Pipeline"]
-        office_admins["👨‍💻 Área de oficina
-(DevOps & Auditores)"]
-        git_repo["🐙 Git Repo
-(TASKMASTER GitHub)"]
-        jenkins_ci["⚙️ Jenkins / Actions
-(CI Pipeline)"]
-        harbor_reg["🐳 Harbor / Docker
-(Registry de Imágenes)"]
-        ansible_dep["🚀 Ansible / Helm
-(Despliegue Continuo)"]
+    subgraph DEVOPS_PIPELINE["🚀 Pipeline de Integración & Despliegue Continuo"]
+        git_repo["🐙 GitHub Repository
+(DAARKATAR/TASKMASTER)"]
+        render_ci["⚙️ Render Auto-Deploy
+(tsup build -> node server.js)"]
+        cloudflare_ci["⚡ Cloudflare Pages CI
+(vite build -> dist/)"]
+        git_repo --> render_ci
+        git_repo --> cloudflare_ci
     end
 
-    %% Conexiones de Entrada
-    api_client --> pub_slb
-    pc_client --> pub_slb
-    mobile_client --> pub_slb
-    pub_slb --> cdn_edge
-    pub_slb --> ingress1
-    pub_slb --> ingress2
+    %% Flujos de Red
+    web_pos --> cf_dns
+    mobile_pos --> cf_dns
+    cf_pages -.->|"Peticiones API /ws"| cors_guard
 
-    %% Enrutamiento Interno Ingress a Gateways y Consul
-    ingress1 --> consul1
-    ingress2 --> consul2
-    consul1 --> gw1
-    consul2 --> gw2
+    %% Flujos Ingress hacia Módulos
+    body_parser --> auth_ctrl
+    body_parser --> tenant_ctrl
+    body_parser --> invoice_ctrl
+    body_parser --> product_ctrl
+    body_parser --> soap_router
 
-    %% Distribución de Carga hacia los Tiers de Servicios
-    gw1 --> s_py1
-    gw1 --> s_py2
-    gw1 --> s_go1
-    gw1 --> s_go2
-    gw2 --> s_jv1
-    gw2 --> s_jv2
+    %% Conexiones con Base de Datos
+    auth_ctrl --> PUBLIC_SCHEMA
+    tenant_ctrl --> PUBLIC_SCHEMA
+    provisioner ==>|"DDL CREATE SCHEMA & TABLES"| TENANT_SCHEMAS
+    context_mgr -->|"SET search_path TO tenant_slug"| TENANT_SCHEMAS
+    invoice_ctrl --> TENANT_SCHEMAS
+    product_ctrl --> TENANT_SCHEMAS
 
-    %% Monitoreo de Tiers
-    s_py4 -.-> prometheus
-    s_go4 -.-> prometheus
-    s_jv4 -.-> prometheus
-    s_py4 -.-> logstash
-    s_go4 -.-> logstash
-    s_jv4 -.-> logstash
+    %% Conexión SOAP Externa
+    soap_router <-->|"SOAP Envelope (CUFE / XML)"| dian_service
 
-    %% Alertas
-    alertmgr --> notif_email
-    alertmgr --> notif_phone
-    alertmgr --> notif_wechat
-
-    %% Acceso a Datos
-    s_py1 --> pg_db
-    s_go2 --> pg_db
-    s_go3 --> redis_cache
-    s_go4 --> rocket_mq
-    s_jv1 --> hbase_audit
-    s_jv4 --> oss_store
-
-    %% Flujo DevOps y Oficina
-    office_admins --> jump1
-    office_admins --> jump2
-    jump1 --> KUBERNETES
-    office_admins --> git_repo
-    git_repo --> jenkins_ci
-    jenkins_ci --> harbor_reg
-    harbor_reg --> ansible_dep
-    ansible_dep --> KUBERNETES
+    %% Despliegue hacia infraestructura
+    render_ci -.->|"Despliega Contenedor"| MODULAR_MONOLITH
+    cloudflare_ci -.->|"Distribuye Assets"| EDGE_LAYER
         </pre>
       </div>
 
       <!-- Código Mermaid Oculto para Copiado -->
       <textarea id="raw-diag-01-arq" class="hidden">flowchart TB
     %% =========================================================================
-    %% DIAGRAMA DE ARQUITECTURA DE MICROSERVICIOS (ENTERPRISE VPC & KUBERNETES)
+    %% DIAGRAMA DE ARQUITECTURA DEL SISTEMA: MONOLITO MODULAR MULTI-TENANT
+    %% Formato: Diagrama Empresarial en Capas (VPC, Borde, Monolito Modular, Datos)
     %% =========================================================================
 
-    subgraph CLIENTS["📱 Clientes & Dispositivos Externos"]
-        api_client["💻 apis (REST / SOAP Client)"]
-        pc_client["🖥️ pc (Web POS Terminal)"]
-        mobile_client["📱 phone (Móvil / Tablet Mostrador)"]
+    subgraph CLIENT_TIER["📱 Clientes & Puntos de Venta (Frontend SPA)"]
+        web_pos["🖥️ PC Terminal Mostrador
+(React + Vite + Tailwind)"]
+        mobile_pos["📱 Móvil / Tablet POS
+(Responsive Web App)"]
+        offline_store["💾 Cola Local Offline
+(LocalStorage REC-OFF)"]
+        web_pos <--> offline_store
+        mobile_pos <--> offline_store
     end
 
-    subgraph VPC["☁️ Red Privada Virtual (VPC TASKMASTER Cloud)"]
-        
-        subgraph PUBLIC_NET["🌐 Red Pública SLB & Borde"]
-            pub_slb["Red pública SLB / Cloudflare WAF"]
-            cdn_edge["CDN Anycast / DNS Edge"]
+    subgraph CLOUD_VPC["☁️ Entorno Cloud & Despliegue (Render + Cloudflare + Neon)"]
+
+        subgraph EDGE_LAYER["🛡️ Red Pública & Borde (Cloudflare Global Edge)"]
+            cf_dns["Cloudflare Anycast DNS & SSL
+(TLS 1.3 Terminado)"]
+            cf_waf["Cloudflare WAF
+(Protección DDoS & RateLimit)"]
+            cf_pages["Cloudflare Pages / Workers
+(Hosting SPA dist/)"]
+            cf_dns --> cf_waf --> cf_pages
         end
 
-        subgraph INTRANET_SLB["🔀 Intranet SLB & Ingress Gateway"]
-            ingress1["Ingress Controller 1
-(Adentro / Afuera)"]
-            ingress2["Ingress Controller 2
-(Adentro / Afuera)"]
+        subgraph INGRESS_LAYER["🔀 Gateway de Entrada & Control de Acceso (Render Cloud)"]
+            cors_guard["CORS Preflight Guard
+(GET, POST, PUT, PATCH, DELETE)"]
+            rate_limiter["Express Rate Limiter
+(Protección Anti-Abuso 300r/15m)"]
+            body_parser["Parser de Cargas
+(JSON REST & XML text/xml)"]
+            cors_guard --> rate_limiter --> body_parser
         end
 
-        subgraph KUBERNETES["☸️ Clúster de Microservicios (Kubernetes / Render Compute)"]
-            
-            subgraph SERVICE_DISCOVERY["🧭 Service Discovery & Mesh"]
-                consul1["Consul 1
-(Líder de Registro)"]
-                consul2["Consul 2
-(Nodo Réplica)"]
-                consul3["Consul 3
-(Nodo Réplica)"]
-                consul1 --- consul2 --- consul3
+        subgraph MODULAR_MONOLITH["🏛️ Núcleo de Aplicación: Monolito Modular (Express / TypeScript)"]
+
+            subgraph MODULE_AUTH["🔐 Módulo de Autenticación & RBAC"]
+                auth_ctrl["auth.controller.ts"]
+                jwt_engine["JWT Signer & Verifier"]
+                hash_engine["Argon2 / Bcrypt Hasher"]
+                auth_ctrl --- jwt_engine --- hash_engine
             end
 
-            subgraph API_GATEWAYS["🚪 API Gateways Internos"]
-                gw1["gateway 1
-(Express Router API)"]
-                gw2["gateway 2
-(SOAP / WSDL Proxy)"]
+            subgraph MODULE_TENANTS["🏢 Módulo de Inquilinos & Aprovisionamiento"]
+                tenant_ctrl["tenant.controller.ts"]
+                provisioner["tenant.provisioner.ts
+(DDL Dinámico)"]
+                context_mgr["tenantDbClient.ts
+(Search-Path Jail)"]
+                tenant_ctrl --- provisioner --- context_mgr
             end
 
-            subgraph TIER_PYTHON["🐍 Microservicios de Autenticación & Usuarios (Tier Python / Auth)"]
-                s_py1["serve 1
-(Auth & JWT)"]
-                s_py2["serve 2
-(RBAC Guard)"]
-                s_py3["serve 3
-(User Service)"]
-                s_py4["serve 4
-(Audit Interceptor)"]
+            subgraph MODULE_POS["🛒 Módulo Transaccional POS & Facturación"]
+                invoice_ctrl["invoice.controller.ts"]
+                cufe_gen["Generador de CUFE Fiscal"]
+                ticket_fmt["Formateador Ticket Térmico 80mm"]
+                invoice_ctrl --- cufe_gen --- ticket_fmt
             end
 
-            subgraph TIER_GOLANG["⚡ Microservicios Transaccionales & Multitenant (Tier Go / Transaccional)"]
-                s_go1["serve 1
-(Tenant Provisioner)"]
-                s_go2["serve 2
-(POS Cashier Engine)"]
-                s_go3["serve 3
-(Cart & Checkout)"]
-                s_go4["serve 4
-(Search-Path Router)"]
+            subgraph MODULE_CATALOG["📦 Módulo de Catálogo & Caché en Memoria"]
+                product_ctrl["product.controller.ts"]
+                ram_cache["productCache.ts
+(Caché LRU TTL 60s)"]
+                stock_guard["Control Atómico de Existencias"]
+                product_ctrl --- ram_cache --- stock_guard
             end
 
-            subgraph TIER_JAVA["☕ Microservicios Fiscales & Catálogo (Tier Java / Core Fiscal)"]
-                s_jv1["web 1
-(DIAN XML Signer)"]
-                s_jv2["web 2
-(CUFE Generator)"]
-                s_jv3["web 3
-(XSD Validator)"]
-                s_jv4["web 4
-(Product & Stock Engine)"]
-            end
-
-            subgraph OBSERVABILITY["📊 Monitoreo & Métricas"]
-                prometheus["Prometheus
-(Métricas Pods)"]
-                alertmgr["Alertmanager
-(Reglas de Alerta)"]
-                prometheus --> alertmgr
-            end
-
-            subgraph LOG_STACK["📑 Pipeline de Auditoría & Logs (ELK)"]
-                logstash["Logstash / Filebeat
-(Recolección)"]
-                elasticsearch[("Elasticsearch
-(Índice Central)")]
-                kibana["Kibana
-(Tablero de Control)"]
-                logstash --> elasticsearch --> kibana
+            subgraph MODULE_SOAP["📡 Pasarela Fiscal SOAP 1.1 / WSDL"]
+                soap_router["soap.routes.ts
+(/ws/facturacion)"]
+                xsd_validator["Validador XSD (libxmljs2)
+(Protección Anti-XXE)"]
+                wsdl_inspector["Inspector de WSDL & Envelopes"]
+                soap_router --- xsd_validator --- wsdl_inspector
             end
 
         end
 
-        subgraph DATA_TIER["🗄️ Capa de Datos & Almacenamiento Distribuido"]
-            oss_store[("📦 OSS / Cloudflare R2
-(Logos & Assets)")]
-            pg_db[("🐘 PostgreSQL / Neon
-(Esquemas Multitenant)")]
-            redis_cache[("⚡ Redis Cluster
-(Caché LRU & RateLimit)")]
-            rocket_mq[("📨 RocketMQ / RabbitMQ
-(Cola Resiliente Offline)")]
-            hbase_audit[("🏛️ HBase / Mongo
-(Histórico Fiscal CUFE)")]
-        end
+        subgraph DATA_TIER["🗄️ Capa de Datos & Persistencia (Neon PostgreSQL Serverless)"]
+            subgraph PUBLIC_SCHEMA["🏢 Esquema public (Global Multi-Tenant)"]
+                tbl_tenants[("tenants
+(Slug, Config Módulos, Color)")]
+                tbl_users[("users
+(Email, Hash, Roles)")]
+                tbl_user_tenants[("user_tenants
+(Membresías de Acceso)")]
+            end
 
-        subgraph BASTION["🛡️ Bastion & Gestión de Acceso"]
-            jump1["jump 1 (SSH Bastion)"]
-            jump2["jump 2 (VPN Gateway)"]
+            subgraph TENANT_SCHEMAS["🏬 Esquemas Aislados por Inquilino (tenant_{slug})"]
+                tbl_invoices[("facturas
+(Consecutivos, Totales, CUFE)")]
+                tbl_details[("factura_detalles
+(Líneas de Venta)")]
+                tbl_products[("productos
+(Existencias & Precios)")]
+            end
         end
 
     end
 
-    subgraph NOTIFICATIONS["🔔 Canales de Notificación"]
-        notif_email["📧 Email
-(Alertas Contables)"]
-        notif_phone["📞 phone / SMS
-(MFA & Alertas)"]
-        notif_wechat["💬 WeChat / Slack
-(Webhook Alertas)"]
+    subgraph FISCAL_DIAN["🏛️ Autoridad Fiscal Externa"]
+        dian_service["📡 Servicio DIAN / Pasarela Fiscal
+(Recepción de Comprobantes XML)"]
     end
 
-    subgraph DEVOPS_AREA["🏢 Área de Oficina & CI/CD Pipeline"]
-        office_admins["👨‍💻 Área de oficina
-(DevOps & Auditores)"]
-        git_repo["🐙 Git Repo
-(TASKMASTER GitHub)"]
-        jenkins_ci["⚙️ Jenkins / Actions
-(CI Pipeline)"]
-        harbor_reg["🐳 Harbor / Docker
-(Registry de Imágenes)"]
-        ansible_dep["🚀 Ansible / Helm
-(Despliegue Continuo)"]
+    subgraph DEVOPS_PIPELINE["🚀 Pipeline de Integración & Despliegue Continuo"]
+        git_repo["🐙 GitHub Repository
+(DAARKATAR/TASKMASTER)"]
+        render_ci["⚙️ Render Auto-Deploy
+(tsup build -> node server.js)"]
+        cloudflare_ci["⚡ Cloudflare Pages CI
+(vite build -> dist/)"]
+        git_repo --> render_ci
+        git_repo --> cloudflare_ci
     end
 
-    %% Conexiones de Entrada
-    api_client --> pub_slb
-    pc_client --> pub_slb
-    mobile_client --> pub_slb
-    pub_slb --> cdn_edge
-    pub_slb --> ingress1
-    pub_slb --> ingress2
+    %% Flujos de Red
+    web_pos --> cf_dns
+    mobile_pos --> cf_dns
+    cf_pages -.->|"Peticiones API /ws"| cors_guard
 
-    %% Enrutamiento Interno Ingress a Gateways y Consul
-    ingress1 --> consul1
-    ingress2 --> consul2
-    consul1 --> gw1
-    consul2 --> gw2
+    %% Flujos Ingress hacia Módulos
+    body_parser --> auth_ctrl
+    body_parser --> tenant_ctrl
+    body_parser --> invoice_ctrl
+    body_parser --> product_ctrl
+    body_parser --> soap_router
 
-    %% Distribución de Carga hacia los Tiers de Servicios
-    gw1 --> s_py1
-    gw1 --> s_py2
-    gw1 --> s_go1
-    gw1 --> s_go2
-    gw2 --> s_jv1
-    gw2 --> s_jv2
+    %% Conexiones con Base de Datos
+    auth_ctrl --> PUBLIC_SCHEMA
+    tenant_ctrl --> PUBLIC_SCHEMA
+    provisioner ==>|"DDL CREATE SCHEMA & TABLES"| TENANT_SCHEMAS
+    context_mgr -->|"SET search_path TO tenant_slug"| TENANT_SCHEMAS
+    invoice_ctrl --> TENANT_SCHEMAS
+    product_ctrl --> TENANT_SCHEMAS
 
-    %% Monitoreo de Tiers
-    s_py4 -.-> prometheus
-    s_go4 -.-> prometheus
-    s_jv4 -.-> prometheus
-    s_py4 -.-> logstash
-    s_go4 -.-> logstash
-    s_jv4 -.-> logstash
+    %% Conexión SOAP Externa
+    soap_router <-->|"SOAP Envelope (CUFE / XML)"| dian_service
 
-    %% Alertas
-    alertmgr --> notif_email
-    alertmgr --> notif_phone
-    alertmgr --> notif_wechat
-
-    %% Acceso a Datos
-    s_py1 --> pg_db
-    s_go2 --> pg_db
-    s_go3 --> redis_cache
-    s_go4 --> rocket_mq
-    s_jv1 --> hbase_audit
-    s_jv4 --> oss_store
-
-    %% Flujo DevOps y Oficina
-    office_admins --> jump1
-    office_admins --> jump2
-    jump1 --> KUBERNETES
-    office_admins --> git_repo
-    git_repo --> jenkins_ci
-    jenkins_ci --> harbor_reg
-    harbor_reg --> ansible_dep
-    ansible_dep --> KUBERNETES</textarea>
+    %% Despliegue hacia infraestructura
+    render_ci -.->|"Despliega Contenedor"| MODULAR_MONOLITH
+    cloudflare_ci -.->|"Distribuye Assets"| EDGE_LAYER</textarea>
     </article>
 
 
