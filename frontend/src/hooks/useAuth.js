@@ -1,3 +1,15 @@
+
+function normalizeUser(user) {
+  if (!user) return null;
+  const name = user.name || user.nombre || (user.email ? user.email.split("@")[0] : "Usuario");
+  return {
+    ...user,
+    name,
+    nombre: user.nombre || name,
+    sucursal: user.sucursal || "Caja Principal",
+    role: user.role || "Cajero POS"
+  };
+}
 import { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config/api';
 
@@ -25,7 +37,7 @@ export function useAuth() {
 
         if (res.ok) {
           const data = await res.json();
-          setCurrentUser(data.user);
+          setCurrentUser(normalizeUser(data.user));
           setAuthToken(token);
         } else {
           logout();
@@ -43,7 +55,7 @@ export function useAuth() {
   const login = (token, user) => {
     localStorage.setItem('taskmaster_token', token);
     setAuthToken(token);
-    setCurrentUser(user);
+    setCurrentUser(normalizeUser(user));
   };
 
   const logout = () => {
