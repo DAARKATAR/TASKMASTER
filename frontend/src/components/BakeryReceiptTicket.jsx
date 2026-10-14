@@ -11,7 +11,9 @@ export default function BakeryReceiptTicket({ tenant, invoiceData, cartItems }) 
   const subtotal = invoiceData?.subtotal ? Number(invoiceData.subtotal).toLocaleString('es-CO', { minimumFractionDigits: 2 }) : '0.00';
   const impuestos = invoiceData?.impuestos ? Number(invoiceData.impuestos).toLocaleString('es-CO', { minimumFractionDigits: 2 }) : '0.00';
   const total = invoiceData?.total ? Number(invoiceData.total).toLocaleString('es-CO', { minimumFractionDigits: 2 }) : '0.00';
-  const folioInterno = invoiceData?.folio_fiscal ? invoiceData.folio_fiscal.replace('CUFE-', 'INT-') : 'INT-POS-2026';
+  const folioInterno = invoiceData?.folio_fiscal ? invoiceData.folio_fiscal.replace("CUFE-", "INT-") : "INT-POS-2026";
+  const metodoPago = invoiceData?.metodo_pago || invoiceData?.metodoPago || "Efectivo";
+  const fechaFormatted = invoiceData?.created_at ? new Date(invoiceData.created_at).toLocaleString("es-CO", { dateStyle: "short", timeStyle: "medium" }) : new Date().toLocaleString("es-CO", { dateStyle: "short", timeStyle: "medium" });
 
   const itemsToDisplay = cartItems && cartItems.length > 0 
     ? cartItems 
@@ -60,11 +62,17 @@ export default function BakeryReceiptTicket({ tenant, invoiceData, cartItems }) 
           </div>
           <div className="flex justify-between text-slate-500 text-[10px]">
             <span>FECHA / HORA:</span>
-            <span>Hoy, 19:20:14</span>
+            <span>{fechaFormatted}</span>
           </div>
           <div className="flex justify-between text-slate-600 text-[10px]">
             <span>CLIENTE:</span>
             <span className="truncate max-w-[170px] font-semibold text-slate-800">{cliente}</span>
+          </div>
+          <div className="flex justify-between items-center text-[10px] text-slate-600">
+            <span>MÉTODO DE PAGO:</span>
+            <span className="font-bold text-slate-800 uppercase px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200">
+              {metodoPago === "Tarjeta" ? "💳 Tarjeta" : metodoPago === "Transferencia" ? "📱 Transferencia" : "💵 Efectivo"}
+            </span>
           </div>
           <div className="flex justify-between items-center pt-1">
             <span className="text-[10px] text-slate-500">TIPO DE REGISTRO:</span>
@@ -102,6 +110,10 @@ export default function BakeryReceiptTicket({ tenant, invoiceData, cartItems }) 
           <div className="flex justify-between text-slate-600">
             <span>IVA / Impuestos:</span>
             <span>{parseFloat(invoiceData?.impuestos || 0) > 0 ? `${impuestos}` : "Exento (0%)"}</span>
+          </div>
+          <div className="flex justify-between text-slate-600 pt-1 border-t border-slate-100 text-[10.5px]">
+            <span>Forma de Pago:</span>
+            <span className="font-bold text-slate-800">{metodoPago}</span>
           </div>
           <div className="flex justify-between items-baseline font-bold text-slate-900 text-sm pt-1">
             <span>TOTAL PAGADO:</span>
