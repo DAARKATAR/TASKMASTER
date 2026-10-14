@@ -352,6 +352,7 @@ router.post('/login', authLimiter, async (req, res) => {
         id: user.id,
         email: user.email,
         nombre: user.nombre,
+        name: user.nombre || (user.email ? user.email.split("@")[0] : "Usuario"),
         role: user.role
       },
       tenant
@@ -393,9 +394,13 @@ router.get('/me', authenticateJwt, async (req, res) => {
       return res.status(404).json({ error: 'Usuario no encontrado en el inquilino.' });
     }
 
+    const dbUser = userRows[0];
     res.json({
       success: true,
-      user: userRows[0],
+      user: {
+        ...dbUser,
+        name: dbUser.nombre || (dbUser.email ? dbUser.email.split("@")[0] : "Usuario")
+      },
       tenant
     });
   } catch (err) {

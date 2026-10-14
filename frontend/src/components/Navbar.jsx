@@ -126,7 +126,7 @@ export default function Navbar({
             {currentUser && (
               <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
                 <div className="text-right hidden sm:block">
-                  <span className="text-xs font-bold text-slate-800 block leading-tight">{currentUser.name}</span>
+                  <span className="text-xs font-bold text-slate-800 block leading-tight">{currentUser.name || currentUser.nombre || currentUser.email || "Usuario"}</span>
                   <span className="text-[10px] text-slate-400 block">{currentUser.role || 'Cajero POS'}</span>
                 </div>
                 <button
@@ -218,11 +218,11 @@ export default function Navbar({
                 className="w-7 h-7 rounded-full text-white flex items-center justify-center font-bold text-xs"
                 style={{ backgroundColor: brandColor }}
               >
-                {currentUser.name.charAt(0)}
+                {(currentUser.name || currentUser.nombre || currentUser.email || "U").trim().charAt(0).toUpperCase()}
               </div>
               <div className="truncate">
-                <span className="font-bold text-slate-900 block truncate">{currentUser.name}</span>
-                <span className="text-[10px] text-slate-400 block truncate">{currentUser.sucursal}</span>
+                <span className="font-bold text-slate-900 block truncate">{currentUser.name || currentUser.nombre || currentUser.email || "Usuario"}</span>
+                <span className="text-[10px] text-slate-400 block truncate">{currentUser.sucursal || "Caja Principal"}</span>
               </div>
             </div>
             <button
