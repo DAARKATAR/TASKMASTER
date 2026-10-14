@@ -34,6 +34,7 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
   const [activeTab, setActiveTab] = useState('cart'); // 'cart' | 'ticket'
   const [acceptedNoFiscalTerms, setAcceptedNoFiscalTerms] = useState(false);
   const [showNewProductModal, setShowNewProductModal] = useState(false);
+  const [cashReceived, setCashReceived] = useState("");
 
   // Hook del carrito de compras desacoplado
   const {
@@ -160,19 +161,24 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
 
   const handleEmit = async () => {
     if (cart.length === 0) return;
+    const finalCashReceived = paymentMethod === "Efectivo" ? (parseFloat(cashReceived) || total) : total;
+    const finalChange = paymentMethod === "Efectivo" ? Math.max(0, finalCashReceived - total) : 0;
 
     await onEmitInvoice({
-      cliente: (customerName || 'Cliente Mostrador').trim(),
+      cliente: (customerName || "Cliente Mostrador").trim(),
       subtotal,
       impuestos,
       total,
       items_count: itemsCount,
       metodo_pago: paymentMethod,
+      monto_recibido: finalCashReceived,
+      cambio: finalChange,
       items: cart
     });
 
-    setActiveTab('ticket');
+    setActiveTab("ticket");
     clearCart();
+    setCashReceived("");
     checkOfflineQueue();
     loadProducts();
   };
@@ -469,7 +475,10 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
                     <button
                       key={method}
                       type="button"
-                      onClick={() => setPaymentMethod(method)}
+                      onClick={() => {
+                        setPaymentMethod(method);
+                        if (method !== "Efectivo") setCashReceived("");
+                      }}
                       className={`py-1.5 rounded-xl font-semibold text-xs border transition-all cursor-pointer ${
                         paymentMethod === method
                           ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
@@ -482,6 +491,57 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
                 </div>
               </div>
             </div>
+
+            {/* Calculadora de Vuelto Instantánea en Efectivo */}
+            {paymentMethod === "Efectivo" && total > 0 && (
+              <div className="p-3 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-2.5 animate-fadeIn">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-slate-700">Monto Recibido del Cliente:</span>
+                  <span className="font-mono font-bold text-slate-900">
+                    ${(parseFloat(cashReceived) || total).toLocaleString("es-CO")} COP
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-4 gap-1.5">
+                  {[
+                    { label: "Exacto", val: total },
+                    { label: "$10.000", val: 10000 },
+                    { label: "$20.000", val: 20000 },
+                    { label: "$50.000", val: 50000 },
+                    { label: "$100.000", val: 100000 }
+                  ]
+                    .filter((b) => b.label === "Exacto" || b.val >= total)
+                    .slice(0, 4)
+                    .map((b) => (
+                      <button
+                        key={b.label}
+                        type="button"
+                        onClick={() => setCashReceived(String(b.val))}
+                        className="py-1 px-1.5 text-[11px] font-bold rounded-lg border bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200 transition-colors"
+                      >
+                        {b.label}
+                      </button>
+                    ))}
+                </div>
+
+                <input
+                  type="number"
+                  value={cashReceived}
+                  onChange={(e) => setCashReceived(e.target.value)}
+                  placeholder={`Ingresar monto (Total: ${total.toLocaleString("es-CO")})`}
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-800 focus:outline-none focus:bg-white focus:border-slate-800 transition-colors"
+                />
+
+                <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-xs">
+                  <span className="font-bold text-slate-600">Cambio / Vuelto a Entregar:</span>
+                  <span className={`font-mono font-black text-sm ${
+                    (parseFloat(cashReceived) || total) >= total ? "text-emerald-600" : "text-amber-600"
+                  }`}>
+                    ${Math.max(0, (parseFloat(cashReceived) || total) - total).toLocaleString("es-CO")} COP
+                  </span>
+                </div>
+              </div>
+            )}
 
             {/* Opción Adicional: Toggle de Cálculo de Impuestos / IVA */}
             <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 text-xs">

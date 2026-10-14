@@ -53,6 +53,8 @@ export function useInvoices(tenantId, authToken) {
                 folio_fiscal: first.folio_fiscal,
                 items_count: first.items_count || 1,
                 metodo_pago: first.metodo_pago,
+                monto_recibido: first.monto_recibido,
+                cambio: first.cambio,
                 emisor: id
               });
             }
@@ -157,7 +159,9 @@ export function useInvoices(tenantId, authToken) {
         estado: newInv.estado,
         folio_fiscal: newInv.folio_fiscal,
         items_count: newInv.items_count,
-        metodo_pago: newInv.metodo_pago,
+        metodo_pago: newInv.metodo_pago || orderData.metodo_pago || "Efectivo",
+        monto_recibido: orderData.monto_recibido,
+        cambio: orderData.cambio,
         emisor: tenant.nombre,
         items: orderData.items || [],
         isOffline: false
