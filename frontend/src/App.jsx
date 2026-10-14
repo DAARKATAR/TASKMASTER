@@ -73,7 +73,19 @@ function SuspenseFallback({ message = 'Cargando módulo...' }) {
 
 export default function App() {
   // 1. Navegación de vistas principales: 'landing' | 'auth' | 'wizard' | 'pos'
-  const [currentView, setCurrentView] = useState('landing');
+  const [currentView, setCurrentView] = useState(() => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("taskmaster_token") : null;
+    const saved = typeof window !== "undefined" ? localStorage.getItem("taskmaster_view") : null;
+    const path = typeof window !== "undefined" ? window.location.pathname.toLowerCase() : "";
+    if (token) {
+      if (saved === "pos" || path.startsWith("/pos") || path.startsWith("/app") || path === "/" || !saved) {
+        return "pos";
+      }
+    }
+    if (path.startsWith("/auth") || path.startsWith("/login")) return "auth";
+    if (path.startsWith("/wizard")) return "wizard";
+    return saved || (token ? "pos" : "landing");
+  });
   const [activeTab, setActiveTab] = useState('pos');
   const [wizardInitData, setWizardInitData] = useState(null);
   const [authIsRegister, setAuthIsRegister] = useState(false);
@@ -82,7 +94,7 @@ export default function App() {
   const [showDebugTools, setShowDebugTools] = useState(false);
 
   // 2. Custom Hooks desacoplados
-  const { authToken, currentUser, setCurrentUser, login, logout } = useAuth();
+  const { authToken, currentUser, setCurrentUser, authLoading, login, logout } = useAuth();
   const { currentTenant, setCurrentTenant, availableTenants, loadTenants, selectTenant, activeModules, updateActiveModules } =
     useTenant();
   const { invoices, pagination, metrics, invoiceData, loadingInvoices, loadingMetrics, loadInvoices, loadMetrics, emitInvoice } =
@@ -102,22 +114,75 @@ export default function App() {
     }
   }, [(activeModules || []).join(",")]);
 
+
+  const navigateTo = (view, replace = false) => {
+    setCurrentView(view);
+    localStorage.setItem("taskmaster_view", view);
+    const pathMap = {
+      landing: "/",
+      pos: "/pos",
+      auth: "/auth",
+      wizard: "/wizard"
+    };
+    const target = pathMap[view] || "/";
+    if (typeof window !== "undefined" && window.location.pathname !== target) {
+      if (replace) {
+        window.history.replaceState({ view }, "", target);
+      } else {
+        window.history.pushState({ view }, "", target);
+      }
+    }
+  };
+
+  useEffect(() => {
+    const pathMap = {
+      landing: "/",
+      pos: "/pos",
+      auth: "/auth",
+      wizard: "/wizard"
+    };
+    const target = pathMap[currentView] || "/";
+    if (typeof window !== "undefined" && window.location.pathname !== target) {
+      window.history.replaceState({ view: currentView }, "", target);
+    }
+
+    const handlePop = () => {
+      const p = window.location.pathname;
+      if (p.startsWith("/pos")) setCurrentView("pos");
+      else if (p.startsWith("/auth")) setCurrentView("auth");
+      else if (p.startsWith("/wizard")) setCurrentView("wizard");
+      else setCurrentView(localStorage.getItem("taskmaster_token") ? "pos" : "landing");
+    };
+    window.addEventListener("popstate", handlePop);
+    return () => window.removeEventListener("popstate", handlePop);
+  }, []);
+
+  // Si la sesión se restaura correctamente, mantener al usuario en el POS
+  useEffect(() => {
+    if (!authLoading && currentUser && authToken) {
+      const saved = localStorage.getItem("taskmaster_view");
+      if (saved === "pos" || currentView === "landing" || currentView === "auth") {
+        navigateTo("pos", true);
+      }
+    }
+  }, [authLoading, currentUser, authToken]);
+
   // Handlers
   const handleLoginSuccess = (authData) => {
     login(authData?.token, authData?.user);
     if (authData?.tenant) setCurrentTenant(authData.tenant);
-    setCurrentView('pos');
+    navigateTo("pos");
   };
 
   const handleLogout = () => {
     logout();
     setCurrentTenant(null);
-    setCurrentView('landing');
+    navigateTo("landing");
   };
 
   const handleStartNewTenantWizard = (formData) => {
     setWizardInitData(formData);
-    setCurrentView('wizard');
+    navigateTo("wizard");
   };
 
   const handleTenantCreated = (sessionData) => {
@@ -126,7 +191,7 @@ export default function App() {
     if (sessionData?.bgTheme) selectBgTheme(sessionData.bgTheme);
     if (sessionData?.navbarPosition) selectNavbarPosition(sessionData.navbarPosition);
     loadTenants();
-    setCurrentView('pos');
+    navigateTo("pos");
   };
 
   const handleEmitInvoice = async (orderData) => {
@@ -229,6 +294,21 @@ export default function App() {
       </div>
     );
   };
+
+
+  if (authLoading && typeof window !== "undefined" && localStorage.getItem("taskmaster_token")) {
+    return (
+      <div className="min-h-screen bg-white flex flex-col items-center justify-center space-y-3 font-sans">
+        <div className="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+          TM
+        </div>
+        <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">
+          <Loader2 className="w-4 h-4 animate-spin text-slate-900" />
+          <span>Restaurando terminal POS...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <ErrorBoundary>

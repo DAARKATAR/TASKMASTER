@@ -18,7 +18,11 @@ import {
   Wifi,
   WifiOff,
   CloudUpload,
-  RefreshCw
+  RefreshCw,
+  Lock,
+  Unlock,
+  GripVertical,
+  ArrowLeftRight
 } from 'lucide-react';
 import BakeryReceiptTicket from './BakeryReceiptTicket';
 import NewProductModal from './NewProductModal';
@@ -35,6 +39,43 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
   const [acceptedNoFiscalTerms, setAcceptedNoFiscalTerms] = useState(false);
   const [showNewProductModal, setShowNewProductModal] = useState(false);
   const [cashReceived, setCashReceived] = useState("");
+
+  // Disposición de Pantalla y Bloqueo Táctil Tipo App Móvil
+  const [isLayoutLocked, setIsLayoutLocked] = useState(() => {
+    return localStorage.getItem("taskmaster_pos_locked") !== "false";
+  });
+  
+  const [columnOrder, setColumnOrder] = useState(() => {
+    const saved = localStorage.getItem(`taskmaster_layout_${tenant?.id || "default"}`);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length === 2) return parsed;
+      } catch {}
+    }
+    return ["catalog", "cart"];
+  });
+
+  const toggleLayoutLock = () => {
+    const next = !isLayoutLocked;
+    setIsLayoutLocked(next);
+    localStorage.setItem("taskmaster_pos_locked", String(next));
+  };
+
+  const swapColumns = () => {
+    setColumnOrder((prev) => {
+      const next = prev[0] === "catalog" ? ["cart", "catalog"] : ["catalog", "cart"];
+      localStorage.setItem(`taskmaster_layout_${tenant?.id || "default"}`, JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const resetColumnOrder = () => {
+    const def = ["catalog", "cart"];
+    setColumnOrder(def);
+    localStorage.setItem(`taskmaster_layout_${tenant?.id || "default"}`, JSON.stringify(def));
+  };
+
 
   // Hook del carrito de compras desacoplado
   const {
@@ -184,9 +225,89 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-      {/* 1. Columna Izquierda: Catálogo Real POS (7 columnas) */}
-      <div className="lg:col-span-7 space-y-4">
+    <div className="space-y-4">
+      {/* Barra de Control: Bloqueo Táctil / Personalización Tipo App Móvil */}
+      <div className="flex flex-wrap items-center justify-between gap-3 p-3 rounded-2xl bg-white border border-slate-200 shadow-2xs">
+        <div className="flex items-center gap-2.5">
+          <button
+            type="button"
+            onClick={toggleLayoutLock}
+            className={`px-3.5 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer ${
+              isLayoutLocked
+                ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200"
+                : "bg-amber-500 hover:bg-amber-600 text-white shadow-xs animate-pulse"
+            }`}
+            title={isLayoutLocked ? "Desbloquear para mover o reorganizar la pantalla" : "Bloquear para uso táctil sin movimientos accidentales"}
+          >
+            {isLayoutLocked ? <Lock className="w-4 h-4 text-slate-700" /> : <Unlock className="w-4 h-4" />}
+            <span>{isLayoutLocked ? "Pantalla Bloqueada (Modo Táctil POS)" : "Modo Edición / Reorganizar"}</span>
+          </button>
+
+          <span className="text-[11px] text-slate-500 hidden sm:inline">
+            {isLayoutLocked
+              ? "Diseño fijo para evitar desplazamientos accidentales al pulsar la pantalla táctil de servicio."
+              : "Mantén presionado y arrastra con el ratón o usa los botones para reordenar tu mostrador."}
+          </span>
+        </div>
+
+        {!isLayoutLocked && (
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={swapColumns}
+              className="px-3 py-1.5 text-xs font-bold bg-slate-900 hover:bg-black text-white rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+              title="Intercambiar la posición de las columnas"
+            >
+              <ArrowLeftRight className="w-3.5 h-3.5" />
+              <span>Invertir Lados ({columnOrder[0] === "catalog" ? "Catálogo ➔ Carrito" : "Carrito ➔ Catálogo"})</span>
+            </button>
+            <button
+              type="button"
+              onClick={resetColumnOrder}
+              className="px-2.5 py-1 text-xs font-semibold text-slate-500 hover:text-slate-800 rounded-lg transition-colors cursor-pointer"
+            >
+              Restablecer
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* MÓDULO CATÁLOGO */}
+        <div
+          draggable={!isLayoutLocked}
+          onDragStart={(e) => {
+            if (!isLayoutLocked) e.dataTransfer.setData("text/plain", "catalog");
+          }}
+          onDragOver={(e) => !isLayoutLocked && e.preventDefault()}
+          onDrop={(e) => {
+            if (!isLayoutLocked) {
+              e.preventDefault();
+              const source = e.dataTransfer.getData("text/plain");
+              if (source === "cart") swapColumns();
+            }
+          }}
+          className={`lg:col-span-7 space-y-4 transition-all ${
+            columnOrder[0] === "cart" ? "lg:order-2" : "lg:order-1"
+          } ${
+            !isLayoutLocked ? "border-2 border-dashed border-amber-300 p-2 rounded-3xl bg-amber-50/20 cursor-grab" : ""
+          }`}
+        >
+          {!isLayoutLocked && (
+            <div className="p-2 rounded-xl bg-amber-100/70 text-amber-900 text-xs font-bold flex items-center justify-between">
+              <span className="flex items-center gap-1.5">
+                <GripVertical className="w-4 h-4 text-amber-700" />
+                <span>Módulo: Catálogo de Productos (Posición ${columnOrder[0] === "catalog" ? "1" : "2"})</span>
+              </span>
+              <button
+                type="button"
+                onClick={swapColumns}
+                className="px-2 py-0.5 rounded bg-white text-[10px] font-bold border border-amber-300 text-amber-800 hover:bg-amber-50"
+              >
+                Mover a la ${columnOrder[0] === "catalog" ? "Derecha ➔" : "⬅ Izquierda"}
+              </button>
+            </div>
+          )}
         {/* Banner de Estado de Conectividad y Cola Offline */}
         {(!isOnline || offlineCount > 0) && (
           <div className={`p-3.5 rounded-2xl border text-xs flex flex-wrap items-center justify-between gap-3 animate-fadeIn ${
@@ -375,8 +496,41 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
         )}
       </div>
 
-      {/* 2. Columna Derecha: Panel del Carrito & Ticket (5 columnas) */}
-      <div className="lg:col-span-5">
+      {/* MÓDULO CARRITO & FACTURACIÓN */}
+      <div
+        draggable={!isLayoutLocked}
+        onDragStart={(e) => {
+          if (!isLayoutLocked) e.dataTransfer.setData("text/plain", "cart");
+        }}
+        onDragOver={(e) => !isLayoutLocked && e.preventDefault()}
+        onDrop={(e) => {
+          if (!isLayoutLocked) {
+            e.preventDefault();
+            const source = e.dataTransfer.getData("text/plain");
+            if (source === "catalog") swapColumns();
+          }
+        }}
+        className={`lg:col-span-5 transition-all ${
+          columnOrder[0] === "cart" ? "lg:order-1" : "lg:order-2"
+        } ${
+          !isLayoutLocked ? "border-2 border-dashed border-amber-300 p-2 rounded-3xl bg-amber-50/20 cursor-grab" : ""
+        }`}
+      >
+        {!isLayoutLocked && (
+          <div className="p-2 mb-3 rounded-xl bg-amber-100/70 text-amber-900 text-xs font-bold flex items-center justify-between">
+            <span className="flex items-center gap-1.5">
+              <GripVertical className="w-4 h-4 text-amber-700" />
+              <span>Módulo: Carrito & Facturación (Posición ${columnOrder[0] === "cart" ? "1" : "2"})</span>
+            </span>
+            <button
+              type="button"
+              onClick={swapColumns}
+              className="px-2 py-0.5 rounded bg-white text-[10px] font-bold border border-amber-300 text-amber-800 hover:bg-amber-50"
+            >
+              Mover a la ${columnOrder[0] === "cart" ? "Derecha ➔" : "⬅ Izquierda"}
+            </button>
+          </div>
+        )}
         {activeTab === 'cart' ? (
           <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-flat-sm space-y-4">
             {/* Header del Carrito */}
@@ -650,6 +804,7 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
         tenant={tenant}
         onProductCreated={() => loadProducts()}
       />
+    </div>
     </div>
   );
 }

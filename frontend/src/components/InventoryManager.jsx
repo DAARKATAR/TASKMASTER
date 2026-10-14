@@ -11,7 +11,10 @@ import {
   TrendingDown,
   RefreshCw,
   Loader2,
-  Tag,
+  Trash2,
+  Edit2,
+  Check,
+  X,
   Filter
 } from 'lucide-react';
 import NewProductModal from './NewProductModal';
@@ -25,8 +28,23 @@ export default function InventoryManager({ tenant }) {
   const [stockFilter, setStockFilter] = useState('all'); // 'all' | 'low' | 'out'
   const [showNewProductModal, setShowNewProductModal] = useState(false);
   const [updatingStockId, setUpdatingStockId] = useState(null);
+  
+  // Edición rápida de producto
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [editPrice, setEditPrice] = useState('');
+  const [editStock, setEditStock] = useState('');
+  const [editName, setEditName] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
+
+  // Toast feedback
+  const [toastMessage, setToastMessage] = useState(null);
 
   const brandColor = tenant?.brand_color || '#4F46E5';
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
 
   const loadProducts = async () => {
     if (!tenant?.id) return;
@@ -35,10 +53,11 @@ export default function InventoryManager({ tenant }) {
       const res = await fetch(`${API_BASE_URL}/api/tenants/${tenant.id}/products`);
       if (res.ok) {
         const data = await res.json();
-        setProducts(data);
+        setProducts(Array.isArray(data) ? data : []);
       }
     } catch (err) {
       console.error('Error cargando inventario:', err);
+      showToast('Error al conectar con la base de datos de inventario');
     } finally {
       setLoading(false);
     }
@@ -48,29 +67,106 @@ export default function InventoryManager({ tenant }) {
     loadProducts();
   }, [tenant?.id]);
 
-  // Modificar stock rápido (+ / -)
+  // Modificar stock rápido (+ / -) con persistencia real en Neon DB
   const handleQuickStockChange = async (product, delta) => {
-    const newStock = Math.max(0, parseInt(product.stock, 10) + delta);
+    const newStock = Math.max(0, (parseInt(product.stock, 10) || 0) + delta);
     setUpdatingStockId(product.id);
+
+    // Optimistic UI update
+    setProducts((prev) =>
+      prev.map((p) => (p.id === product.id ? { ...p, stock: newStock } : p))
+    );
+
     try {
-      // Usamos el endpoint para guardar el producto actualizado o actualizar localmente
-      setProducts((prev) =>
-        prev.map((p) => (p.id === product.id ? { ...p, stock: newStock } : p))
-      );
-      // Opcional: llamada al backend para persistir
+      const res = await fetch(`${API_BASE_URL}/api/tenants/${tenant.id}/products/${product.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stock: newStock })
+      });
+
+      if (!res.ok) {
+        throw new Error('Error al guardar en el servidor');
+      }
+      showToast(`Stock de "${product.nombre}" actualizado a ${newStock} uds.`);
     } catch (err) {
-      console.error('Error actualizando stock:', err);
+      console.error('Error actualizando stock en Neon:', err);
+      showToast('No se pudo actualizar el stock en Neon DB');
+      loadProducts();
     } finally {
       setUpdatingStockId(null);
     }
   };
 
-  // Métricas de inventario
+  // Eliminar producto con confirmación y persistencia
+  const handleDeleteProduct = async (product) => {
+    const confirmed = window.confirm(`¿Deseas eliminar permanentemente el producto "${product.nombre}" del catálogo?`);
+    if (!confirmed) return;
+
+    setProducts((prev) => prev.filter((p) => p.id !== product.id));
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/tenants/${tenant.id}/products/${product.id}`, {
+        method: 'DELETE'
+      });
+      if (!res.ok) throw new Error('Error al eliminar');
+      showToast(`Producto "${product.nombre}" eliminado correctamente.`);
+    } catch (err) {
+      console.error('Error eliminando producto:', err);
+      showToast('Error al eliminar el producto de Neon DB');
+      loadProducts();
+    }
+  };
+
+  // Iniciar edición de producto
+  const startEditing = (product) => {
+    setEditingProduct(product);
+    setEditName(product.nombre || '');
+    setEditPrice(String(product.precio || 0));
+    setEditStock(String(product.stock || 0));
+  };
+
+  // Guardar edición de producto
+  const handleSaveEdit = async (e) => {
+    e.preventDefault();
+    if (!editingProduct) return;
+
+    setSavingEdit(true);
+    const updatedPayload = {
+      nombre: editName.trim(),
+      precio: parseFloat(editPrice) || 0,
+      stock: parseInt(editStock, 10) || 0
+    };
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/tenants/${tenant.id}/products/${editingProduct.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedPayload)
+      });
+
+      if (!res.ok) throw new Error('Error al actualizar');
+      const data = await res.json();
+      
+      setProducts((prev) =>
+        prev.map((p) => (p.id === editingProduct.id ? { ...p, ...updatedPayload } : p))
+      );
+      showToast(`"${updatedPayload.nombre}" actualizado exitosamente.`);
+      setEditingProduct(null);
+    } catch (err) {
+      console.error('Error editando producto:', err);
+      showToast('Error al guardar cambios del producto');
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  // Métricas del inventario
   const totalItems = products.length;
-  const outOfStockCount = products.filter((p) => parseInt(p.stock, 10) <= 0).length;
-  const lowStockCount = products.filter(
-    (p) => parseInt(p.stock, 10) > 0 && parseInt(p.stock, 10) <= 10
-  ).length;
+  const outOfStockCount = products.filter((p) => (parseInt(p.stock, 10) || 0) <= 0).length;
+  const lowStockCount = products.filter((p) => {
+    const s = parseInt(p.stock, 10) || 0;
+    return s > 0 && s <= 10;
+  }).length;
   const totalValuation = products.reduce(
     (acc, p) => acc + (parseFloat(p.precio || 0) * (parseInt(p.stock, 10) || 0)),
     0
@@ -83,12 +179,10 @@ export default function InventoryManager({ tenant }) {
       (p.descripcion || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesRubro =
       selectedRubro === 'Todos' || (p.rubro || '').toLowerCase() === selectedRubro.toLowerCase();
-
     const stock = parseInt(p.stock, 10) || 0;
     let matchesStock = true;
     if (stockFilter === 'low') matchesStock = stock > 0 && stock <= 10;
     if (stockFilter === 'out') matchesStock = stock <= 0;
-
     return matchesSearch && matchesRubro && matchesStock;
   });
 
@@ -96,51 +190,66 @@ export default function InventoryManager({ tenant }) {
 
   return (
     <div className="space-y-6">
+      {/* Toast Notificación */}
+      {toastMessage && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 py-2.5 px-4 bg-slate-900 text-white text-xs font-bold rounded-2xl shadow-xl flex items-center gap-2 animate-fadeIn border border-slate-700">
+          <CheckCircle className="w-4 h-4 text-emerald-400" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       {/* 1. KPIs del Inventario en Bodega */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-4 rounded-3xl bg-white border border-slate-200 shadow-flat-sm space-y-1">
-          <div className="flex items-center justify-between text-slate-500">
-            <span className="text-xs font-semibold">Total Artículos</span>
-            <Boxes className="w-4 h-4 text-indigo-500" />
+          <div className="flex items-center justify-between text-slate-400">
+            <span className="text-[11px] font-bold uppercase tracking-wider font-mono">Total Catálogo</span>
+            <Boxes className="w-4 h-4 text-slate-600" />
           </div>
-          <p className="text-2xl font-black font-display text-slate-900">{totalItems}</p>
-          <span className="text-[10px] text-slate-400 font-mono">En catálogo activo</span>
+          <div className="text-2xl font-black font-display text-slate-900">
+            {totalItems} <span className="text-xs font-normal text-slate-500 font-sans">artículos</span>
+          </div>
+          <p className="text-[11px] text-slate-500">Productos registrados en Neon DB</p>
         </div>
 
         <div className="p-4 rounded-3xl bg-white border border-slate-200 shadow-flat-sm space-y-1">
-          <div className="flex items-center justify-between text-slate-500">
-            <span className="text-xs font-semibold">Valoración Total</span>
-            <DollarSign className="w-4 h-4 text-emerald-500" />
+          <div className="flex items-center justify-between text-slate-400">
+            <span className="text-[11px] font-bold uppercase tracking-wider font-mono">Valorización Stock</span>
+            <DollarSign className="w-4 h-4 text-emerald-600" />
           </div>
-          <p className="text-2xl font-black font-display text-emerald-600">
+          <div className="text-2xl font-black font-display text-slate-900">
             ${Math.round(totalValuation).toLocaleString('es-CO')}
-          </p>
-          <span className="text-[10px] text-slate-400 font-mono">Stock × Precio unitario</span>
+          </div>
+          <p className="text-[11px] text-slate-500">Costo total inventario disponible</p>
         </div>
 
         <div className="p-4 rounded-3xl bg-white border border-slate-200 shadow-flat-sm space-y-1">
-          <div className="flex items-center justify-between text-slate-500">
-            <span className="text-xs font-semibold">Stock Bajo (&lt; 10)</span>
+          <div className="flex items-center justify-between text-slate-400">
+            <span className="text-[11px] font-bold uppercase tracking-wider font-mono">Stock Crítico</span>
             <AlertTriangle className="w-4 h-4 text-amber-500" />
           </div>
-          <p className="text-2xl font-black font-display text-amber-600">{lowStockCount}</p>
-          <span className="text-[10px] text-slate-400 font-mono">Requieren reposición</span>
+          <div className="text-2xl font-black font-display text-amber-600">
+            {lowStockCount} <span className="text-xs font-normal text-slate-500 font-sans">por reponer</span>
+          </div>
+          <p className="text-[11px] text-slate-500">Artículos con 10 o menos unidades</p>
         </div>
 
         <div className="p-4 rounded-3xl bg-white border border-slate-200 shadow-flat-sm space-y-1">
-          <div className="flex items-center justify-between text-slate-500">
-            <span className="text-xs font-semibold">Agotados</span>
+          <div className="flex items-center justify-between text-slate-400">
+            <span className="text-[11px] font-bold uppercase tracking-wider font-mono">Agotados</span>
             <TrendingDown className="w-4 h-4 text-red-500" />
           </div>
-          <p className="text-2xl font-black font-display text-red-600">{outOfStockCount}</p>
-          <span className="text-[10px] text-slate-400 font-mono">Ventas bloqueadas</span>
+          <div className="text-2xl font-black font-display text-red-600">
+            {outOfStockCount} <span className="text-xs font-normal text-slate-500 font-sans">en cero</span>
+          </div>
+          <p className="text-[11px] text-slate-500">Bloqueados en caja hasta reposición</p>
         </div>
       </div>
 
-      {/* 2. Barra de Filtros y Acciones */}
-      <div className="p-4 rounded-3xl bg-white border border-slate-200 shadow-flat-sm flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3 flex-1 min-w-[260px]">
-          <div className="relative flex-1 max-w-md">
+      {/* 2. Barra de Herramientas y Filtros */}
+      <div className="p-4 rounded-3xl bg-white border border-slate-200 shadow-flat-sm flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2 flex-1 min-w-[280px]">
+          {/* Buscador */}
+          <div className="relative flex-1 min-w-[180px]">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
@@ -151,6 +260,22 @@ export default function InventoryManager({ tenant }) {
             />
           </div>
 
+          {/* Filtro por Categoría */}
+          <div className="flex items-center gap-1.5">
+            <select
+              value={selectedRubro}
+              onChange={(e) => setSelectedRubro(e.target.value)}
+              className="py-2 px-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 font-medium focus:outline-none focus:bg-white transition-colors cursor-pointer"
+            >
+              {categories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Filtro por Nivel de Stock */}
           <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs">
             <button
               onClick={() => setStockFilter('all')}
@@ -188,7 +313,6 @@ export default function InventoryManager({ tenant }) {
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
-
           <button
             onClick={() => setShowNewProductModal(true)}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white shadow-sm hover:opacity-95 transition-all cursor-pointer"
@@ -229,6 +353,7 @@ export default function InventoryManager({ tenant }) {
                   <th className="py-3 px-4">Estado</th>
                   <th className="py-3 px-4 text-right">Valor Stock</th>
                   <th className="py-3 px-4 text-center">Ajuste Rápido</th>
+                  <th className="py-3 px-4 text-center">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -238,6 +363,7 @@ export default function InventoryManager({ tenant }) {
                   const isOut = stock <= 0;
                   const isLow = stock > 0 && stock <= 10;
                   const itemValuation = stock * price;
+                  const isUpdating = updatingStockId === p.id;
 
                   return (
                     <tr key={p.id} className="hover:bg-slate-50/60 transition-colors">
@@ -301,11 +427,12 @@ export default function InventoryManager({ tenant }) {
                         ${Math.round(itemValuation).toLocaleString('es-CO')}
                       </td>
 
+                      {/* Ajuste rápido con persistencia en Neon DB */}
                       <td className="py-3 px-4">
                         <div className="flex items-center justify-center gap-1">
                           <button
                             onClick={() => handleQuickStockChange(p, -1)}
-                            disabled={stock <= 0}
+                            disabled={stock <= 0 || isUpdating}
                             className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors disabled:opacity-30 cursor-pointer"
                             title="Restar 1 unidad"
                           >
@@ -313,10 +440,31 @@ export default function InventoryManager({ tenant }) {
                           </button>
                           <button
                             onClick={() => handleQuickStockChange(p, 1)}
+                            disabled={isUpdating}
                             className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition-colors cursor-pointer"
                             title="Sumar 1 unidad"
                           >
                             <Plus className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+
+                      {/* Botones de acción: Editar y Eliminar */}
+                      <td className="py-3 px-4 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            onClick={() => startEditing(p)}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+                            title="Editar precio y datos del producto"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteProduct(p)}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                            title="Eliminar producto de la base de datos"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </td>
@@ -334,8 +482,92 @@ export default function InventoryManager({ tenant }) {
         isOpen={showNewProductModal}
         onClose={() => setShowNewProductModal(false)}
         tenant={tenant}
-        onProductCreated={() => loadProducts()}
+        onProductCreated={() => {
+          loadProducts();
+          showToast('¡Nuevo producto añadido con éxito a Neon DB!');
+        }}
       />
+
+      {/* Modal Rápido para Editar Producto */}
+      {editingProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h3 className="font-bold text-sm text-slate-900">Editar Artículo</h3>
+              <button
+                onClick={() => setEditingProduct(null)}
+                className="p-1 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEdit} className="space-y-3">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 uppercase font-mono mb-1">
+                  Nombre del Producto:
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:bg-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 uppercase font-mono mb-1">
+                    Precio ($):
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    required
+                    value={editPrice}
+                    onChange={(e) => setEditPrice(e.target.value)}
+                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-900 focus:outline-none focus:bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 uppercase font-mono mb-1">
+                    Existencias:
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    required
+                    value={editStock}
+                    onChange={(e) => setEditStock(e.target.value)}
+                    className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-900 focus:outline-none focus:bg-white"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-2 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingProduct(null)}
+                  className="px-3.5 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingEdit}
+                  className="px-4 py-2 text-xs font-bold text-white rounded-xl shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  style={{ backgroundColor: brandColor }}
+                >
+                  {savingEdit ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                  <span>Guardar Cambios</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

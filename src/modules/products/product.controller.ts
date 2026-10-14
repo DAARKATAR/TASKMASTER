@@ -87,3 +87,90 @@ export async function createProduct(req: Request, res: Response, next: NextFunct
     next(error);
   }
 }
+
+export async function updateProduct(req: Request, res: Response, next: NextFunction) {
+  const { tenantId, productId } = req.params;
+  const cleanId = String(tenantId).trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
+  const schemaName = `tenant_${cleanId}`;
+  const prodId = parseInt(productId, 10);
+  if (!prodId) {
+    return res.status(400).json({ error: "ID de producto inválido" });
+  }
+
+  const { stock, precio, nombre, rubro, emoji, descripcion } = req.body;
+
+  try {
+    const updated = await withTenantContext(schemaName, async (client) => {
+      const fields: string[] = [];
+      const values: any[] = [];
+      let idx = 1;
+
+      if (stock !== undefined) {
+        fields.push(`stock = $${idx++}`);
+        values.push(Math.max(0, parseInt(String(stock), 10) || 0));
+      }
+      if (precio !== undefined) {
+        fields.push(`precio = $${idx++}`);
+        values.push(parseFloat(String(precio)) || 0);
+      }
+      if (nombre !== undefined) {
+        fields.push(`nombre = $${idx++}`);
+        values.push(String(nombre).trim());
+      }
+      if (rubro !== undefined) {
+        fields.push(`rubro = $${idx++}`);
+        values.push(String(rubro).trim());
+      }
+      if (emoji !== undefined) {
+        fields.push(`emoji = $${idx++}`);
+        values.push(String(emoji).trim());
+      }
+      if (descripcion !== undefined) {
+        fields.push(`descripcion = $${idx++}`);
+        values.push(String(descripcion).trim());
+      }
+
+      if (fields.length === 0) return null;
+
+      values.push(prodId);
+      const query = `
+        UPDATE productos 
+        SET ${fields.join(", ")} 
+        WHERE id = $${idx} 
+        RETURNING *;
+      `;
+      const { rows } = await client.query(query, values);
+      return rows[0] || null;
+    });
+
+    if (!updated) {
+      return res.status(404).json({ error: "Producto no encontrado" });
+    }
+
+    invalidateProductsCache(cleanId);
+    res.json({ success: true, product: updated });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function deleteProduct(req: Request, res: Response, next: NextFunction) {
+  const { tenantId, productId } = req.params;
+  const cleanId = String(tenantId).trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
+  const schemaName = `tenant_${cleanId}`;
+  const prodId = parseInt(productId, 10);
+  if (!prodId) {
+    return res.status(400).json({ error: "ID de producto inválido" });
+  }
+
+  try {
+    await withTenantContext(schemaName, async (client) => {
+      await client.query("DELETE FROM productos WHERE id = $1", [prodId]);
+    });
+
+    invalidateProductsCache(cleanId);
+    res.json({ success: true, message: "Producto eliminado exitosamente" });
+  } catch (error) {
+    next(error);
+  }
+}
