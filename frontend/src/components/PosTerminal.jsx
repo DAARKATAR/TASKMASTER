@@ -139,17 +139,22 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
   };
 
   useEffect(() => {
-    loadProducts();
+    if (tenant?.id) {
+      loadProducts();
+    }
   }, [tenant?.id]);
 
   const filteredProducts = products.filter((p) => {
+    const rubroStr = (p.rubro || "").toLowerCase();
+    const targetRubro = (selectedRubro || "").toLowerCase();
     const matchesRubro =
-      selectedRubro === 'Todos' ||
-      p.rubro.toLowerCase().includes(selectedRubro.toLowerCase()) ||
-      selectedRubro.toLowerCase().includes(p.rubro.toLowerCase());
+      selectedRubro === "Todos" ||
+      rubroStr.includes(targetRubro) ||
+      targetRubro.includes(rubroStr);
+    const searchTarget = (searchQuery || "").toLowerCase();
     const matchesSearch =
-      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.desc.toLowerCase().includes(searchQuery.toLowerCase());
+      (p.name || "").toLowerCase().includes(searchTarget) ||
+      (p.desc || "").toLowerCase().includes(searchTarget);
     return matchesRubro && matchesSearch;
   });
 

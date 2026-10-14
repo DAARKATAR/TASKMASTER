@@ -41,9 +41,9 @@ export function useInvoices(tenantId, authToken) {
           if (data && data.invoices && Array.isArray(data.invoices)) {
             setInvoices(data.invoices);
             if (data.pagination) setPagination(data.pagination);
-            if (data.invoices.length > 0 && !invoiceData) {
+            if (data.invoices.length > 0) {
               const first = data.invoices[0];
-              setInvoiceData({
+              setInvoiceData((prev) => prev || {
                 numero_factura: first.numero_factura,
                 cliente: first.cliente,
                 subtotal: parseFloat(first.subtotal || 0).toFixed(2),
@@ -66,7 +66,7 @@ export function useInvoices(tenantId, authToken) {
     } finally {
       setLoadingInvoices(false);
     }
-  }, [tenantId, invoiceData]);
+  }, [tenantId]);
 
   const loadMetrics = useCallback(async (id = tenantId) => {
     if (!id) return;
@@ -92,7 +92,7 @@ export function useInvoices(tenantId, authToken) {
       loadInvoices(tenantId, 1, 25);
       loadMetrics(tenantId);
     }
-  }, [tenantId, loadInvoices, loadMetrics]);
+  }, [tenantId]);
 
   /**
    * Emite comprobante con soporte resiliente Offline (fallback automático a cola local)

@@ -38,8 +38,9 @@ export default function Navbar({
   const businessName = tenant?.nombre || 'Mi Negocio POS';
 
   // Render del logo (imagen subida o emoji)
-  const renderLogo = (sizeClass = 'w-9 h-9 text-lg') => {
-    if (tenant?.logoType === 'upload' && tenant?.logo) {
+  const renderLogo = (sizeClass = "w-9 h-9 text-lg") => {
+    const isImageLogo = tenant?.logoType === "upload" || tenant?.logo?.startsWith("data:image/") || tenant?.logo?.startsWith("http");
+    if (isImageLogo && tenant?.logo) {
       return (
         <div 
           className={`${sizeClass} rounded-xl border border-slate-200 flex items-center justify-center p-1 bg-white shadow-xs overflow-hidden shrink-0`}
@@ -259,7 +260,7 @@ export default function Navbar({
               >
                 {tab.icon}
               </div>
-              <span className="text-[10px] tracking-tight">{tab.name.split(' ')[0]}</span>
+              <span className="text-[10px] tracking-tight">{(tab.name || "").split(" ")[0]}</span>
             </button>
           );
         })}

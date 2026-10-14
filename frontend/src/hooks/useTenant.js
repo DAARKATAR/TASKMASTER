@@ -20,16 +20,18 @@ export function useTenant(initialTenant = null) {
           const list = await res.json();
           if (Array.isArray(list)) {
             setAvailableTenants(list);
-            if (list.length > 0 && !currentTenant) {
-              const first = list[0];
-              // Revisar si hay módulos en caché local
-              const localMods = localStorage.getItem(`taskmaster_modules_${first.id}`);
-              if (localMods) {
-                try {
-                  first.active_modules = JSON.parse(localMods);
-                } catch {}
-              }
-              setCurrentTenant(first);
+            if (list.length > 0) {
+              setCurrentTenant((prev) => {
+                if (prev) return prev;
+                const first = list[0];
+                const localMods = localStorage.getItem(`taskmaster_modules_${first.id}`);
+                if (localMods) {
+                  try {
+                    first.active_modules = JSON.parse(localMods);
+                  } catch {}
+                }
+                return first;
+              });
             }
           }
         }
@@ -39,7 +41,7 @@ export function useTenant(initialTenant = null) {
     } finally {
       setLoadingTenants(false);
     }
-  }, [currentTenant]);
+  }, []);
 
   useEffect(() => {
     loadTenants();

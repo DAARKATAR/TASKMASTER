@@ -94,13 +94,13 @@ export default function App() {
   // Si la pestaña actual se desactiva por configuración modular, cambiar a la primera activa
   useEffect(() => {
     if (activeModules && activeModules.length > 0) {
-      const mappedCurrent = activeTab === 'console' ? 'soap' : activeTab;
-      if (!activeModules.includes(mappedCurrent) && activeTab !== 'architecture') {
+      const mappedCurrent = activeTab === "console" ? "soap" : activeTab;
+      if (!activeModules.includes(mappedCurrent) && activeTab !== "architecture") {
         const firstAvailable = activeModules[0];
-        setActiveTab(firstAvailable === 'soap' ? 'console' : firstAvailable);
+        setActiveTab(firstAvailable === "soap" ? "console" : firstAvailable);
       }
     }
-  }, [activeModules, activeTab]);
+  }, [(activeModules || []).join(",")]);
 
   // Handlers
   const handleLoginSuccess = (authData) => {
