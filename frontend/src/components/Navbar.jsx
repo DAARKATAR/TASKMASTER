@@ -21,14 +21,10 @@ export default function Navbar({
     { id: 'pos', name: 'Terminal POS', icon: <ShoppingBag className="w-4 h-4" /> },
     { id: 'inventory', name: 'Inventario & Stock', icon: <Boxes className="w-4 h-4" /> },
     { id: 'invoices', name: 'Comprobantes', icon: <FileText className="w-4 h-4" /> },
-    { id: 'kpis', name: 'Métricas & Caja', icon: <TrendingUp className="w-4 h-4" /> },
-    { id: 'console', name: 'Enlace Fiscal / SOAP', icon: <Terminal className="w-4 h-4" /> }
+    { id: "kpis", name: "Métricas & Caja", icon: <TrendingUp className="w-4 h-4" /> }
   ];
 
-  const tabs = allPossibleTabs.filter((t) => {
-    if (t.id === 'console') return activeModuleList.includes('soap');
-    return activeModuleList.includes(t.id);
-  });
+  const tabs = allPossibleTabs.filter((t) => activeModuleList.includes(t.id));
 
   if (showDebugTools) {
     tabs.push({ id: 'architecture', name: 'Arquitectura Cloud', icon: <Shield className="w-4 h-4" /> });

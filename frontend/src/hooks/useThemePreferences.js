@@ -20,6 +20,22 @@ export function useThemePreferences(currentTenant, currentView) {
     () => localStorage.getItem('taskmaster_bg_theme') || 'white'
   );
   const [showCustomizer, setShowCustomizer] = useState(false);
+  const [buttonRadius, setButtonRadius] = useState(
+    () => localStorage.getItem("taskmaster_btn_radius") || "rounded-2xl"
+  );
+  const [displayDensity, setDisplayDensity] = useState(
+    () => localStorage.getItem("taskmaster_density") || "comfortable"
+  );
+
+  const selectButtonRadius = (rad) => {
+    setButtonRadius(rad);
+    localStorage.setItem("taskmaster_btn_radius", rad);
+  };
+
+  const selectDisplayDensity = (den) => {
+    setDisplayDensity(den);
+    localStorage.setItem("taskmaster_density", den);
+  };
 
   const selectNavbarPosition = (pos) => {
     setNavbarPosition(pos);
@@ -51,7 +67,11 @@ export function useThemePreferences(currentTenant, currentView) {
     selectBgTheme,
     showCustomizer,
     setShowCustomizer,
-    themeColors: THEME_COLORS
+    themeColors: THEME_COLORS,
+    buttonRadius,
+    selectButtonRadius,
+    displayDensity,
+    selectDisplayDensity
   };
 }
 

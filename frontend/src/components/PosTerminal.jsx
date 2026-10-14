@@ -40,6 +40,90 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
   const [showNewProductModal, setShowNewProductModal] = useState(false);
   const [cashReceived, setCashReceived] = useState("");
 
+  // Estado para la animación Nintendo 3DS
+  const [draggingCol, setDraggingCol] = useState(null);
+  const [dropTargetCol, setDropTargetCol] = useState(null);
+  const [snappedCol, setSnappedCol] = useState(null);
+
+  // Verificación de si el módulo de Inventario está activo en este negocio
+  const hasInventory = tenant?.active_modules
+    ? tenant.active_modules.includes("inventory")
+    : true;
+
+  // Estados para Modo Mostrador Ultraligero (Sin Inventario BD)
+  const [quickName, setQuickName] = useState("");
+  const [quickPrice, setQuickPrice] = useState("");
+  const [quickEmoji, setQuickEmoji] = useState("⚡");
+  const [sessionButtons, setSessionButtons] = useState(() => {
+    const saved = typeof window !== "undefined" ? sessionStorage.getItem(`taskmaster_fast_pos_${tenant?.id || "default"}`) : null;
+    if (saved) {
+      try { return JSON.parse(saved); } catch {}
+    }
+    return [
+      { id: "sb-1", name: "Café / Bebida", price: 3000, emoji: "☕" },
+      { id: "sb-2", name: "Panadería / Snack", price: 2500, emoji: "🥐" },
+      { id: "sb-3", name: "Menú / Almuerzo", price: 14000, emoji: "🍽️" },
+      { id: "sb-4", name: "Servicio / Extra", price: 10000, emoji: "⚡" },
+      { id: "sb-5", name: "Venta Mostrador", price: 5000, emoji: "🏷️" },
+      { id: "sb-6", name: "Postre / Dulce", price: 4500, emoji: "🍰" }
+    ];
+  });
+
+  const handleAddQuickSale = (e) => {
+    e.preventDefault();
+    const priceNum = parseFloat(quickPrice);
+    if (!priceNum || priceNum <= 0) return;
+    const itemName = (quickName || "Venta Libre").trim();
+    addToCart({
+      id: `quick-${Date.now()}`,
+      name: itemName,
+      nombre: itemName,
+      price: priceNum,
+      precio: priceNum,
+      emoji: quickEmoji,
+      stock: 9999
+    });
+    setQuickName("");
+    setQuickPrice("");
+  };
+
+  const handleSaveQuickButton = () => {
+    const priceNum = parseFloat(quickPrice);
+    if (!priceNum || priceNum <= 0) return;
+    const itemName = (quickName || "Ítem Rápido").trim();
+    const newBtn = {
+      id: `sb-${Date.now()}`,
+      name: itemName,
+      price: priceNum,
+      emoji: quickEmoji
+    };
+    const updated = [...sessionButtons, newBtn];
+    setSessionButtons(updated);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem(`taskmaster_fast_pos_${tenant?.id || "default"}`, JSON.stringify(updated));
+    }
+    addToCart({
+      id: newBtn.id,
+      name: newBtn.name,
+      nombre: newBtn.name,
+      price: newBtn.price,
+      precio: newBtn.price,
+      emoji: newBtn.emoji,
+      stock: 9999
+    });
+    setQuickName("");
+    setQuickPrice("");
+  };
+
+  const handleDeleteSessionButton = (btnId) => {
+    const updated = sessionButtons.filter((b) => b.id !== btnId);
+    setSessionButtons(updated);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem(`taskmaster_fast_pos_${tenant?.id || "default"}`, JSON.stringify(updated));
+    }
+  };
+
+
   // Disposición de Pantalla y Bloqueo Táctil Tipo App Móvil
   const [isLayoutLocked, setIsLayoutLocked] = useState(() => {
     return localStorage.getItem("taskmaster_pos_locked") !== "false";
@@ -273,24 +357,49 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* MÓDULO CATÁLOGO */}
+        {/* MÓDULO IZQUIERDO: CATÁLOGO DB O MOSTRADOR ULTRALIGERO */}
         <div
           draggable={!isLayoutLocked}
           onDragStart={(e) => {
-            if (!isLayoutLocked) e.dataTransfer.setData("text/plain", "catalog");
+            if (!isLayoutLocked) {
+              setDraggingCol("catalog");
+              e.dataTransfer.setData("text/plain", "catalog");
+            }
           }}
-          onDragOver={(e) => !isLayoutLocked && e.preventDefault()}
+          onDragOver={(e) => {
+            if (!isLayoutLocked) {
+              e.preventDefault();
+              if (dropTargetCol !== "catalog") setDropTargetCol("catalog");
+            }
+          }}
+          onDragLeave={() => setDropTargetCol(null)}
+          onDragEnd={() => {
+            setDraggingCol(null);
+            setDropTargetCol(null);
+          }}
           onDrop={(e) => {
             if (!isLayoutLocked) {
               e.preventDefault();
               const source = e.dataTransfer.getData("text/plain");
-              if (source === "cart") swapColumns();
+              if (source === "cart") {
+                swapColumns();
+                setSnappedCol("catalog");
+                setTimeout(() => setSnappedCol(null), 500);
+              }
             }
+            setDraggingCol(null);
+            setDropTargetCol(null);
           }}
-          className={`lg:col-span-7 space-y-4 transition-all ${
+          className={`lg:col-span-7 space-y-4 transition-all duration-300 ${
             columnOrder[0] === "cart" ? "lg:order-2" : "lg:order-1"
           } ${
-            !isLayoutLocked ? "border-2 border-dashed border-amber-300 p-2 rounded-3xl bg-amber-50/20 cursor-grab" : ""
+            !isLayoutLocked ? "nintendo-edit-mode border-2 border-dashed border-indigo-400 p-3 rounded-3xl bg-indigo-50/20 cursor-grab" : ""
+          } ${
+            draggingCol === "catalog" ? "nintendo-dragging" : ""
+          } ${
+            dropTargetCol === "catalog" ? "nintendo-drop-target" : ""
+          } ${
+            snappedCol === "catalog" ? "nintendo-snap" : ""
           }`}
         >
           {!isLayoutLocked && (
@@ -347,6 +456,157 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
           </div>
         )}
 
+
+          {/* MODO MOSTRADOR ULTRALIGERO (Si no tiene módulo de inventario en BD) */}
+          {!hasInventory && (
+            <div className="space-y-4">
+              {/* Banner informativo del modo sin inventario */}
+              <div className="p-4 rounded-3xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs flex items-center justify-between gap-3 animate-fadeIn">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-emerald-100 text-emerald-700 font-bold text-sm">
+                    ⚡
+                  </div>
+                  <div>
+                    <span className="font-bold block text-sm">Mostrador Ultraligero (Sin Inventario BD)</span>
+                    <span className="text-[11px] text-emerald-700">
+                      Modo activo: Facturación rápida sin control de stock. Crea o pulsa artículos en sesión para cobrar al instante.
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Formulario de Venta Libre / Monto Directo */}
+              <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-flat-sm space-y-3">
+                <h4 className="font-bold text-xs font-display text-slate-800 uppercase tracking-wider font-mono">
+                  + Registrar Ítem / Venta Libre en Sesión
+                </h4>
+
+                <form onSubmit={handleAddQuickSale} className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
+                    <div className="sm:col-span-2 flex items-center gap-1">
+                      {["☕", "🥐", "🍽️", "⚡", "🏷️"].map((em) => (
+                        <button
+                          key={em}
+                          type="button"
+                          onClick={() => setQuickEmoji(em)}
+                          className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm ${
+                            quickEmoji === em ? "bg-slate-900 text-white shadow-xs" : "bg-slate-100 hover:bg-slate-200"
+                          }`}
+                        >
+                          {em}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="sm:col-span-6">
+                      <input
+                        type="text"
+                        placeholder="Descripción (ej. Café Especial, Almuerzo)..."
+                        value={quickName}
+                        onChange={(e) => setQuickName(e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:bg-white"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-4 relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-mono text-xs">$</span>
+                      <input
+                        type="number"
+                        step="100"
+                        min="100"
+                        required
+                        placeholder="Precio COP"
+                        value={quickPrice}
+                        onChange={(e) => setQuickPrice(e.target.value)}
+                        className="w-full pl-7 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:outline-none focus:bg-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={handleSaveQuickButton}
+                      disabled={!quickPrice}
+                      className="px-3.5 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors disabled:opacity-40 cursor-pointer"
+                      title="Guardar como botón rápido de acceso para esta sesión"
+                    >
+                      ★ Guardar Botón Rápido
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={!quickPrice}
+                      className="px-4 py-2 text-xs font-bold text-white rounded-xl shadow-xs transition-all disabled:opacity-40 cursor-pointer flex items-center gap-1.5"
+                      style={{ backgroundColor: brandColor }}
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>+ Cobrar Ítem</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Botones Rápidos de la Sesión */}
+              <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-flat-sm space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-xs text-slate-800 uppercase font-mono tracking-wider">
+                    Teclas Rápidas de la Sesión (Toca para agregar)
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-mono">
+                    {sessionButtons.length} botones disponibles
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                  {sessionButtons.map((btn) => (
+                    <div
+                      key={btn.id}
+                      onClick={() => addToCart({
+                        id: btn.id,
+                        name: btn.name,
+                        nombre: btn.name,
+                        price: btn.price,
+                        precio: btn.price,
+                        emoji: btn.emoji,
+                        stock: 9999
+                      })}
+                      className="p-3 rounded-2xl bg-slate-50 border border-slate-200 hover:border-slate-400 hover:bg-white hover:shadow-flat-sm transition-all cursor-pointer flex items-center justify-between group"
+                    >
+                      <div className="flex items-center gap-2 truncate">
+                        <span className="text-xl p-1 rounded-lg bg-white shadow-2xs group-hover:scale-110 transition-transform">
+                          {btn.emoji || "⚡"}
+                        </span>
+                        <div className="truncate text-left">
+                          <span className="font-bold text-xs text-slate-900 block truncate">
+                            {btn.name}
+                          </span>
+                          <span className="font-mono text-[11px] font-bold text-slate-600 block">
+                            ${Number(btn.price).toLocaleString("es-CO")}
+                          </span>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteSessionButton(btn.id);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-500 rounded transition-opacity"
+                        title="Eliminar botón rápido"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* MODO CATÁLOGO CON BASE DE DATOS (Si tiene inventario activo) */}
+          {hasInventory && (
+            <div className="space-y-4">
         {/* Buscador de Productos y Selector de Rubros */}
         <div className="p-4 rounded-3xl bg-white border border-slate-200 shadow-flat-sm space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -494,26 +754,53 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
             })}
           </div>
         )}
+            </div>
+          )}
       </div>
 
-      {/* MÓDULO CARRITO & FACTURACIÓN */}
+      {/* MÓDULO DERECHO: CARRITO & FACTURACIÓN */}
       <div
         draggable={!isLayoutLocked}
         onDragStart={(e) => {
-          if (!isLayoutLocked) e.dataTransfer.setData("text/plain", "cart");
+          if (!isLayoutLocked) {
+            setDraggingCol("cart");
+            e.dataTransfer.setData("text/plain", "cart");
+          }
         }}
-        onDragOver={(e) => !isLayoutLocked && e.preventDefault()}
+        onDragOver={(e) => {
+          if (!isLayoutLocked) {
+            e.preventDefault();
+            if (dropTargetCol !== "cart") setDropTargetCol("cart");
+          }
+        }}
+        onDragLeave={() => setDropTargetCol(null)}
+        onDragEnd={() => {
+          setDraggingCol(null);
+          setDropTargetCol(null);
+        }}
         onDrop={(e) => {
           if (!isLayoutLocked) {
             e.preventDefault();
             const source = e.dataTransfer.getData("text/plain");
-            if (source === "catalog") swapColumns();
+            if (source === "catalog") {
+              swapColumns();
+              setSnappedCol("cart");
+              setTimeout(() => setSnappedCol(null), 500);
+            }
           }
+          setDraggingCol(null);
+          setDropTargetCol(null);
         }}
-        className={`lg:col-span-5 transition-all ${
+        className={`lg:col-span-5 transition-all duration-300 ${
           columnOrder[0] === "cart" ? "lg:order-1" : "lg:order-2"
         } ${
-          !isLayoutLocked ? "border-2 border-dashed border-amber-300 p-2 rounded-3xl bg-amber-50/20 cursor-grab" : ""
+          !isLayoutLocked ? "nintendo-edit-mode border-2 border-dashed border-indigo-400 p-3 rounded-3xl bg-indigo-50/20 cursor-grab" : ""
+        } ${
+          draggingCol === "cart" ? "nintendo-dragging" : ""
+        } ${
+          dropTargetCol === "cart" ? "nintendo-drop-target" : ""
+        } ${
+          snappedCol === "cart" ? "nintendo-snap" : ""
         }`}
       >
         {!isLayoutLocked && (
