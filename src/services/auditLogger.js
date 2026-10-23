@@ -9,15 +9,19 @@ import path from 'path';
  *  - logs/errors/  : Excepciones y fallos de servidor o base de datos
  */
 
-const LOGS_ROOT = path.join(process.cwd(), 'logs');
+const LOGS_ROOT = process.env.VERCEL ? path.join("/tmp", "logs") : path.join(process.cwd(), "logs");
 const betterStackToken = process.env.BETTER_STACK_SOURCE_TOKEN;
 const hasBetterStack = Boolean(betterStackToken);
 
 // Asegurar directorios de logs al inicializar
 ['audit', 'access', 'errors'].forEach((category) => {
-  const dir = path.join(LOGS_ROOT, category);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
+  try {
+    const dir = path.join(LOGS_ROOT, category);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  } catch (e) {
+    // Read-only filesystem in serverless environments
   }
 });
 

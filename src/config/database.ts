@@ -6,8 +6,7 @@ dotenv.config();
 const { Pool } = pg;
 
 if (!process.env.DATABASE_URL) {
-  console.error('ERROR: DATABASE_URL is not set in the environment variables.');
-  process.exit(1);
+  console.error("WARNING: DATABASE_URL is not set in environment variables!");
 }
 
 /**

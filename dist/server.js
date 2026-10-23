@@ -12,8 +12,7 @@ import dotenv from "dotenv";
 dotenv.config();
 var { Pool } = pg;
 if (!process.env.DATABASE_URL) {
-  console.error("ERROR: DATABASE_URL is not set in the environment variables.");
-  process.exit(1);
+  console.error("WARNING: DATABASE_URL is not set in environment variables!");
 }
 var pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -407,13 +406,16 @@ async function withTenantContext(schemaName, callback) {
 // src/services/auditLogger.js
 import fs from "fs";
 import path from "path";
-var LOGS_ROOT = path.join(process.cwd(), "logs");
+var LOGS_ROOT = process.env.VERCEL ? path.join("/tmp", "logs") : path.join(process.cwd(), "logs");
 var betterStackToken = process.env.BETTER_STACK_SOURCE_TOKEN;
 var hasBetterStack = Boolean(betterStackToken);
 ["audit", "access", "errors"].forEach((category) => {
-  const dir = path.join(LOGS_ROOT, category);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
+  try {
+    const dir = path.join(LOGS_ROOT, category);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  } catch (e) {
   }
 });
 function appendLog(category, data) {
