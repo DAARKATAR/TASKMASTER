@@ -49,7 +49,7 @@ app.use((req: Request, res: Response, next) => {
 });
 
 // 4. Endpoints base del sistema
-app.get('/', (req: Request, res: Response) => {
+app.get(['/', '/api'], (req: Request, res: Response) => {
   res.json({
     service: 'TaskMaster Multi-Tenant SOAP & REST API Backend',
     status: 'online',
