@@ -34,6 +34,7 @@ export default function NewTenantWizard({ initialData, onComplete, onCancel }) {
   // 3. Layout y regla de dispositivo
   const [navbarPosition, setNavbarPosition] = useState('top');
   const [isMobileSimulated, setIsMobileSimulated] = useState(false);
+  const [isDesktopScreen, setIsDesktopScreen] = useState(() => (typeof window !== 'undefined' ? window.innerWidth >= 1024 : true));
   const [acceptedFiscalDisclaimer, setAcceptedFiscalDisclaimer] = useState(false);
   const [selectedModules, setSelectedModules] = useState(DEFAULT_ACTIVE_MODULES);
 
