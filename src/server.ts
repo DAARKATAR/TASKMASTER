@@ -11,6 +11,19 @@ import { globalErrorHandler } from './middlewares/errorHandler.middleware.js';
 dotenv.config();
 
 const app = express();
+
+// 1. CORS Inmediato & Preflight OPTIONS Handler
+app.use((req: Request, res: Response, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, SOAPAction, x-tenant-id, Authorization");
+  res.header("Access-Control-Max-Age", "86400");
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+  next();
+});
+
 const PORT = process.env.PORT || 3000;
 
 // 1. Logging HTTP & Auditoría de accesos
@@ -37,16 +50,7 @@ app.use(express.text({
 }));
 app.use(express.json());
 
-// 3. CORS
-app.use((req: Request, res: Response, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, SOAPAction, x-tenant-id, Authorization');
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  next();
-});
+
 
 // 4. Endpoints base del sistema
 app.get(['/', '/api'], (req: Request, res: Response) => {

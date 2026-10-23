@@ -1565,6 +1565,16 @@ function globalErrorHandler(err, req, res, next) {
 // src/server.ts
 dotenv2.config();
 var app = express2();
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, SOAPAction, x-tenant-id, Authorization");
+  res.header("Access-Control-Max-Age", "86400");
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+  next();
+});
 var PORT = process.env.PORT || 3e3;
 app.use(morgan("dev"));
 app.use((req, res, next) => {
@@ -1586,15 +1596,6 @@ app.use(express2.text({
   limit: "2mb"
 }));
 app.use(express2.json());
-app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, SOAPAction, x-tenant-id, Authorization");
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
-  }
-  next();
-});
 app.get(["/", "/api"], (req, res) => {
   res.json({
     service: "TaskMaster Multi-Tenant SOAP & REST API Backend",
