@@ -1,5 +1,5 @@
-import React from 'react';
-import { Printer } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { Printer, Check, Copy } from 'lucide-react';
 
 /**
  * TASKMASTER - Ticket Térmico 80mm / 58mm Ultra-Optimizado (Bajo Consumo de Impresión)
@@ -7,10 +7,12 @@ import { Printer } from 'lucide-react';
  * Diseñado específicamente para impresoras térmicas (Epson, Bixolon, POS-58, etc.):
  * - 100% texto plano monocromático (cero fondos rellenos, cero sombras oscuras).
  * - Ahorro máximo de papel y energía del cabezal térmico.
- * - Identidad clara del comercio (Nombre, Rubro, Sucursal, Folio y Aviso de Control Interno).
- * - Desglose detallado del método de pago, monto recibido y cambio/vuelto.
+ * - Impresión aislada: imprime única y exclusivamente el comprobante sin barras ni elementos de la página.
  */
 export default function BakeryReceiptTicket({ tenant, invoiceData, cartItems }) {
+  const receiptRef = useRef(null);
+  const [copied, setCopied] = useState(false);
+
   const businessName = tenant?.nombre || invoiceData?.emisor || 'Mi Negocio POS';
   const businessType = tenant?.business_type || 'Comprobante de Venta';
   const sucursal = tenant?.sucursal || 'Caja Principal';
@@ -54,22 +56,153 @@ export default function BakeryReceiptTicket({ tenant, invoiceData, cartItems }) 
         }
       ];
 
+  // Función de impresión aislada: imprime ÚNICAMENTE el ticket sin ningún elemento de la web
+  const handlePrint = () => {
+    if (!receiptRef.current) {
+      window.print();
+      return;
+    }
+
+    const iframe = document.createElement('iframe');
+    iframe.setAttribute('style', 'position: fixed; width: 0; height: 0; left: -9999px; top: -9999px; border: none;');
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentWindow.document;
+    doc.open();
+    doc.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Factura_${numeroFactura}</title>
+          <style>
+            @page {
+              size: 80mm auto;
+              margin: 0;
+            }
+            html, body {
+              margin: 0;
+              padding: 0;
+              background: #ffffff;
+              color: #000000;
+              font-family: 'Courier New', Courier, monospace;
+              font-size: 11px;
+              line-height: 1.3;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+            }
+            .ticket-wrap {
+              width: 76mm;
+              margin: 0 auto;
+              padding: 6px 3px;
+              box-sizing: border-box;
+            }
+            .text-center { text-align: center; }
+            .font-bold { font-weight: 700; }
+            .uppercase { text-transform: uppercase; }
+            .flex { display: flex; }
+            .justify-between { justify-content: space-between; }
+            .items-start { align-items: flex-start; }
+            .border-b { border-bottom: 1px dashed #000000; }
+            .border-dotted { border-bottom: 1px dotted #000000; }
+            .border-t { border-top: 1px dashed #000000; }
+            .py-2 { padding-top: 6px; padding-bottom: 6px; }
+            .py-2\\.5 { padding-top: 7px; padding-bottom: 7px; }
+            .pb-1 { padding-bottom: 3px; }
+            .pb-2 { padding-bottom: 6px; }
+            .pt-1 { padding-top: 3px; }
+            .pt-1\\.5 { padding-top: 4px; }
+            .pt-2 { padding-top: 6px; }
+            .text-sm { font-size: 13px; }
+            .text-xs { font-size: 11px; }
+            .truncate {
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+            }
+            .max-w-\\[190px\\] { max-width: 190px; }
+            .max-w-\\[200px\\] { max-width: 200px; }
+            * { box-sizing: border-box; }
+          </style>
+        </head>
+        <body>
+          <div class="ticket-wrap">
+            ${receiptRef.current.innerHTML}
+          </div>
+        </body>
+      </html>
+    `);
+    doc.close();
+
+    setTimeout(() => {
+      try {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+      } catch (err) {
+        console.error('Error al imprimir iframe:', err);
+        window.print();
+      } finally {
+        setTimeout(() => {
+          if (document.body.contains(iframe)) {
+            document.body.removeChild(iframe);
+          }
+        }, 1500);
+      }
+    }, 250);
+  };
+
+  const handleCopyText = () => {
+    const textLines = [
+      `==============================`,
+      `${businessName.toUpperCase()}`,
+      `${businessType.toUpperCase()} - Sucursal: ${sucursal}`,
+      `COMPROBANTE: ${numeroFactura}`,
+      `FECHA: ${fechaFormatted}`,
+      `CLIENTE: ${cliente}`,
+      `------------------------------`,
+      ...itemsToDisplay.map(it => `${it.qty || 1}x ${it.name || it.nombre} - $${Number((it.price || it.precio || 0) * (it.qty || 1)).toLocaleString('es-CO')}`),
+      `------------------------------`,
+      `SUBTOTAL: $${subtotal}`,
+      `TOTAL A PAGAR: $${total} COP`,
+      `METODO: ${metodoPago}`,
+      `FOLIO: ${folioInterno}`,
+      `==============================`
+    ].join('\n');
+
+    navigator.clipboard.writeText(textLines).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
   return (
     <div className="w-full flex flex-col items-center py-2 select-none">
-      {/* Botón de Impresión Térmica Directa (Oculto en papel al imprimir) */}
-      <div className="mb-4 w-full max-w-sm print:hidden">
+      {/* Botones de Acción (Ocultos en papel al imprimir) */}
+      <div className="mb-4 w-full max-w-sm flex items-center gap-2 print:hidden">
         <button
           type="button"
-          onClick={() => window.print()}
-          className="w-full py-3 px-4 rounded-2xl bg-slate-900 hover:bg-black text-white text-xs font-bold font-sans flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
+          onClick={handlePrint}
+          className="flex-1 py-3 px-4 rounded-2xl bg-slate-900 hover:bg-black text-white text-xs font-bold font-sans flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
         >
           <Printer className="w-4 h-4" />
-          <span>Imprimir Ticket Térmico (80mm / 58mm)</span>
+          <span>Imprimir Ticket Térmico</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={handleCopyText}
+          className="p-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer border border-slate-200 shrink-0"
+          title="Copiar texto del ticket"
+        >
+          {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
         </button>
       </div>
 
       {/* Contenedor del Ticket Térmico en Blanco y Negro (Ahorro de Tinta Térmica) */}
-      <div className="printable-receipt w-full max-w-sm bg-white text-black p-6 border border-slate-300 rounded-2xl shadow-sm font-mono text-xs leading-tight print:border-none print:shadow-none print:p-0 print:m-0 print:w-full">
+      <div
+        ref={receiptRef}
+        className="printable-receipt w-full max-w-sm bg-white text-black p-6 border border-slate-300 rounded-2xl shadow-sm font-mono text-xs leading-tight print:border-none print:shadow-none print:p-0 print:m-0 print:w-full"
+      >
         
         {/* ENCABEZADO DE IDENTIDAD DEL COMERCIO */}
         <div className="text-center pb-2 border-b border-black border-dashed space-y-1">
