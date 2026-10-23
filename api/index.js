@@ -7,7 +7,8 @@ export default function handler(req, res) {
   res.setHeader("Access-Control-Max-Age", "86400");
 
   if (req.method === "OPTIONS") {
-    res.status(200).end();
+    res.statusCode = 200;
+    res.end();
     return;
   }
 
