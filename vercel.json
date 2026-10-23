@@ -1,20 +1,8 @@
 {
-  "version": 2,
-  "outputDirectory": "public",
-  "installCommand": "npm install",
-  "buildCommand": "node -e \"console.log('Server ready for Vercel')\"",
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "/api"
-    },
-    {
-      "source": "/ws/:path*",
-      "destination": "/api"
-    },
-    {
-      "source": "/health",
-      "destination": "/api"
+      "source": "/(.*)",
+      "destination": "/api/index.js"
     }
   ]
 }
