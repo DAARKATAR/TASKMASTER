@@ -1,6 +1,7 @@
 {
   "version": 2,
-  "buildCommand": "npm run build:server",
+  "installCommand": "npm install",
+  "buildCommand": "node -e \"console.log('Server ready for Vercel')\"",
   "rewrites": [
     {
       "source": "/api/:path*",

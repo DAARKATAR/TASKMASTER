@@ -20,7 +20,6 @@ logs/
 *.log
 
 # Build y temporales
-frontend/dist/
 .DS_Store
 Thumbs.db
 .cache/
@@ -34,5 +33,5 @@ Thumbs.db
 *.sln
 *.sw?
 -e 
-dist/
 
+frontend/dist/

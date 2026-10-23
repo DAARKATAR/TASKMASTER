@@ -10,8 +10,9 @@
     "tunnel": "node scripts/startTunnel.js",
     "seed": "node scripts/runSeed.js",
     "test": "vitest run",
-    "build:server": "tsup src/server.ts --format esm --out-dir dist",
-    "vercel-build": "npm run build:server && npm --prefix frontend install && npm --prefix frontend run build"
+    "build:server": "node -e \"console.log('Using pre-built dist/server.js')\"",
+    "vercel-build": "npm run build:server && npm --prefix frontend install && npm --prefix frontend run build",
+    "compile": "tsup src/server.ts --format esm --out-dir dist"
   },
   "keywords": [],
   "author": "",
