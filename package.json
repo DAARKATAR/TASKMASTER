@@ -2,7 +2,7 @@
   "name": "taskmaster",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "api/index.js",
   "scripts": {
     "start": "node dist/server.js",
     "dev": "tsx watch src/server.ts",
