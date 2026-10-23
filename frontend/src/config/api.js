@@ -14,6 +14,13 @@ export function getApiBaseUrl() {
     // Eliminar barra final para evitar doble slash //api
     return url.trim().replace(/\/+$/, "");
   }
+  if (typeof window !== "undefined") {
+    const hostname = window.location.hostname;
+    const isLocal = hostname === "localhost" || hostname === "127.0.0.1" || hostname === "";
+    if (!isLocal) {
+      return PRODUCTION_RENDER_API;
+    }
+  }
   return "";
 }
 

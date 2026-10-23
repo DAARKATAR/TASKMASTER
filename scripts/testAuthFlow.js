@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import pool from '../src/config/database.js';
-import { signJwt, authenticateJwt } from '../src/middleware/auth.js';
+import { signJwt, authenticateJwt } from '../src/middlewares/auth.middleware.js';
 
 async function testAuth() {
   const client = await pool.connect();

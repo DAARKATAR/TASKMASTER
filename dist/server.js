@@ -1104,15 +1104,19 @@ async function provisionTenant(dto) {
   const client = await database_default.connect();
   try {
     await client.query("BEGIN");
+    const bType = dto.businessType || "Comercio General";
+    const bLogo = dto.logo || "\u{1F3EC}";
     await client.query(`
-      INSERT INTO public.tenants (id, nombre, schema_name, brand_color, active_modules)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO public.tenants (id, nombre, schema_name, brand_color, business_type, logo, active_modules)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       ON CONFLICT (id) DO UPDATE
       SET nombre = EXCLUDED.nombre,
           schema_name = EXCLUDED.schema_name,
           brand_color = EXCLUDED.brand_color,
+          business_type = EXCLUDED.business_type,
+          logo = EXCLUDED.logo,
           active_modules = EXCLUDED.active_modules;
-    `, [cleanId, dto.nombre, schemaName, brandColor, JSON.stringify(activeModules)]);
+    `, [cleanId, dto.nombre, schemaName, brandColor, bType, bLogo, JSON.stringify(activeModules)]);
     await client.query(`CREATE SCHEMA IF NOT EXISTS "${schemaName}";`);
     await client.query(`
       CREATE TABLE IF NOT EXISTS "${schemaName}".facturas (
@@ -1192,7 +1196,9 @@ async function provisionTenant(dto) {
       name: dto.nombre,
       schema_name: schemaName,
       brand_color: brandColor,
-      active_modules: activeModules
+      active_modules: activeModules,
+      logo: bLogo,
+      business_type: bType
     };
   } catch (error) {
     await client.query("ROLLBACK");
@@ -1206,7 +1212,7 @@ async function provisionTenant(dto) {
 async function listTenants(req, res, next) {
   try {
     const { rows } = await database_default.query(
-      "SELECT id, nombre, nombre AS name, schema_name, brand_color, active_modules FROM public.tenants ORDER BY id ASC"
+      "SELECT id, nombre, nombre AS name, schema_name, brand_color, business_type, logo, active_modules FROM public.tenants ORDER BY id ASC"
     );
     res.json(rows);
   } catch (error) {
@@ -1215,7 +1221,7 @@ async function listTenants(req, res, next) {
 }
 async function createTenant(req, res, next) {
   try {
-    const { id, nombre, brand_color, initial_titular, initial_saldo, active_modules } = req.body;
+    const { id, nombre, brand_color, business_type, logo, initial_titular, initial_saldo, active_modules } = req.body;
     if (!id || !nombre) {
       return res.status(400).json({ error: "El identificador (slug) y el nombre de la empresa son obligatorios." });
     }
@@ -1223,6 +1229,8 @@ async function createTenant(req, res, next) {
       id,
       nombre,
       brandColor: brand_color,
+      businessType: business_type,
+      logo,
       initialTitular: initial_titular,
       initialSaldo: parseFloat(initial_saldo) || 5e4,
       activeModules: Array.isArray(active_modules) ? active_modules : ["pos", "inventory", "invoices", "kpis"]
@@ -1383,6 +1391,82 @@ async function createProduct(req, res, next) {
     next(error);
   }
 }
+async function updateProduct(req, res, next) {
+  const { tenantId, productId } = req.params;
+  const cleanId = String(tenantId).trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
+  const schemaName = `tenant_${cleanId}`;
+  const prodId = parseInt(String(productId), 10);
+  if (!prodId) {
+    return res.status(400).json({ error: "ID de producto inv\xE1lido" });
+  }
+  const { stock, precio, nombre, rubro, emoji, descripcion } = req.body;
+  try {
+    const updated = await withTenantContext(schemaName, async (client) => {
+      const fields = [];
+      const values = [];
+      let idx = 1;
+      if (stock !== void 0) {
+        fields.push(`stock = $${idx++}`);
+        values.push(Math.max(0, parseInt(String(stock), 10) || 0));
+      }
+      if (precio !== void 0) {
+        fields.push(`precio = $${idx++}`);
+        values.push(parseFloat(String(precio)) || 0);
+      }
+      if (nombre !== void 0) {
+        fields.push(`nombre = $${idx++}`);
+        values.push(String(nombre).trim());
+      }
+      if (rubro !== void 0) {
+        fields.push(`rubro = $${idx++}`);
+        values.push(String(rubro).trim());
+      }
+      if (emoji !== void 0) {
+        fields.push(`emoji = $${idx++}`);
+        values.push(String(emoji).trim());
+      }
+      if (descripcion !== void 0) {
+        fields.push(`descripcion = $${idx++}`);
+        values.push(String(descripcion).trim());
+      }
+      if (fields.length === 0) return null;
+      values.push(prodId);
+      const query = `
+        UPDATE productos 
+        SET ${fields.join(", ")} 
+        WHERE id = $${idx} 
+        RETURNING *;
+      `;
+      const { rows } = await client.query(query, values);
+      return rows[0] || null;
+    });
+    if (!updated) {
+      return res.status(404).json({ error: "Producto no encontrado" });
+    }
+    invalidateProductsCache(cleanId);
+    res.json({ success: true, product: updated });
+  } catch (error) {
+    next(error);
+  }
+}
+async function deleteProduct(req, res, next) {
+  const { tenantId, productId } = req.params;
+  const cleanId = String(tenantId).trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
+  const schemaName = `tenant_${cleanId}`;
+  const prodId = parseInt(String(productId), 10);
+  if (!prodId) {
+    return res.status(400).json({ error: "ID de producto inv\xE1lido" });
+  }
+  try {
+    await withTenantContext(schemaName, async (client) => {
+      await client.query("DELETE FROM productos WHERE id = $1", [prodId]);
+    });
+    invalidateProductsCache(cleanId);
+    res.json({ success: true, message: "Producto eliminado exitosamente" });
+  } catch (error) {
+    next(error);
+  }
+}
 
 // src/modules/invoices/invoice.controller.ts
 async function listInvoices(req, res, next) {
@@ -1520,6 +1604,9 @@ router3.patch("/:tenantId/modules", updateTenantModules);
 router3.put("/:tenantId/modules", updateTenantModules);
 router3.get("/:tenantId/products", listProducts);
 router3.post("/:tenantId/products", createProduct);
+router3.patch("/:tenantId/products/:productId", updateProduct);
+router3.put("/:tenantId/products/:productId", updateProduct);
+router3.delete("/:tenantId/products/:productId", deleteProduct);
 router3.get("/:tenantId/invoices", listInvoices);
 router3.post("/:tenantId/invoices", createInvoice);
 router3.get("/:tenantId/invoices/:invoiceId/details", getInvoiceDetails);

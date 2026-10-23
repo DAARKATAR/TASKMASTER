@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { listTenants, createTenant, getTenantMetrics, updateTenantModules } from './tenant.controller.js';
-import { listProducts, createProduct } from '../products/product.controller.js';
+import { listProducts, createProduct, updateProduct, deleteProduct } from '../products/product.controller.js';
 import { listInvoices, getInvoiceDetails, createInvoice } from '../invoices/invoice.controller.js';
 
 const router = Router();
@@ -14,6 +14,9 @@ router.put('/:tenantId/modules', updateTenantModules);
 // Sub-rutas de Catálogo de Productos del Tenant
 router.get('/:tenantId/products', listProducts);
 router.post('/:tenantId/products', createProduct);
+router.patch('/:tenantId/products/:productId', updateProduct);
+router.put('/:tenantId/products/:productId', updateProduct);
+router.delete('/:tenantId/products/:productId', deleteProduct);
 
 // Sub-rutas de Facturas y Ventas POS del Tenant
 router.get('/:tenantId/invoices', listInvoices);

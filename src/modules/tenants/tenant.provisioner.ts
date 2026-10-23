@@ -26,15 +26,20 @@ export async function provisionTenant(dto: ProvisionTenantDTO): Promise<Tenant> 
     await client.query('BEGIN');
 
     // 1. Registrar o actualizar en public.tenants con módulos activos
+    const bType = dto.businessType || 'Comercio General';
+    const bLogo = dto.logo || '🏬';
+
     await client.query(`
-      INSERT INTO public.tenants (id, nombre, schema_name, brand_color, active_modules)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO public.tenants (id, nombre, schema_name, brand_color, business_type, logo, active_modules)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       ON CONFLICT (id) DO UPDATE
       SET nombre = EXCLUDED.nombre,
           schema_name = EXCLUDED.schema_name,
           brand_color = EXCLUDED.brand_color,
+          business_type = EXCLUDED.business_type,
+          logo = EXCLUDED.logo,
           active_modules = EXCLUDED.active_modules;
-    `, [cleanId, dto.nombre, schemaName, brandColor, JSON.stringify(activeModules)]);
+    `, [cleanId, dto.nombre, schemaName, brandColor, bType, bLogo, JSON.stringify(activeModules)]);
 
     // 2. Crear esquema aislado
     await client.query(`CREATE SCHEMA IF NOT EXISTS "${schemaName}";`);
@@ -123,7 +128,9 @@ export async function provisionTenant(dto: ProvisionTenantDTO): Promise<Tenant> 
       name: dto.nombre,
       schema_name: schemaName,
       brand_color: brandColor,
-      active_modules: activeModules
+      active_modules: activeModules,
+      logo: bLogo,
+      business_type: bType
     };
   } catch (error) {
     await client.query('ROLLBACK');

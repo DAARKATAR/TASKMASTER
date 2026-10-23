@@ -5,7 +5,7 @@ import { provisionTenant } from './tenant.provisioner.js';
 export async function listTenants(req: Request, res: Response, next: NextFunction) {
   try {
     const { rows } = await pool.query(
-      'SELECT id, nombre, nombre AS name, schema_name, brand_color, active_modules FROM public.tenants ORDER BY id ASC'
+      'SELECT id, nombre, nombre AS name, schema_name, brand_color, business_type, logo, active_modules FROM public.tenants ORDER BY id ASC'
     );
     res.json(rows);
   } catch (error) {
@@ -15,7 +15,7 @@ export async function listTenants(req: Request, res: Response, next: NextFunctio
 
 export async function createTenant(req: Request, res: Response, next: NextFunction) {
   try {
-    const { id, nombre, brand_color, initial_titular, initial_saldo, active_modules } = req.body;
+    const { id, nombre, brand_color, business_type, logo, initial_titular, initial_saldo, active_modules } = req.body;
     if (!id || !nombre) {
       return res.status(400).json({ error: 'El identificador (slug) y el nombre de la empresa son obligatorios.' });
     }
@@ -24,6 +24,8 @@ export async function createTenant(req: Request, res: Response, next: NextFuncti
       id,
       nombre,
       brandColor: brand_color,
+      businessType: business_type,
+      logo,
       initialTitular: initial_titular,
       initialSaldo: parseFloat(initial_saldo) || 50000.00,
       activeModules: Array.isArray(active_modules) ? active_modules : ['pos', 'inventory', 'invoices', 'kpis']

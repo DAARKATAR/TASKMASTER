@@ -92,7 +92,7 @@ export async function updateProduct(req: Request, res: Response, next: NextFunct
   const { tenantId, productId } = req.params;
   const cleanId = String(tenantId).trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
   const schemaName = `tenant_${cleanId}`;
-  const prodId = parseInt(productId, 10);
+  const prodId = parseInt(String(productId), 10);
   if (!prodId) {
     return res.status(400).json({ error: "ID de producto inválido" });
   }
@@ -158,7 +158,7 @@ export async function deleteProduct(req: Request, res: Response, next: NextFunct
   const { tenantId, productId } = req.params;
   const cleanId = String(tenantId).trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
   const schemaName = `tenant_${cleanId}`;
-  const prodId = parseInt(productId, 10);
+  const prodId = parseInt(String(productId), 10);
   if (!prodId) {
     return res.status(400).json({ error: "ID de producto inválido" });
   }

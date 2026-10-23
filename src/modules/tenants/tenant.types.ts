@@ -6,6 +6,7 @@ export interface Tenant {
   brand_color: string;
   active_modules?: string[];
   logo?: string;
+  business_type?: string;
 }
 
 export interface ProvisionTenantDTO {

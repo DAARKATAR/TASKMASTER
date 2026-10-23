@@ -2,14 +2,28 @@ import { spawn } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+import fs from 'fs';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const cloudflaredBin = path.join(__dirname, '..', 'bin', 'cloudflared.exe');
+
+const isWindows = process.platform === 'win32';
+const localBin = path.join(__dirname, '..', 'bin', isWindows ? 'cloudflared.exe' : 'cloudflared');
+const cloudflaredBin = fs.existsSync(localBin) ? localBin : 'cloudflared';
 
 console.log('🚀 Iniciando Cloudflare Tunnel hacia http://localhost:3000...');
 
 const tunnel = spawn(cloudflaredBin, ['tunnel', '--url', 'http://localhost:3000'], {
   stdio: ['ignore', 'pipe', 'pipe']
+});
+
+tunnel.on('error', (err) => {
+  if (err.code === 'ENOENT') {
+    console.error('❌ [Cloudflare Tunnel] No se encontró el binario "cloudflared" instalado en el sistema ni en ./bin.');
+    console.error('💡 Puedes instalarlo con tu gestor de paquetes (ej. pacman -S cloudflared) o ejecutar el servidor en http://localhost:3000 directamente.');
+  } else {
+    console.error('❌ Error ejecutando Cloudflare Tunnel:', err.message);
+  }
 });
 
 let foundUrl = false;

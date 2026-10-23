@@ -33,7 +33,7 @@ async function inspectDb() {
     console.log('=== PUBLIC.TENANTS ===');
     console.table(tenantsRes.rows);
 
-    const tenantUsersRes = await pool.query('SELECT id, email, tenant_id, role FROM public.tenant_users;');
+    const tenantUsersRes = await pool.query('SELECT id, email, tenant_id, created_at FROM public.tenant_users;');
     console.log('=== PUBLIC.TENANT_USERS ===');
     console.table(tenantUsersRes.rows);
 

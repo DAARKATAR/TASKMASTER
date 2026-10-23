@@ -6,11 +6,11 @@
   "scripts": {
     "start": "node dist/server.js",
     "dev": "tsx watch src/server.ts",
-    "build": "node -e \"console.log('Serverless API ready')\"",
+    "build": "tsup src/server.ts --format esm --out-dir dist",
     "tunnel": "node scripts/startTunnel.js",
-    "seed": "node scripts/runSeed.js",
+    "seed": "tsx scripts/runSeed.js",
     "test": "vitest run",
-    "build:server": "node -e \"console.log('Using pre-built dist/server.js')\"",
+    "build:server": "tsup src/server.ts --format esm --out-dir dist",
     "compile": "tsup src/server.ts --format esm --out-dir dist"
   },
   "keywords": [],
@@ -30,6 +30,7 @@
     "typescript": "^7.0.2"
   },
   "devDependencies": {
+    "@rolldown/binding-linux-x64-gnu": "^1.2.15",
     "@types/bcryptjs": "^2.4.6",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
