@@ -9,11 +9,11 @@ export const PRODUCTION_RENDER_API = 'https://taskmaster-soq6.onrender.com';
  * 3. En producción (Cloudflare Pages, vistas remotas, preview), apunta automáticamente al backend desplegado en Render.
  */
 export function getApiBaseUrl() {
-  if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL;
+  const url = import.meta.env.VITE_API_URL;
+  if (url && typeof url === "string" && url.trim() !== "") {
+    // Eliminar barra final para evitar doble slash //api
+    return url.trim().replace(/\/+$/, "");
   }
-  // En Vercel o en desarrollo local (mismo origen), usamos rutas relativas ""
-  // para comunicarnos directamente con las Serverless Functions sin problemas de CORS ni caídas
   return "";
 }
 
