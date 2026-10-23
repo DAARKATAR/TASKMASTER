@@ -12,6 +12,8 @@ export default function PosLayout({
   onLogout,
   onExitToLanding,
   showDebugTools,
+  isDarkMode = false,
+  onToggleDarkMode,
   children
 }) {
   const commonNavbarProps = {
@@ -22,7 +24,9 @@ export default function PosLayout({
     onOpenCustomizer,
     onLogout,
     onExitToLanding,
-    showDebugTools
+    showDebugTools,
+    isDarkMode,
+    onToggleDarkMode
   };
 
   // 1. CASO NAVBAR ARRIBA (TOP)

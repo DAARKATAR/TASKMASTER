@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShoppingBag, Boxes, FileText, TrendingUp, Settings, LogOut, Terminal, Shield, ArrowLeft, Sparkles } from 'lucide-react';
+import { ShoppingBag, Boxes, FileText, TrendingUp, Settings, LogOut, Terminal, Shield, ArrowLeft, Sparkles, Moon, Sun } from 'lucide-react';
 import { useNotification } from '../context/NotificationContext';
 
 export default function Navbar({ 
@@ -11,7 +11,9 @@ export default function Navbar({
   onOpenCustomizer, 
   onLogout,
   onExitToLanding,
-  showDebugTools = false
+  showDebugTools = false,
+  isDarkMode = false,
+  onToggleDarkMode
 }) {
   const { openNovedades } = useNotification();
   // Módulos activos a la carta para este negocio
@@ -60,7 +62,7 @@ export default function Navbar({
   // 1. MODO ARRIBA (TOP)
   if (position === 'top') {
     return (
-      <header className="sticky top-0 z-40 w-full border-b border-slate-200 bg-white shadow-flat-sm">
+      <header className="sticky top-0 z-40 w-full border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-flat-sm transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
           
           {/* Brand */}
@@ -102,18 +104,40 @@ export default function Navbar({
 
           {/* Tools & User */}
           <div className="flex items-center gap-2">
+            {/* Botón Modo Nocturno */}
+            {onToggleDarkMode && (
+              <button
+                onClick={onToggleDarkMode}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer shadow-2xs"
+                title={isDarkMode ? 'Cambiar a Modo Claro' : 'Cambiar a Modo Nocturno'}
+                aria-label="Alternar Modo Nocturno"
+              >
+                {isDarkMode ? (
+                  <>
+                    <Sun className="w-3.5 h-3.5 text-amber-400" />
+                    <span className="hidden sm:inline">Modo Claro</span>
+                  </>
+                ) : (
+                  <>
+                    <Moon className="w-3.5 h-3.5 text-indigo-500" />
+                    <span className="hidden sm:inline">Modo Nocturno</span>
+                  </>
+                )}
+              </button>
+            )}
+
             <button
               onClick={openNovedades}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 transition-all cursor-pointer shadow-2xs"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-violet-50 hover:bg-violet-100 dark:bg-violet-950/60 dark:hover:bg-violet-900/60 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-800 transition-all cursor-pointer shadow-2xs"
               title="Ver Novedades del Sistema"
             >
-              <Sparkles className="w-3.5 h-3.5 text-violet-600 animate-pulse" />
+              <Sparkles className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400 animate-pulse" />
               <span className="hidden sm:inline">Novedades</span>
             </button>
 
             <button
               onClick={onOpenCustomizer}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-colors cursor-pointer"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
               title="Personalizar Posición del Navbar y Fondo"
             >
               <Settings className="w-3.5 h-3.5" />
@@ -197,18 +221,28 @@ export default function Navbar({
           </div>
 
           {/* Quick Actions */}
-          <div className="space-y-2 pt-2 border-t border-slate-100">
+          <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            {onToggleDarkMode && (
+              <button
+                onClick={onToggleDarkMode}
+                className="w-full flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
+              >
+                {isDarkMode ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-indigo-500" />}
+                <span>{isDarkMode ? 'Modo Claro' : 'Modo Nocturno'}</span>
+              </button>
+            )}
+
             <button
               onClick={openNovedades}
-              className="w-full flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-violet-700 bg-violet-50 hover:bg-violet-100 border border-violet-200 transition-colors cursor-pointer"
+              className="w-full flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-violet-700 dark:text-violet-300 bg-violet-50 hover:bg-violet-100 dark:bg-violet-950/60 border border-violet-200 dark:border-violet-800 transition-colors cursor-pointer"
             >
-              <Sparkles className="w-3.5 h-3.5 text-violet-600 animate-pulse" />
+              <Sparkles className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400 animate-pulse" />
               <span>Novedades TaskMaster</span>
             </button>
 
             <button
               onClick={onOpenCustomizer}
-              className="w-full flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
+              className="w-full flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 transition-colors cursor-pointer"
             >
               <Settings className="w-3.5 h-3.5" />
               <span>Personalizar Posición</span>
@@ -280,11 +314,24 @@ export default function Navbar({
           );
         })}
 
+        {onToggleDarkMode && (
+          <button
+            onClick={onToggleDarkMode}
+            className="flex flex-col items-center gap-1 py-1 px-3 rounded-2xl text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition-all"
+            title={isDarkMode ? 'Modo Claro' : 'Modo Nocturno'}
+          >
+            <div className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">
+              {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-500" />}
+            </div>
+            <span className="text-[10px]">{isDarkMode ? 'Claro' : 'Noche'}</span>
+          </button>
+        )}
+
         <button
           onClick={onOpenCustomizer}
-          className="flex flex-col items-center gap-1 py-1 px-3 rounded-2xl text-slate-500 hover:text-slate-800 transition-all"
+          className="flex flex-col items-center gap-1 py-1 px-3 rounded-2xl text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition-all"
         >
-          <div className="p-1.5 rounded-xl bg-slate-100 text-slate-700">
+          <div className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">
             <Settings className="w-4 h-4" />
           </div>
           <span className="text-[10px]">Ajustes</span>

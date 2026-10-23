@@ -4,7 +4,7 @@ import AuthView from './components/AuthView';
 import PosTerminal from './components/PosTerminal';
 import LedgerTable from './components/LedgerTable';
 import PosLayout from './components/PosLayout';
-import { Sliders, Loader2, Sparkles } from 'lucide-react';
+import { Sliders, Loader2, Sparkles, Moon, Sun } from 'lucide-react';
 import { useNotification } from './context/NotificationContext';
 
 // Code-Splitting con React.lazy para componentes no críticos en carga inicial
@@ -101,7 +101,7 @@ export default function App() {
     useTenant(authTenant);
   const { invoices, pagination, metrics, invoiceData, loadingInvoices, loadingMetrics, loadInvoices, loadMetrics, emitInvoice } =
     useInvoices(currentTenant?.id, authToken);
-  const { navbarPosition, selectNavbarPosition, bgTheme, selectBgTheme, showCustomizer, setShowCustomizer, themeColors } =
+  const { navbarPosition, selectNavbarPosition, bgTheme, selectBgTheme, showCustomizer, setShowCustomizer, themeColors, isDarkMode, toggleDarkMode } =
     useThemePreferences(currentTenant, currentView);
   const { lastResponse, loadingSoap, latency, httpStatus, executeSoapCall } = useSoapClient(currentTenant);
 
@@ -434,33 +434,47 @@ export default function App() {
             onLogout={handleLogout}
             onExitToLanding={() => setCurrentView('landing')}
             showDebugTools={showDebugTools}
+            isDarkMode={isDarkMode}
+            onToggleDarkMode={toggleDarkMode}
           >
             {renderPosContent()}
           </PosLayout>
 
           {/* Botones flotantes de herramientas y novedades */}
           <div className="fixed bottom-4 right-4 z-40 flex items-center gap-2">
+            {/* Botón flotante de Modo Nocturno */}
+            <button
+              onClick={toggleDarkMode}
+              className="p-3 rounded-2xl bg-white dark:bg-slate-800 text-slate-700 dark:text-amber-400 border border-slate-200 dark:border-slate-700 shadow-xl hover:shadow-2xl transition-all flex items-center gap-2 group cursor-pointer"
+              title={isDarkMode ? 'Cambiar a Modo Claro' : 'Cambiar a Modo Nocturno'}
+            >
+              {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-500" />}
+              <span className="text-xs font-bold hidden sm:inline text-slate-800 dark:text-slate-100">
+                {isDarkMode ? 'Modo Claro' : 'Modo Nocturno'}
+              </span>
+            </button>
+
             <button
               onClick={openNovedades}
-              className="p-3 rounded-2xl bg-white text-violet-700 border border-violet-200 shadow-xl hover:shadow-2xl transition-all flex items-center gap-2 group cursor-pointer"
+              className="p-3 rounded-2xl bg-white dark:bg-slate-800 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-800 shadow-xl hover:shadow-2xl transition-all flex items-center gap-2 group cursor-pointer"
               title="Ver Novedades del Sistema"
             >
-              <Sparkles className="w-4 h-4 text-violet-600 animate-pulse" />
-              <span className="text-xs font-bold hidden sm:inline">
+              <Sparkles className="w-4 h-4 text-violet-600 dark:text-violet-400 animate-pulse" />
+              <span className="text-xs font-bold hidden sm:inline text-slate-800 dark:text-slate-100">
                 Novedades
               </span>
             </button>
 
             <button
               onClick={() => setShowCustomizer(true)}
-              className="p-3 rounded-2xl bg-white text-slate-700 border border-slate-200 shadow-xl hover:shadow-2xl transition-all flex items-center gap-2 group cursor-pointer"
+              className="p-3 rounded-2xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 shadow-xl hover:shadow-2xl transition-all flex items-center gap-2 group cursor-pointer"
               title="Personalizar Módulos Activos y Diseño"
             >
               <Sliders
                 className="w-4 h-4 transition-transform group-hover:rotate-45"
                 style={{ color: currentTenant?.brand_color || '#0F172A' }}
               />
-              <span className="text-xs font-bold hidden sm:inline">
+              <span className="text-xs font-bold hidden sm:inline text-slate-800 dark:text-slate-100">
                 Módulos & Estilo ({activeModules.length})
               </span>
             </button>
@@ -484,6 +498,8 @@ export default function App() {
             tenant={currentTenant}
             onUpdateModules={updateActiveModules}
             onUpdateTheme={updateTenantTheme}
+            isDarkMode={isDarkMode}
+            onToggleDarkMode={toggleDarkMode}
           />
         )}
       </Suspense>

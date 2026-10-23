@@ -21,7 +21,9 @@ import {
   Eye,
   RefreshCw,
   Store,
-  Layers
+  Layers,
+  Moon,
+  Sun
 } from 'lucide-react';
 import { AVAILABLE_MODULES, PRESET_MODULAR_PROFILES, DEFAULT_ACTIVE_MODULES } from '../config/modules';
 import { useNotification } from '../context/NotificationContext';
@@ -111,7 +113,9 @@ export default function ThemeCustomizerModal({
   brandColor = '#4F46E5',
   tenant,
   onUpdateModules,
-  onUpdateTheme
+  onUpdateTheme,
+  isDarkMode = false,
+  onToggleDarkMode
 }) {
   const { notifySuccess, notifyError, notifyInfo } = useNotification();
   const [activeTab, setActiveTab] = useState('palette'); // 'palette' | 'modules' | 'appearance'
@@ -261,12 +265,25 @@ export default function ThemeCustomizerModal({
               </p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            {onToggleDarkMode && (
+              <button
+                type="button"
+                onClick={onToggleDarkMode}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-colors cursor-pointer"
+                title={isDarkMode ? 'Cambiar a Modo Claro' : 'Cambiar a Modo Nocturno'}
+              >
+                {isDarkMode ? <Sun className="w-3.5 h-3.5 text-amber-500" /> : <Moon className="w-3.5 h-3.5 text-indigo-500" />}
+                <span className="hidden sm:inline">{isDarkMode ? 'Modo Claro' : 'Modo Nocturno'}</span>
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* Pestañas de Personalización */}
@@ -789,6 +806,48 @@ export default function ThemeCustomizerModal({
                 })}
               </div>
             </div>
+
+            {/* Modo Nocturno / Modo Claro */}
+            {onToggleDarkMode && (
+              <div>
+                <span className="text-xs font-bold text-slate-800 block mb-1.5">
+                  Modo de Visualización
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => isDarkMode && onToggleDarkMode()}
+                    className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex items-center gap-2.5 ${
+                      !isDarkMode
+                        ? 'border-slate-900 ring-2 ring-slate-900/20 bg-slate-50 shadow-xs'
+                        : 'border-slate-200 hover:border-slate-300 bg-white'
+                    }`}
+                  >
+                    <Sun className="w-4 h-4 text-amber-500 shrink-0" />
+                    <div>
+                      <span className="text-xs font-bold text-slate-800 block">Modo Claro</span>
+                      <span className="text-[10px] text-slate-400 block">Ambientes iluminados</span>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => !isDarkMode && onToggleDarkMode()}
+                    className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex items-center gap-2.5 ${
+                      isDarkMode
+                        ? 'border-slate-900 ring-2 ring-slate-900/20 bg-slate-50 shadow-xs'
+                        : 'border-slate-200 hover:border-slate-300 bg-white'
+                    }`}
+                  >
+                    <Moon className="w-4 h-4 text-indigo-500 shrink-0" />
+                    <div>
+                      <span className="text-xs font-bold text-slate-800 block">Modo Nocturno</span>
+                      <span className="text-[10px] text-slate-400 block">Descanso visual y bajo brillo</span>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Tema de Fondo */}
             <div>
