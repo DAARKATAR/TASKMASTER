@@ -1,7 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
-  "outputDirectory": "frontend/dist",
+  "buildCommand": "npm run build:server",
   "rewrites": [
     {
       "source": "/api/:path*",
@@ -16,8 +15,8 @@
       "destination": "/api"
     },
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "source": "/",
+      "destination": "/api"
     }
   ]
 }
