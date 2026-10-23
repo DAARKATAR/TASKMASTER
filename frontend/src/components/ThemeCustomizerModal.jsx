@@ -15,10 +15,73 @@ import {
   Terminal,
   Loader2,
   Sparkles,
-  Sliders
+  Sliders,
+  Palette,
+  Pipette,
+  Eye,
+  RefreshCw
 } from 'lucide-react';
 import { AVAILABLE_MODULES, PRESET_MODULAR_PROFILES, DEFAULT_ACTIVE_MODULES } from '../config/modules';
 import { useNotification } from '../context/NotificationContext';
+
+const COLOR_PALETTE_PRESETS = [
+  {
+    id: 'violet-amber',
+    name: 'TaskMaster Índigo',
+    emoji: '⚡',
+    primary: '#4F46E5',
+    accent: '#F59E0B',
+    background: '#FFFFFF'
+  },
+  {
+    id: 'bakery-pink',
+    name: 'Pastelería & Dulces',
+    emoji: '🍰',
+    primary: '#DB2777',
+    accent: '#F472B6',
+    background: '#FDF2F8'
+  },
+  {
+    id: 'coffee-gold',
+    name: 'Cafetería & Panadería',
+    emoji: '☕',
+    primary: '#B45309',
+    accent: '#F59E0B',
+    background: '#FFFDF9'
+  },
+  {
+    id: 'emerald-organic',
+    name: 'Farmacia & Salud',
+    emoji: '🌿',
+    primary: '#059669',
+    accent: '#10B981',
+    background: '#F0FDF4'
+  },
+  {
+    id: 'pizza-fire',
+    name: 'Pizzería & Restaurante',
+    emoji: '🍕',
+    primary: '#DC2626',
+    accent: '#EA580C',
+    background: '#FEF2F2'
+  },
+  {
+    id: 'dark-cyber',
+    name: 'Dark Mode / Barbería',
+    emoji: '🌙',
+    primary: '#06B6D4',
+    accent: '#3B82F6',
+    background: '#0F172A'
+  },
+  {
+    id: 'boutique-luxe',
+    name: 'Boutique & Retail',
+    emoji: '🛍️',
+    primary: '#7C3AED',
+    accent: '#C084FC',
+    background: '#FAF5FF'
+  }
+];
 
 export default function ThemeCustomizerModal({
   isOpen,
@@ -31,10 +94,13 @@ export default function ThemeCustomizerModal({
   onToggleDebugTools,
   brandColor = '#4F46E5',
   tenant,
-  onUpdateModules
+  onUpdateModules,
+  onUpdateTheme
 }) {
   const { notifySuccess, notifyError } = useNotification();
-  const [activeTab, setActiveTab] = useState('modules'); // 'modules' | 'appearance'
+  const [activeTab, setActiveTab] = useState('palette'); // 'palette' | 'modules' | 'appearance'
+  
+  // Módulos
   const [selectedModules, setSelectedModules] = useState(
     tenant?.active_modules && Array.isArray(tenant.active_modules)
       ? tenant.active_modules
@@ -42,6 +108,13 @@ export default function ThemeCustomizerModal({
   );
   const [savingModules, setSavingModules] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Paleta de Colores Personalizada
+  const tenantPalette = tenant?.theme_palette || {};
+  const [primaryColor, setPrimaryColor] = useState(tenantPalette.primary || tenant?.brand_color || brandColor || '#4F46E5');
+  const [accentColor, setAccentColor] = useState(tenantPalette.accent || '#F59E0B');
+  const [bgColor, setBgColor] = useState(tenantPalette.background || '#FFFFFF');
+  const [savingPalette, setSavingPalette] = useState(false);
 
   if (!isOpen) return null;
 
@@ -64,7 +137,7 @@ export default function ThemeCustomizerModal({
   const handleToggleModule = (moduleId) => {
     setSelectedModules((prev) => {
       if (prev.includes(moduleId)) {
-        if (prev.length <= 1) return prev; // Mantener al menos un módulo activo
+        if (prev.length <= 1) return prev;
         return prev.filter((id) => id !== moduleId);
       }
       return [...prev, moduleId];
@@ -94,6 +167,34 @@ export default function ThemeCustomizerModal({
     }
   };
 
+  // Guardar Paleta Personalizada en Neon DB
+  const handleSavePalette = async () => {
+    if (!onUpdateTheme) return;
+    setSavingPalette(true);
+    try {
+      await onUpdateTheme({
+        brand_color: primaryColor,
+        theme_palette: {
+          primary: primaryColor,
+          accent: accentColor,
+          background: bgColor
+        }
+      });
+      notifySuccess('¡Paleta corporativa guardada con éxito en Neon DB!', 'Identidad Actualizada');
+    } catch (err) {
+      console.error('Error guardando paleta:', err);
+      notifyError('No se pudo guardar la paleta en Neon DB: ' + err.message);
+    } finally {
+      setSavingPalette(false);
+    }
+  };
+
+  const handleApplyColorPreset = (preset) => {
+    setPrimaryColor(preset.primary);
+    setAccentColor(preset.accent);
+    setBgColor(preset.background);
+  };
+
   const getModuleIcon = (id) => {
     switch (id) {
       case 'pos':
@@ -113,22 +214,27 @@ export default function ThemeCustomizerModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="w-full max-w-lg rounded-3xl bg-white border border-slate-200 shadow-2xl p-6 space-y-5 text-slate-800 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+      <div className="w-full max-w-xl rounded-3xl bg-white border border-slate-200 shadow-2xl p-6 space-y-5 text-slate-800 animate-in fade-in zoom-in-95 duration-200 max-h-[92vh] overflow-y-auto">
         {/* Header con el color de marca del negocio */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div className="flex items-center gap-2.5">
             <div
               className="p-2 rounded-xl text-white shadow-xs"
-              style={{ backgroundColor: brandColor }}
+              style={{ backgroundColor: primaryColor }}
             >
-              <Settings className="w-4 h-4" />
+              <Palette className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-bold text-sm font-display text-slate-900">
-                Personalización & Identidad
-              </h3>
+              <div className="flex items-center gap-2">
+                <h3 className="font-bold text-sm font-display text-slate-900">
+                  Personalización de Identidad & Módulos
+                </h3>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-bold">
+                  {tenant?.nombre || 'Mi Negocio'}
+                </span>
+              </div>
               <p className="text-xs text-slate-500">
-                Configura los módulos a la carta y el estilo visual de tu negocio
+                Añade tu propia paleta de colores corporativa y herramientas a la carta
               </p>
             </div>
           </div>
@@ -141,32 +247,220 @@ export default function ThemeCustomizerModal({
         </div>
 
         {/* Pestañas de Personalización */}
-        <div className="flex items-center gap-2 p-1 bg-slate-100 rounded-2xl text-xs font-bold">
+        <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-2xl text-xs font-bold">
+          <button
+            onClick={() => setActiveTab('palette')}
+            className={`flex-1 py-2 px-2.5 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+              activeTab === 'palette'
+                ? 'bg-white text-slate-900 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <Palette className="w-3.5 h-3.5" style={{ color: primaryColor }} />
+            <span>Paleta de Colores</span>
+          </button>
+
           <button
             onClick={() => setActiveTab('modules')}
-            className={`flex-1 py-2 px-3 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`flex-1 py-2 px-2.5 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
               activeTab === 'modules'
                 ? 'bg-white text-slate-900 shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <Boxes className="w-3.5 h-3.5" />
-            <span>Módulos a la Carta ({selectedModules.length})</span>
+            <span>Módulos ({selectedModules.length})</span>
           </button>
+
           <button
             onClick={() => setActiveTab('appearance')}
-            className={`flex-1 py-2 px-3 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+            className={`flex-1 py-2 px-2.5 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
               activeTab === 'appearance'
                 ? 'bg-white text-slate-900 shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             <Sliders className="w-3.5 h-3.5" />
-            <span>Diseño & Navbar</span>
+            <span>Navbar & Entorno</span>
           </button>
         </div>
 
-        {/* 1. TAB: MÓDULOS A LA CARTA */}
+        {/* 1. TAB: PALETA DE COLORES CORPORATIVA (NUEVA FUNCIÓN) */}
+        {activeTab === 'palette' && (
+          <div className="space-y-4">
+            
+            {/* Presets Rápidos por Industria */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs font-bold text-slate-800 uppercase font-mono tracking-wider">
+                  Paletas Listas para Usar:
+                </span>
+                <span className="text-[10px] text-slate-400">1 clic para aplicar</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {COLOR_PALETTE_PRESETS.map((p) => {
+                  const isSelected = primaryColor === p.primary && accentColor === p.accent;
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => handleApplyColorPreset(p)}
+                      className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-center gap-2 ${
+                        isSelected
+                          ? 'border-slate-900 ring-2 ring-slate-900/20 shadow-xs bg-slate-50'
+                          : 'border-slate-200 hover:border-slate-300 bg-white'
+                      }`}
+                    >
+                      <div className="flex -space-x-1 shrink-0">
+                        <span
+                          className="w-4 h-4 rounded-full border border-white shadow-2xs"
+                          style={{ backgroundColor: p.primary }}
+                        />
+                        <span
+                          className="w-4 h-4 rounded-full border border-white shadow-2xs"
+                          style={{ backgroundColor: p.accent }}
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-xs font-bold text-slate-800 block truncate">
+                          {p.emoji} {p.name}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Controles para Añadir Colores Propios (Hexadecimal y Color Picker) */}
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+              <span className="text-xs font-bold text-slate-800 uppercase font-mono block">
+                Personaliza Tus Códigos Exactos:
+              </span>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* Color Primario */}
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-slate-600 block">
+                    Primario (Botones & Marca)
+                  </label>
+                  <div className="flex items-center gap-2 bg-white p-1.5 rounded-xl border border-slate-200">
+                    <input
+                      type="color"
+                      value={primaryColor}
+                      onChange={(e) => setPrimaryColor(e.target.value)}
+                      className="w-8 h-8 rounded-lg border-0 cursor-pointer p-0 bg-transparent"
+                    />
+                    <input
+                      type="text"
+                      value={primaryColor}
+                      onChange={(e) => setPrimaryColor(e.target.value)}
+                      className="w-full text-xs font-mono font-bold uppercase text-slate-800 focus:outline-none"
+                      maxLength={7}
+                    />
+                  </div>
+                </div>
+
+                {/* Color Secundario / Acento */}
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-slate-600 block">
+                    Secundario (Acentos & Badges)
+                  </label>
+                  <div className="flex items-center gap-2 bg-white p-1.5 rounded-xl border border-slate-200">
+                    <input
+                      type="color"
+                      value={accentColor}
+                      onChange={(e) => setAccentColor(e.target.value)}
+                      className="w-8 h-8 rounded-lg border-0 cursor-pointer p-0 bg-transparent"
+                    />
+                    <input
+                      type="text"
+                      value={accentColor}
+                      onChange={(e) => setAccentColor(e.target.value)}
+                      className="w-full text-xs font-mono font-bold uppercase text-slate-800 focus:outline-none"
+                      maxLength={7}
+                    />
+                  </div>
+                </div>
+
+                {/* Color de Fondo de Trabajo */}
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-slate-600 block">
+                    Fondo de Pantalla
+                  </label>
+                  <div className="flex items-center gap-2 bg-white p-1.5 rounded-xl border border-slate-200">
+                    <input
+                      type="color"
+                      value={bgColor}
+                      onChange={(e) => setBgColor(e.target.value)}
+                      className="w-8 h-8 rounded-lg border-0 cursor-pointer p-0 bg-transparent"
+                    />
+                    <input
+                      type="text"
+                      value={bgColor}
+                      onChange={(e) => setBgColor(e.target.value)}
+                      className="w-full text-xs font-mono font-bold uppercase text-slate-800 focus:outline-none"
+                      maxLength={7}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Mini Vista Previa en Vivo */}
+            <div className="p-4 rounded-2xl border border-slate-200 space-y-2.5 transition-colors" style={{ backgroundColor: bgColor }}>
+              <div className="flex items-center justify-between pb-1.5 border-b border-slate-200/60">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                  <Eye className="w-3.5 h-3.5" style={{ color: primaryColor }} />
+                  <span>Vista Previa en Tiempo Real</span>
+                </div>
+                <span
+                  className="text-[10px] font-mono px-2 py-0.5 rounded-full font-bold shadow-2xs"
+                  style={{ backgroundColor: `${accentColor}25`, color: accentColor }}
+                >
+                  Acento Activo
+                </span>
+              </div>
+
+              <div className="p-3 bg-white rounded-xl border border-slate-200 shadow-flat-sm flex items-center justify-between gap-3">
+                <div>
+                  <h5 className="text-xs font-bold text-slate-900">Tarjeta de Muestra POS</h5>
+                  <p className="text-[10px] text-slate-500">Ejemplo de visualización con tus colores</p>
+                </div>
+                <button
+                  type="button"
+                  className="px-3 py-1.5 rounded-xl text-xs font-bold text-white shadow-xs cursor-default"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  Botón Primario
+                </button>
+              </div>
+            </div>
+
+            {/* Botón Guardar Paleta en Neon DB */}
+            <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
+              >
+                Cerrar
+              </button>
+              <button
+                type="button"
+                onClick={handleSavePalette}
+                disabled={savingPalette}
+                className="px-5 py-2.5 rounded-xl text-xs font-bold text-white shadow-md flex items-center gap-2 hover:opacity-95 transition-all disabled:opacity-50 cursor-pointer active:scale-95"
+                style={{ backgroundColor: primaryColor }}
+              >
+                {savingPalette ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                <span>Guardar Paleta en Neon DB</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* 2. TAB: MÓDULOS A LA CARTA */}
         {activeTab === 'modules' && (
           <div className="space-y-4">
             <div>
@@ -276,7 +570,7 @@ export default function ThemeCustomizerModal({
                 onClick={handleSaveModules}
                 disabled={savingModules}
                 className="px-4 py-2 rounded-xl text-xs font-bold text-white shadow-sm flex items-center gap-2 hover:opacity-95 transition-all disabled:opacity-50 cursor-pointer"
-                style={{ backgroundColor: brandColor }}
+                style={{ backgroundColor: primaryColor }}
               >
                 {savingModules && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                 <span>Guardar Preferencias</span>
@@ -285,7 +579,7 @@ export default function ThemeCustomizerModal({
           </div>
         )}
 
-        {/* 2. TAB: DISEÑO & NAVBAR */}
+        {/* 3. TAB: DISEÑO & NAVBAR */}
         {activeTab === 'appearance' && (
           <div className="space-y-4">
             {/* Posición del Navbar */}

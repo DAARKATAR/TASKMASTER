@@ -97,13 +97,28 @@ export default function App() {
 
   // 2. Custom Hooks desacoplados
   const { authToken, currentUser, setCurrentUser, authTenant, authLoading, login, logout } = useAuth();
-  const { currentTenant, setCurrentTenant, availableTenants, loadTenants, selectTenant, activeModules, updateActiveModules } =
+  const { currentTenant, setCurrentTenant, availableTenants, loadTenants, selectTenant, activeModules, updateActiveModules, updateTenantTheme } =
     useTenant(authTenant);
   const { invoices, pagination, metrics, invoiceData, loadingInvoices, loadingMetrics, loadInvoices, loadMetrics, emitInvoice } =
     useInvoices(currentTenant?.id, authToken);
   const { navbarPosition, selectNavbarPosition, bgTheme, selectBgTheme, showCustomizer, setShowCustomizer, themeColors } =
     useThemePreferences(currentTenant, currentView);
   const { lastResponse, loadingSoap, latency, httpStatus, executeSoapCall } = useSoapClient(currentTenant);
+
+  // Inyectar variables CSS corporativas globales según la paleta del inquilino
+  useEffect(() => {
+    const palette = currentTenant?.theme_palette || {
+      primary: currentTenant?.brand_color || '#4F46E5',
+      accent: '#F59E0B',
+      background: '#FFFFFF'
+    };
+    if (typeof document !== 'undefined') {
+      const root = document.documentElement;
+      root.style.setProperty('--tenant-primary', palette.primary || currentTenant?.brand_color || '#4F46E5');
+      root.style.setProperty('--tenant-accent', palette.accent || '#F59E0B');
+      root.style.setProperty('--tenant-bg', palette.background || '#FFFFFF');
+    }
+  }, [currentTenant?.theme_palette, currentTenant?.brand_color]);
 
   // Sincronizar el tenant activo si la sesión autenticada especifica uno diferente
   useEffect(() => {
@@ -463,6 +478,7 @@ export default function App() {
             brandColor={currentTenant?.brand_color || '#0F172A'}
             tenant={currentTenant}
             onUpdateModules={updateActiveModules}
+            onUpdateTheme={updateTenantTheme}
           />
         )}
       </Suspense>

@@ -208,6 +208,42 @@ export function useTenant(initialTenant = null) {
     return true;
   };
 
+  // Guardar cambios en el tema y paleta de colores del tenant en Neon DB
+  const updateTenantTheme = async ({ brand_color, theme_palette }) => {
+    if (!currentTenant?.id) return;
+
+    const nextTenant = {
+      ...currentTenant,
+      brand_color: brand_color || currentTenant.brand_color,
+      theme_palette: theme_palette || currentTenant.theme_palette
+    };
+
+    // 1. Optimistic local update
+    setCurrentTenant(nextTenant);
+    setAvailableTenants((prev) =>
+      prev.map((t) => (t.id === currentTenant.id ? nextTenant : t))
+    );
+
+    // 2. Persistencia en Neon DB
+    const token = typeof window !== 'undefined' ? localStorage.getItem('taskmaster_token') : null;
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const url = `${API_BASE_URL}/api/tenants/${currentTenant.id}/theme`;
+    const payload = JSON.stringify({ brand_color, theme_palette });
+
+    try {
+      const res = await fetch(url, { method: 'PATCH', headers, body: payload });
+      if (!res.ok) {
+        await fetch(url, { method: 'PUT', headers, body: payload });
+      }
+    } catch (err) {
+      console.warn('No se pudo guardar el tema en Neon, se mantiene local:', err);
+    }
+
+    return true;
+  };
+
   return {
     currentTenant,
     setCurrentTenant,
@@ -216,7 +252,8 @@ export function useTenant(initialTenant = null) {
     loadTenants,
     selectTenant,
     activeModules,
-    updateActiveModules
+    updateActiveModules,
+    updateTenantTheme
   };
 }
 

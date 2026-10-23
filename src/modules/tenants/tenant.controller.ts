@@ -5,7 +5,7 @@ import { provisionTenant } from './tenant.provisioner.js';
 export async function listTenants(req: Request, res: Response, next: NextFunction) {
   try {
     const { rows } = await pool.query(
-      'SELECT id, nombre, nombre AS name, schema_name, brand_color, business_type, logo, active_modules FROM public.tenants ORDER BY id ASC'
+      'SELECT id, nombre, nombre AS name, schema_name, brand_color, business_type, logo, active_modules, theme_palette FROM public.tenants ORDER BY id ASC'
     );
     res.json(rows);
   } catch (error) {
@@ -15,7 +15,7 @@ export async function listTenants(req: Request, res: Response, next: NextFunctio
 
 export async function createTenant(req: Request, res: Response, next: NextFunction) {
   try {
-    const { id, nombre, brand_color, business_type, logo, initial_titular, initial_saldo, active_modules } = req.body;
+    const { id, nombre, brand_color, business_type, logo, initial_titular, initial_saldo, active_modules, theme_palette } = req.body;
     if (!id || !nombre) {
       return res.status(400).json({ error: 'El identificador (slug) y el nombre de la empresa son obligatorios.' });
     }
@@ -64,6 +64,53 @@ export async function updateTenantModules(req: Request, res: Response, next: Nex
       success: true,
       message: 'Módulos actualizados con éxito.',
       active_modules
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updateTenantTheme(req: Request, res: Response, next: NextFunction) {
+  const { tenantId } = req.params;
+  const { brand_color, theme_palette } = req.body;
+  const cleanId = String(tenantId).trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+
+  try {
+    const fields: string[] = [];
+    const values: any[] = [];
+    let idx = 1;
+
+    if (brand_color) {
+      fields.push(`brand_color = $${idx++}`);
+      values.push(String(brand_color).trim());
+    }
+
+    if (theme_palette) {
+      fields.push(`theme_palette = $${idx++}`);
+      values.push(typeof theme_palette === 'string' ? theme_palette : JSON.stringify(theme_palette));
+    }
+
+    if (fields.length === 0) {
+      return res.status(400).json({ error: 'No se enviaron datos de diseño para actualizar.' });
+    }
+
+    values.push(cleanId);
+    const query = `
+      UPDATE public.tenants
+      SET ${fields.join(', ')}
+      WHERE id = $${idx}
+      RETURNING id, nombre, brand_color, theme_palette, active_modules;
+    `;
+
+    const { rows } = await pool.query(query, values);
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Negocio no encontrado.' });
+    }
+
+    res.json({
+      success: true,
+      message: 'Paleta de colores y tema corporativo actualizados con éxito en Neon DB.',
+      tenant: rows[0]
     });
   } catch (error) {
     next(error);
