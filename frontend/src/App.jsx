@@ -117,6 +117,9 @@ export default function App() {
       root.style.setProperty('--tenant-primary', palette.primary || currentTenant?.brand_color || '#4F46E5');
       root.style.setProperty('--tenant-accent', palette.accent || '#F59E0B');
       root.style.setProperty('--tenant-bg', palette.background || '#FFFFFF');
+      if (palette.background) {
+        document.body.style.backgroundColor = palette.background;
+      }
     }
   }, [currentTenant?.theme_palette, currentTenant?.brand_color]);
 
@@ -339,7 +342,9 @@ export default function App() {
     <ErrorBoundary>
     <div
       className="min-h-screen text-slate-800 font-sans transition-colors duration-300 flex flex-col selection:bg-slate-900 selection:text-white"
-      style={{ backgroundColor: currentView === 'pos' ? (themeColors[bgTheme] || '#FFFFFF') : '#FFFFFF' }}
+      style={{
+        backgroundColor: currentTenant?.theme_palette?.background || (currentView === 'pos' ? (themeColors[bgTheme] || '#FFFFFF') : '#FFFFFF')
+      }}
     >
       {/* 1. LANDING PAGE */}
       {currentView === 'landing' && (

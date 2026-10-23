@@ -47,7 +47,7 @@ const COLOR_PALETTE_PRESETS = [
     emoji: '⚡',
     primary: '#4F46E5',
     accent: '#F59E0B',
-    background: '#FFFFFF'
+    background: '#F8FAFC'
   },
   {
     id: 'bakery-pink',
@@ -55,7 +55,7 @@ const COLOR_PALETTE_PRESETS = [
     emoji: '🍰',
     primary: '#DB2777',
     accent: '#F472B6',
-    background: '#FDF2F8'
+    background: '#FFF5F7'
   },
   {
     id: 'coffee-gold',
@@ -63,7 +63,7 @@ const COLOR_PALETTE_PRESETS = [
     emoji: '☕',
     primary: '#B45309',
     accent: '#F59E0B',
-    background: '#FFFDF9'
+    background: '#FDFBF7'
   },
   {
     id: 'emerald-organic',
@@ -95,7 +95,7 @@ const COLOR_PALETTE_PRESETS = [
     emoji: '🛍️',
     primary: '#7C3AED',
     accent: '#C084FC',
-    background: '#FAF5FF'
+    background: '#F8F7FF'
   }
 ];
 
@@ -183,24 +183,6 @@ export default function ThemeCustomizerModal({
     }
   };
 
-  // Aplicar paleta en pantalla inmediatamente sin escribir en base de datos
-  const handleApplyLive = () => {
-    if (typeof document !== 'undefined') {
-      const root = document.documentElement;
-      root.style.setProperty('--tenant-primary', primaryColor);
-      root.style.setProperty('--tenant-accent', accentColor);
-      root.style.setProperty('--tenant-bg', bgColor);
-    }
-    if (notifyInfo) {
-      notifyInfo(
-        'Colores aplicados en pantalla para prueba visual sin guardar en Neon DB.',
-        'Vista Previa en Vivo'
-      );
-    } else {
-      notifySuccess('Paleta aplicada en pantalla para prueba.', 'Vista Previa');
-    }
-  };
-
   // Guardar Paleta Personalizada en Neon DB
   const handleSavePalette = async () => {
     if (!onUpdateTheme) return;
@@ -211,6 +193,7 @@ export default function ThemeCustomizerModal({
         root.style.setProperty('--tenant-primary', primaryColor);
         root.style.setProperty('--tenant-accent', accentColor);
         root.style.setProperty('--tenant-bg', bgColor);
+        document.body.style.backgroundColor = bgColor;
       }
       await onUpdateTheme({
         brand_color: primaryColor,
@@ -339,26 +322,37 @@ export default function ThemeCustomizerModal({
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {COLOR_PALETTE_PRESETS.map((p) => {
-                  const isSelected = primaryColor === p.primary && accentColor === p.accent;
+                  const isSelected =
+                    primaryColor?.toUpperCase() === p.primary?.toUpperCase() &&
+                    accentColor?.toUpperCase() === p.accent?.toUpperCase() &&
+                    bgColor?.toUpperCase() === p.background?.toUpperCase();
                   return (
                     <button
                       key={p.id}
                       type="button"
                       onClick={() => handleApplyColorPreset(p)}
-                      className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-center gap-2 ${
+                      className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-center gap-2.5 ${
                         isSelected
                           ? 'border-slate-900 ring-2 ring-slate-900/20 shadow-xs bg-slate-50'
                           : 'border-slate-200 hover:border-slate-300 bg-white'
                       }`}
                     >
-                      <div className="flex -space-x-1 shrink-0">
+                      {/* Swatches de los 3 colores del Preset: Primario, Acento y Fondo */}
+                      <div className="flex -space-x-1.5 shrink-0">
                         <span
                           className="w-4 h-4 rounded-full border border-white shadow-2xs"
                           style={{ backgroundColor: p.primary }}
+                          title={`Primario: ${p.primary}`}
                         />
                         <span
                           className="w-4 h-4 rounded-full border border-white shadow-2xs"
                           style={{ backgroundColor: p.accent }}
+                          title={`Secundario: ${p.accent}`}
+                        />
+                        <span
+                          className="w-4 h-4 rounded-full border border-slate-300 shadow-2xs"
+                          style={{ backgroundColor: p.background }}
+                          title={`Fondo: ${p.background}`}
                         />
                       </div>
                       <div className="min-w-0">
@@ -622,7 +616,7 @@ export default function ThemeCustomizerModal({
               );
             })()}
 
-            {/* Barra de Acciones: Cerrar, Aplicar en Vivo y Guardar */}
+            {/* Barra de Acciones: Solo Cerrar y Guardar */}
             <div className="pt-3 flex items-center justify-between border-t border-slate-100">
               <button
                 type="button"
@@ -631,27 +625,16 @@ export default function ThemeCustomizerModal({
               >
                 Cerrar
               </button>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleApplyLive}
-                  className="px-4 py-2.5 rounded-xl text-xs font-bold border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 shadow-2xs flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
-                  title="Aplica los colores en pantalla inmediatamente sin guardar en base de datos"
-                >
-                  <Eye className="w-3.5 h-3.5 text-slate-500" />
-                  <span>Aplicar</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSavePalette}
-                  disabled={savingPalette}
-                  className="px-5 py-2.5 rounded-xl text-xs font-bold text-white shadow-md flex items-center gap-2 hover:opacity-95 transition-all disabled:opacity-50 cursor-pointer active:scale-95"
-                  style={{ backgroundColor: primaryColor }}
-                >
-                  {savingPalette ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                  <span>Guardar</span>
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={handleSavePalette}
+                disabled={savingPalette}
+                className="px-5 py-2.5 rounded-xl text-xs font-bold text-white shadow-md flex items-center gap-2 hover:opacity-95 transition-all disabled:opacity-50 cursor-pointer active:scale-95"
+                style={{ backgroundColor: primaryColor }}
+              >
+                {savingPalette ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                <span>Guardar</span>
+              </button>
             </div>
           </div>
         )}

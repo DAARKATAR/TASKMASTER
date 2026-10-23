@@ -48,17 +48,18 @@ export function useThemePreferences(currentTenant, currentView) {
   };
 
   useEffect(() => {
+    const tenantBg = currentTenant?.theme_palette?.background;
     if (currentView === 'pos') {
       document.documentElement.style.setProperty(
         '--brand-primary',
         currentTenant?.brand_color || '#4F46E5'
       );
-      document.body.style.backgroundColor = THEME_COLORS[bgTheme] || '#FFFFFF';
+      document.body.style.backgroundColor = tenantBg || THEME_COLORS[bgTheme] || '#FFFFFF';
     } else {
       document.documentElement.style.setProperty('--brand-primary', '#0F172A');
-      document.body.style.backgroundColor = '#FFFFFF';
+      document.body.style.backgroundColor = tenantBg || '#FFFFFF';
     }
-  }, [bgTheme, currentTenant, currentView]);
+  }, [bgTheme, currentTenant?.theme_palette?.background, currentTenant?.brand_color, currentView]);
 
   return {
     navbarPosition,
