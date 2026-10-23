@@ -15,12 +15,16 @@ import {
   Edit2,
   Check,
   X,
-  Filter
+  Filter,
+  Image as ImageIcon
 } from 'lucide-react';
 import NewProductModal from './NewProductModal';
 import { API_BASE_URL } from '../config/api';
+import { useNotification } from '../context/NotificationContext';
 
 export default function InventoryManager({ tenant }) {
+  const { notifySuccess, notifyError, confirm } = useNotification();
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -34,17 +38,10 @@ export default function InventoryManager({ tenant }) {
   const [editPrice, setEditPrice] = useState('');
   const [editStock, setEditStock] = useState('');
   const [editName, setEditName] = useState('');
+  const [editImage, setEditImage] = useState('');
   const [savingEdit, setSavingEdit] = useState(false);
 
-  // Toast feedback
-  const [toastMessage, setToastMessage] = useState(null);
-
   const brandColor = tenant?.brand_color || '#4F46E5';
-
-  const showToast = (msg) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
-  };
 
   const loadProducts = async () => {
     if (!tenant?.id) return;
@@ -57,7 +54,7 @@ export default function InventoryManager({ tenant }) {
       }
     } catch (err) {
       console.error('Error cargando inventario:', err);
-      showToast('Error al conectar con la base de datos de inventario');
+      notifyError('No se pudo conectar con la base de datos de inventario en Neon.', 'Error de Conexión');
     } finally {
       setLoading(false);
     }
@@ -87,19 +84,25 @@ export default function InventoryManager({ tenant }) {
       if (!res.ok) {
         throw new Error('Error al guardar en el servidor');
       }
-      showToast(`Stock de "${product.nombre}" actualizado a ${newStock} uds.`);
+      notifySuccess(`Stock de "${product.nombre}" actualizado a ${newStock} uds.`, 'Inventario Actualizado');
     } catch (err) {
       console.error('Error actualizando stock en Neon:', err);
-      showToast('No se pudo actualizar el stock en Neon DB');
+      notifyError('No se pudo actualizar el stock en Neon DB', 'Fallo al Actualizar');
       loadProducts();
     } finally {
       setUpdatingStockId(null);
     }
   };
 
-  // Eliminar producto con confirmación y persistencia
+  // Eliminar producto con modal de confirmación personalizado
   const handleDeleteProduct = async (product) => {
-    const confirmed = window.confirm(`¿Deseas eliminar permanentemente el producto "${product.nombre}" del catálogo?`);
+    const confirmed = await confirm({
+      title: '¿Eliminar Artículo?',
+      message: `¿Estás seguro de que deseas eliminar permanentemente el producto "${product.nombre}" del catálogo de ${tenant?.nombre}?`,
+      confirmText: 'Sí, Eliminar de DB',
+      cancelText: 'Cancelar',
+      type: 'danger'
+    });
     if (!confirmed) return;
 
     setProducts((prev) => prev.filter((p) => p.id !== product.id));
@@ -109,10 +112,10 @@ export default function InventoryManager({ tenant }) {
         method: 'DELETE'
       });
       if (!res.ok) throw new Error('Error al eliminar');
-      showToast(`Producto "${product.nombre}" eliminado correctamente.`);
+      notifySuccess(`Producto "${product.nombre}" eliminado correctamente.`, 'Producto Eliminado');
     } catch (err) {
       console.error('Error eliminando producto:', err);
-      showToast('Error al eliminar el producto de Neon DB');
+      notifyError('No se pudo eliminar el producto de Neon DB', 'Error de Base de Datos');
       loadProducts();
     }
   };
@@ -123,6 +126,7 @@ export default function InventoryManager({ tenant }) {
     setEditName(product.nombre || '');
     setEditPrice(String(product.precio || 0));
     setEditStock(String(product.stock || 0));
+    setEditImage(product.imagen_url || '');
   };
 
   // Guardar edición de producto
@@ -134,7 +138,8 @@ export default function InventoryManager({ tenant }) {
     const updatedPayload = {
       nombre: editName.trim(),
       precio: parseFloat(editPrice) || 0,
-      stock: parseInt(editStock, 10) || 0
+      stock: parseInt(editStock, 10) || 0,
+      imagen_url: editImage.trim() || null
     };
 
     try {
@@ -145,16 +150,15 @@ export default function InventoryManager({ tenant }) {
       });
 
       if (!res.ok) throw new Error('Error al actualizar');
-      const data = await res.json();
       
       setProducts((prev) =>
         prev.map((p) => (p.id === editingProduct.id ? { ...p, ...updatedPayload } : p))
       );
-      showToast(`"${updatedPayload.nombre}" actualizado exitosamente.`);
+      notifySuccess(`"${updatedPayload.nombre}" actualizado exitosamente en Neon DB.`, 'Cambios Guardados');
       setEditingProduct(null);
     } catch (err) {
       console.error('Error editando producto:', err);
-      showToast('Error al guardar cambios del producto');
+      notifyError('No se pudieron guardar los cambios del producto.', 'Fallo al Guardar');
     } finally {
       setSavingEdit(false);
     }
@@ -190,13 +194,6 @@ export default function InventoryManager({ tenant }) {
 
   return (
     <div className="space-y-6">
-      {/* Toast Notificación */}
-      {toastMessage && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 py-2.5 px-4 bg-slate-900 text-white text-xs font-bold rounded-2xl shadow-xl flex items-center gap-2 animate-fadeIn border border-slate-700">
-          <CheckCircle className="w-4 h-4 text-emerald-400" />
-          <span>{toastMessage}</span>
-        </div>
-      )}
 
       {/* 1. KPIs del Inventario en Bodega */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -368,12 +365,20 @@ export default function InventoryManager({ tenant }) {
                   return (
                     <tr key={p.id} className="hover:bg-slate-50/60 transition-colors">
                       <td className="py-3 px-4">
-                        <div className="flex items-center gap-2.5">
-                          <span className="text-2xl p-1.5 rounded-xl bg-slate-100 shrink-0">
-                            {p.emoji || '📦'}
-                          </span>
-                          <div>
-                            <span className="font-bold text-slate-900 block">{p.nombre}</span>
+                        <div className="flex items-center gap-3">
+                          {p.imagen_url ? (
+                            <img
+                              src={p.imagen_url}
+                              alt={p.nombre}
+                              className="w-11 h-11 object-cover rounded-xl border border-slate-200 shrink-0 shadow-xs"
+                            />
+                          ) : (
+                            <span className="text-xl w-11 h-11 rounded-xl bg-slate-100 flex items-center justify-center shrink-0 border border-slate-200">
+                              {p.emoji || '📦'}
+                            </span>
+                          )}
+                          <div className="min-w-0">
+                            <span className="font-bold text-slate-900 block truncate">{p.nombre}</span>
                             {p.descripcion && (
                               <span className="text-[11px] text-slate-400 line-clamp-1">
                                 {p.descripcion}
@@ -484,7 +489,6 @@ export default function InventoryManager({ tenant }) {
         tenant={tenant}
         onProductCreated={() => {
           loadProducts();
-          showToast('¡Nuevo producto añadido con éxito a Neon DB!');
         }}
       />
 
@@ -496,7 +500,7 @@ export default function InventoryManager({ tenant }) {
               <h3 className="font-bold text-sm text-slate-900">Editar Artículo</h3>
               <button
                 onClick={() => setEditingProduct(null)}
-                className="p-1 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100"
+                className="p-1 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -546,11 +550,36 @@ export default function InventoryManager({ tenant }) {
                 </div>
               </div>
 
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 uppercase font-mono mb-1">
+                  URL de Imagen (Opcional):
+                </label>
+                <input
+                  type="url"
+                  value={editImage}
+                  onChange={(e) => setEditImage(e.target.value)}
+                  placeholder="https://..."
+                  className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-900 focus:outline-none focus:bg-white"
+                />
+                {editImage && (
+                  <div className="mt-1.5 flex items-center gap-2">
+                    <img src={editImage} alt="Preview" className="w-8 h-8 rounded-lg object-cover border border-slate-200" />
+                    <button
+                      type="button"
+                      onClick={() => setEditImage('')}
+                      className="text-[10px] text-rose-600 font-bold hover:underline cursor-pointer"
+                    >
+                      Quitar foto
+                    </button>
+                  </div>
+                )}
+              </div>
+
               <div className="pt-2 flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setEditingProduct(null)}
-                  className="px-3.5 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl"
+                  className="px-3.5 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
                 >
                   Cancelar
                 </button>

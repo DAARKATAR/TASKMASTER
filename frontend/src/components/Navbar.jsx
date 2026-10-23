@@ -1,5 +1,6 @@
 import React from 'react';
-import { ShoppingBag, Boxes, FileText, TrendingUp, Settings, LogOut, Terminal, Shield, ArrowLeft } from 'lucide-react';
+import { ShoppingBag, Boxes, FileText, TrendingUp, Settings, LogOut, Terminal, Shield, ArrowLeft, Sparkles } from 'lucide-react';
+import { useNotification } from '../context/NotificationContext';
 
 export default function Navbar({ 
   position = 'top', // 'top' | 'left' | 'right' | 'bottom'
@@ -12,6 +13,7 @@ export default function Navbar({
   onExitToLanding,
   showDebugTools = false
 }) {
+  const { openNovedades } = useNotification();
   // Módulos activos a la carta para este negocio
   const activeModuleList = (tenant?.active_modules && Array.isArray(tenant.active_modules))
     ? tenant.active_modules
@@ -101,8 +103,17 @@ export default function Navbar({
           {/* Tools & User */}
           <div className="flex items-center gap-2">
             <button
+              onClick={openNovedades}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 transition-all cursor-pointer shadow-2xs"
+              title="Ver Novedades del Sistema"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-violet-600 animate-pulse" />
+              <span className="hidden sm:inline">Novedades</span>
+            </button>
+
+            <button
               onClick={onOpenCustomizer}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-colors"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-colors cursor-pointer"
               title="Personalizar Posición del Navbar y Fondo"
             >
               <Settings className="w-3.5 h-3.5" />
@@ -188,8 +199,16 @@ export default function Navbar({
           {/* Quick Actions */}
           <div className="space-y-2 pt-2 border-t border-slate-100">
             <button
+              onClick={openNovedades}
+              className="w-full flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-violet-700 bg-violet-50 hover:bg-violet-100 border border-violet-200 transition-colors cursor-pointer"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-violet-600 animate-pulse" />
+              <span>Novedades TaskMaster</span>
+            </button>
+
+            <button
               onClick={onOpenCustomizer}
-              className="w-full flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors"
+              className="w-full flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer"
             >
               <Settings className="w-3.5 h-3.5" />
               <span>Personalizar Posición</span>

@@ -4,7 +4,8 @@ import AuthView from './components/AuthView';
 import PosTerminal from './components/PosTerminal';
 import LedgerTable from './components/LedgerTable';
 import PosLayout from './components/PosLayout';
-import { Sliders, Loader2 } from 'lucide-react';
+import { Sliders, Loader2, Sparkles } from 'lucide-react';
+import { useNotification } from './context/NotificationContext';
 
 // Code-Splitting con React.lazy para componentes no críticos en carga inicial
 const NewTenantWizard = lazy(() => import('./components/NewTenantWizard'));
@@ -72,6 +73,7 @@ function SuspenseFallback({ message = 'Cargando módulo...' }) {
 }
 
 export default function App() {
+  const { notifySuccess, notifyError, openNovedades } = useNotification();
   // 1. Navegación de vistas principales: 'landing' | 'auth' | 'wizard' | 'pos'
   const [currentView, setCurrentView] = useState(() => {
     const token = typeof window !== "undefined" ? localStorage.getItem("taskmaster_token") : null;
@@ -204,9 +206,10 @@ export default function App() {
   const handleEmitInvoice = async (orderData) => {
     try {
       await emitInvoice(orderData, currentTenant);
+      notifySuccess('Venta procesada y comprobante guardado en Neon DB.', 'Venta Exitosa');
     } catch (err) {
       console.error('Error emitiendo venta:', err);
-      alert(`Error al registrar venta: ${err.message}`);
+      notifyError(`No se pudo registrar la venta: ${err.message}`, 'Error de Facturación');
     }
   };
 
@@ -415,20 +418,33 @@ export default function App() {
             {renderPosContent()}
           </PosLayout>
 
-          {/* Botón flotante para el personalizador de diseño */}
-          <button
-            onClick={() => setShowCustomizer(true)}
-            className="fixed bottom-4 right-4 z-40 p-3 rounded-2xl bg-white text-slate-700 border border-slate-200 shadow-xl hover:shadow-2xl transition-all flex items-center gap-2 group cursor-pointer"
-            title="Personalizar Módulos Activos y Diseño"
-          >
-            <Sliders
-              className="w-4 h-4 transition-transform group-hover:rotate-45"
-              style={{ color: currentTenant?.brand_color || '#0F172A' }}
-            />
-            <span className="text-xs font-bold hidden sm:inline">
-              Módulos & Estilo ({activeModules.length})
-            </span>
-          </button>
+          {/* Botones flotantes de herramientas y novedades */}
+          <div className="fixed bottom-4 right-4 z-40 flex items-center gap-2">
+            <button
+              onClick={openNovedades}
+              className="p-3 rounded-2xl bg-white text-violet-700 border border-violet-200 shadow-xl hover:shadow-2xl transition-all flex items-center gap-2 group cursor-pointer"
+              title="Ver Novedades del Sistema"
+            >
+              <Sparkles className="w-4 h-4 text-violet-600 animate-pulse" />
+              <span className="text-xs font-bold hidden sm:inline">
+                Novedades
+              </span>
+            </button>
+
+            <button
+              onClick={() => setShowCustomizer(true)}
+              className="p-3 rounded-2xl bg-white text-slate-700 border border-slate-200 shadow-xl hover:shadow-2xl transition-all flex items-center gap-2 group cursor-pointer"
+              title="Personalizar Módulos Activos y Diseño"
+            >
+              <Sliders
+                className="w-4 h-4 transition-transform group-hover:rotate-45"
+                style={{ color: currentTenant?.brand_color || '#0F172A' }}
+              />
+              <span className="text-xs font-bold hidden sm:inline">
+                Módulos & Estilo ({activeModules.length})
+              </span>
+            </button>
+          </div>
         </>
       )}
 

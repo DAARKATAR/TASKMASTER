@@ -814,6 +814,7 @@ router2.post("/register-tenant", authLimiter, async (req, res) => {
         emoji VARCHAR(20) DEFAULT '\u{1F4E6}',
         descripcion TEXT,
         stock INT NOT NULL DEFAULT 100,
+        imagen_url TEXT,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `);
@@ -1094,6 +1095,7 @@ async function provisionTenant(dto) {
         emoji VARCHAR(20) DEFAULT '\u{1F4E6}',
         descripcion TEXT,
         stock INT NOT NULL DEFAULT 100,
+        imagen_url TEXT,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
 
@@ -1281,7 +1283,7 @@ async function listProducts(req, res, next) {
   try {
     const products = await withTenantContext(schemaName, async (client) => {
       const { rows } = await client.query(`
-        SELECT id, nombre, precio, rubro, emoji, descripcion, stock, created_at
+        SELECT id, nombre, precio, rubro, emoji, descripcion, stock, imagen_url, created_at
         FROM productos
         ORDER BY id ASC
       `);
@@ -1301,15 +1303,15 @@ async function createProduct(req, res, next) {
   const { tenantId } = req.params;
   const cleanId = String(tenantId).trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
   const schemaName = `tenant_${cleanId}`;
-  const { nombre, precio, rubro, emoji, stock, descripcion } = req.body;
+  const { nombre, precio, rubro, emoji, stock, descripcion, imagen_url } = req.body;
   if (!nombre || precio === void 0) {
     return res.status(400).json({ error: "El nombre y el precio del producto son obligatorios." });
   }
   try {
     const product = await withTenantContext(schemaName, async (client) => {
       const { rows } = await client.query(`
-        INSERT INTO productos (nombre, precio, rubro, emoji, stock, descripcion)
-        VALUES ($1, $2, $3, $4, $5, $6)
+        INSERT INTO productos (nombre, precio, rubro, emoji, stock, descripcion, imagen_url)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING *;
       `, [
         nombre.trim(),
@@ -1317,7 +1319,8 @@ async function createProduct(req, res, next) {
         (rubro || "General").trim(),
         (emoji || "\u{1F4E6}").trim(),
         parseInt(stock, 10) || 50,
-        (descripcion || "").trim()
+        (descripcion || "").trim(),
+        imagen_url ? String(imagen_url).trim() : null
       ]);
       return rows[0];
     });
@@ -1335,7 +1338,7 @@ async function updateProduct(req, res, next) {
   if (!prodId) {
     return res.status(400).json({ error: "ID de producto inv\xE1lido" });
   }
-  const { stock, precio, nombre, rubro, emoji, descripcion } = req.body;
+  const { stock, precio, nombre, rubro, emoji, descripcion, imagen_url } = req.body;
   try {
     const updated = await withTenantContext(schemaName, async (client) => {
       const fields = [];
@@ -1364,6 +1367,10 @@ async function updateProduct(req, res, next) {
       if (descripcion !== void 0) {
         fields.push(`descripcion = $${idx++}`);
         values.push(String(descripcion).trim());
+      }
+      if (imagen_url !== void 0) {
+        fields.push(`imagen_url = $${idx++}`);
+        values.push(imagen_url ? String(imagen_url).trim() : null);
       }
       if (fields.length === 0) return null;
       values.push(prodId);

@@ -32,7 +32,7 @@ export async function listProducts(req: Request, res: Response, next: NextFuncti
   try {
     const products = await withTenantContext(schemaName, async (client) => {
       const { rows } = await client.query(`
-        SELECT id, nombre, precio, rubro, emoji, descripcion, stock, created_at
+        SELECT id, nombre, precio, rubro, emoji, descripcion, stock, imagen_url, created_at
         FROM productos
         ORDER BY id ASC
       `);
@@ -56,7 +56,7 @@ export async function createProduct(req: Request, res: Response, next: NextFunct
   const { tenantId } = req.params;
   const cleanId = String(tenantId).trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
   const schemaName = `tenant_${cleanId}`;
-  const { nombre, precio, rubro, emoji, stock, descripcion } = req.body;
+  const { nombre, precio, rubro, emoji, stock, descripcion, imagen_url } = req.body;
 
   if (!nombre || precio === undefined) {
     return res.status(400).json({ error: 'El nombre y el precio del producto son obligatorios.' });
@@ -65,8 +65,8 @@ export async function createProduct(req: Request, res: Response, next: NextFunct
   try {
     const product = await withTenantContext(schemaName, async (client) => {
       const { rows } = await client.query(`
-        INSERT INTO productos (nombre, precio, rubro, emoji, stock, descripcion)
-        VALUES ($1, $2, $3, $4, $5, $6)
+        INSERT INTO productos (nombre, precio, rubro, emoji, stock, descripcion, imagen_url)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING *;
       `, [
         nombre.trim(),
@@ -74,7 +74,8 @@ export async function createProduct(req: Request, res: Response, next: NextFunct
         (rubro || 'General').trim(),
         (emoji || '📦').trim(),
         parseInt(stock, 10) || 50,
-        (descripcion || '').trim()
+        (descripcion || '').trim(),
+        imagen_url ? String(imagen_url).trim() : null
       ]);
       return rows[0];
     });
@@ -97,7 +98,7 @@ export async function updateProduct(req: Request, res: Response, next: NextFunct
     return res.status(400).json({ error: "ID de producto inválido" });
   }
 
-  const { stock, precio, nombre, rubro, emoji, descripcion } = req.body;
+  const { stock, precio, nombre, rubro, emoji, descripcion, imagen_url } = req.body;
 
   try {
     const updated = await withTenantContext(schemaName, async (client) => {
@@ -128,6 +129,10 @@ export async function updateProduct(req: Request, res: Response, next: NextFunct
       if (descripcion !== undefined) {
         fields.push(`descripcion = $${idx++}`);
         values.push(String(descripcion).trim());
+      }
+      if (imagen_url !== undefined) {
+        fields.push(`imagen_url = $${idx++}`);
+        values.push(imagen_url ? String(imagen_url).trim() : null);
       }
 
       if (fields.length === 0) return null;

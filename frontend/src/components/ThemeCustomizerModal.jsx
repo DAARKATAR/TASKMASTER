@@ -18,6 +18,7 @@ import {
   Sliders
 } from 'lucide-react';
 import { AVAILABLE_MODULES, PRESET_MODULAR_PROFILES, DEFAULT_ACTIVE_MODULES } from '../config/modules';
+import { useNotification } from '../context/NotificationContext';
 
 export default function ThemeCustomizerModal({
   isOpen,
@@ -32,6 +33,7 @@ export default function ThemeCustomizerModal({
   tenant,
   onUpdateModules
 }) {
+  const { notifySuccess, notifyError } = useNotification();
   const [activeTab, setActiveTab] = useState('modules'); // 'modules' | 'appearance'
   const [selectedModules, setSelectedModules] = useState(
     tenant?.active_modules && Array.isArray(tenant.active_modules)
@@ -82,10 +84,11 @@ export default function ThemeCustomizerModal({
     try {
       await onUpdateModules(selectedModules);
       setSaveSuccess(true);
+      notifySuccess('Módulos del negocio guardados correctamente.', 'Configuración Actualizada');
       setTimeout(() => setSaveSuccess(false), 2500);
     } catch (err) {
       console.error('Error guardando módulos:', err);
-      alert('Error al guardar módulos: ' + err.message);
+      notifyError('No se pudieron guardar los módulos: ' + err.message, 'Fallo de Configuración');
     } finally {
       setSavingModules(false);
     }

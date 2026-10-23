@@ -130,6 +130,7 @@ router.post('/register-tenant', authLimiter, async (req, res) => {
         emoji VARCHAR(20) DEFAULT '📦',
         descripcion TEXT,
         stock INT NOT NULL DEFAULT 100,
+        imagen_url TEXT,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `);

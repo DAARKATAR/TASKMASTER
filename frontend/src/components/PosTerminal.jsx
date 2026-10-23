@@ -253,7 +253,8 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
           rubro: p.rubro || 'General',
           emoji: p.emoji || '📦',
           desc: p.descripcion || '',
-          stock: parseInt(p.stock, 10) || 0
+          stock: parseInt(p.stock, 10) || 0,
+          imagen_url: p.imagen_url || null
         }));
         setProducts(normalized);
       }
@@ -697,9 +698,17 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2 mb-2">
-                    <span className="text-3xl p-2 rounded-xl bg-slate-50 border border-slate-100 group-hover:scale-105 transition-transform">
-                      {p.emoji}
-                    </span>
+                    {p.imagen_url ? (
+                      <img
+                        src={p.imagen_url}
+                        alt={p.name}
+                        className="w-13 h-13 object-cover rounded-xl border border-slate-200 group-hover:scale-105 transition-transform shadow-2xs shrink-0"
+                      />
+                    ) : (
+                      <span className="text-3xl p-2 rounded-xl bg-slate-50 border border-slate-100 group-hover:scale-105 transition-transform shrink-0">
+                        {p.emoji}
+                      </span>
+                    )}
                     <div className="text-right">
                       <span
                         className="font-mono text-sm font-black font-display block"
@@ -859,7 +868,15 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
                     className="p-2.5 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <span className="text-xl shrink-0">{item.emoji}</span>
+                      {item.imagen_url ? (
+                        <img
+                          src={item.imagen_url}
+                          alt={item.name}
+                          className="w-7 h-7 rounded-lg object-cover shrink-0 border border-slate-200"
+                        />
+                      ) : (
+                        <span className="text-xl shrink-0">{item.emoji}</span>
+                      )}
                       <div className="truncate">
                         <span className="font-bold text-slate-800 block truncate">{item.name}</span>
                         <span className="font-mono text-[11px] text-slate-500">

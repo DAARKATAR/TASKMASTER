@@ -77,6 +77,7 @@ export async function provisionTenant(dto: ProvisionTenantDTO): Promise<Tenant> 
         emoji VARCHAR(20) DEFAULT '📦',
         descripcion TEXT,
         stock INT NOT NULL DEFAULT 100,
+        imagen_url TEXT,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
 
