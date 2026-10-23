@@ -1,8 +1,21 @@
 {
+  "version": 2,
   "rewrites": [
     {
+      "source": "/api/:match*",
+      "destination": "/api"
+    },
+    {
+      "source": "/ws/:match*",
+      "destination": "/api"
+    },
+    {
+      "source": "/health",
+      "destination": "/api"
+    },
+    {
       "source": "/(.*)",
-      "destination": "/api/index.js"
+      "destination": "/api"
     }
   ]
 }
