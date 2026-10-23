@@ -94,14 +94,21 @@ export default function App() {
   const [showDebugTools, setShowDebugTools] = useState(false);
 
   // 2. Custom Hooks desacoplados
-  const { authToken, currentUser, setCurrentUser, authLoading, login, logout } = useAuth();
+  const { authToken, currentUser, setCurrentUser, authTenant, authLoading, login, logout } = useAuth();
   const { currentTenant, setCurrentTenant, availableTenants, loadTenants, selectTenant, activeModules, updateActiveModules } =
-    useTenant();
+    useTenant(authTenant);
   const { invoices, pagination, metrics, invoiceData, loadingInvoices, loadingMetrics, loadInvoices, loadMetrics, emitInvoice } =
     useInvoices(currentTenant?.id, authToken);
   const { navbarPosition, selectNavbarPosition, bgTheme, selectBgTheme, showCustomizer, setShowCustomizer, themeColors } =
     useThemePreferences(currentTenant, currentView);
   const { lastResponse, loadingSoap, latency, httpStatus, executeSoapCall } = useSoapClient(currentTenant);
+
+  // Sincronizar el tenant activo si la sesión autenticada especifica uno diferente
+  useEffect(() => {
+    if (authTenant?.id && (!currentTenant || currentTenant.id !== authTenant.id)) {
+      selectTenant(authTenant);
+    }
+  }, [authTenant, currentTenant, selectTenant]);
 
   // Si la pestaña actual se desactiva por configuración modular, cambiar a la primera activa
   useEffect(() => {
@@ -169,14 +176,14 @@ export default function App() {
 
   // Handlers
   const handleLoginSuccess = (authData) => {
-    login(authData?.token, authData?.user);
-    if (authData?.tenant) setCurrentTenant(authData.tenant);
+    login(authData?.token, authData?.user, authData?.tenant);
+    if (authData?.tenant) selectTenant(authData.tenant);
     navigateTo("pos");
   };
 
   const handleLogout = () => {
     logout();
-    setCurrentTenant(null);
+    selectTenant(null);
     navigateTo("landing");
   };
 
@@ -186,8 +193,8 @@ export default function App() {
   };
 
   const handleTenantCreated = (sessionData) => {
-    login(sessionData?.token, sessionData?.user);
-    if (sessionData?.tenant) setCurrentTenant(sessionData.tenant);
+    login(sessionData?.token, sessionData?.user, sessionData?.tenant);
+    if (sessionData?.tenant) selectTenant(sessionData.tenant);
     if (sessionData?.bgTheme) selectBgTheme(sessionData.bgTheme);
     if (sessionData?.navbarPosition) selectNavbarPosition(sessionData.navbarPosition);
     loadTenants();

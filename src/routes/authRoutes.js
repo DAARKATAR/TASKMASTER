@@ -4,7 +4,6 @@ import pool from '../config/database.js';
 import { signJwt, authenticateJwt } from '../middlewares/auth.middleware.js';
 import { authLimiter } from '../middlewares/rateLimiter.middleware.js';
 import { logAudit } from '../services/auditLogger.js';
-import { getDefaultProducts } from '../config/defaultProducts.js';
 
 const router = express.Router();
 
@@ -135,14 +134,8 @@ router.post('/register-tenant', authLimiter, async (req, res) => {
       );
     `);
 
-    // 9. Poblar catálogo inicial según el rubro comercial
-    const defaultProds = getDefaultProducts(finalType);
-    for (const p of defaultProds) {
-      await client.query(`
-        INSERT INTO "${schemaName}".productos (nombre, precio, rubro, emoji, stock, descripcion)
-        VALUES ($1, $2, $3, $4, $5, $6);
-      `, [p.nombre, p.precio, p.rubro, p.emoji, p.stock, p.descripcion]);
-    }
+    // 9. Catálogo inicial en 0 productos (el comerciante registra su propio inventario)
+    // No se insertan productos precargados por requerimiento de catálogo limpio.
 
     // 10. Crear tabla usuarios aislada dentro del esquema del tenant
     await client.query(`

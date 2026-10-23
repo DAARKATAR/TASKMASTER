@@ -1,5 +1,4 @@
 import pool from '../../config/database.js';
-import { getDefaultProducts } from '../../config/defaultProducts.js';
 import { invalidateTenantCache } from '../../services/tenantService.js';
 import { Tenant, ProvisionTenantDTO } from './tenant.types.js';
 
@@ -104,20 +103,12 @@ export async function provisionTenant(dto: ProvisionTenantDTO): Promise<Tenant> 
       );
     `);
 
-    // 4. Semillado de cuenta POS y catálogo inicial
+    // 4. Semillado de cuenta POS inicial (catálogo de productos se deja en 0)
     await client.query(`
       INSERT INTO "${schemaName}".cuentas (numero_cuenta, titular, saldo, moneda, tipo_cuenta, activa)
       VALUES ($1, $2, $3, 'COP', 'Terminal POS Principal', TRUE)
       ON CONFLICT (numero_cuenta) DO NOTHING;
     `, [`CTA-${cleanId.toUpperCase()}-001`, titular, saldo]);
-
-    const defaultProds = getDefaultProducts();
-    for (const p of defaultProds) {
-      await client.query(`
-        INSERT INTO "${schemaName}".productos (nombre, precio, rubro, emoji, stock, descripcion)
-        VALUES ($1, $2, $3, $4, $5, $6);
-      `, [p.nombre, p.precio, p.rubro, p.emoji, p.stock, p.descripcion]);
-    }
 
     await client.query('COMMIT');
     invalidateTenantCache(cleanId);

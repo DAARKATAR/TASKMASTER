@@ -717,56 +717,6 @@ var apiLimiter = rateLimit({
   }
 });
 
-// src/config/defaultProducts.js
-var DEFAULT_CATALOGS_BY_RUBRO = {
-  "Reposter\xEDa & Caf\xE9": [
-    { nombre: "Capuchino de Especialidad Doble", precio: 9500, rubro: "Cafeter\xEDa & Reposter\xEDa", emoji: "\u2615", stock: 120, descripcion: "Espresso doble con leche emulsionada sedosa" },
-    { nombre: "Croissant Franc\xE9s de Mantequilla", precio: 8500, rubro: "Cafeter\xEDa & Reposter\xEDa", emoji: "\u{1F950}", stock: 60, descripcion: "Hojaldre horneado con mantequilla europea" },
-    { nombre: "Torta Selva Negra Gourmet", precio: 45e3, rubro: "Cafeter\xEDa & Reposter\xEDa", emoji: "\u{1F382}", stock: 25, descripcion: "Chocolate belga, cerezas maceradas y crema suave" },
-    { nombre: "Cheesecake de Frutos Rojos", precio: 38e3, rubro: "Cafeter\xEDa & Reposter\xEDa", emoji: "\u{1F370}", stock: 30, descripcion: "Base crocante con coulis de fresas y moras silvestres" },
-    { nombre: "Caja Macarons Surtidos (6u)", precio: 24e3, rubro: "Cafeter\xEDa & Reposter\xEDa", emoji: "\u{1F361}", stock: 45, descripcion: "Almendra francesa rellenos de pistacho, frambuesa y chocolate" },
-    { nombre: "Americano Filtrado Origen Geisha", precio: 8e3, rubro: "Cafeter\xEDa & Reposter\xEDa", emoji: "\u2615", stock: 150, descripcion: "Caf\xE9 de especialidad con notas florales y jazm\xEDn" }
-  ],
-  "Restaurante & Fast Food": [
-    { nombre: "Hamburguesa Angus Doble Queso", precio: 32e3, rubro: "Restaurante & Fast Food", emoji: "\u{1F354}", stock: 80, descripcion: "200g carne angus, queso cheddar madurado y tocineta crocante" },
-    { nombre: "Pizza Familiar Pepperoni Crispy", precio: 42e3, rubro: "Restaurante & Fast Food", emoji: "\u{1F355}", stock: 50, descripcion: "Masa madre fermentada 48h con salsa pomodoro y mozzarella" },
-    { nombre: "Combo Tacos al Pastor (3u)", precio: 26e3, rubro: "Restaurante & Fast Food", emoji: "\u{1F32E}", stock: 70, descripcion: "Carne de cerdo marinada con pi\xF1a asada, cebolla y cilantro" },
-    { nombre: "Papas R\xFAsticas Trufadas", precio: 14e3, rubro: "Restaurante & Fast Food", emoji: "\u{1F35F}", stock: 100, descripcion: "Papas corte grueso con aceite de trufa y queso parmesano" },
-    { nombre: "Bowl Ensalada C\xE9sar con Pollo", precio: 22e3, rubro: "Restaurante & Fast Food", emoji: "\u{1F957}", stock: 40, descripcion: "Lechuga romana fresca, pechuga a la plancha y crutones" },
-    { nombre: "Bebida Gaseosa Artesanal 500ml", precio: 7500, rubro: "Restaurante & Fast Food", emoji: "\u{1F964}", stock: 120, descripcion: "Refresco natural con infusi\xF3n bot\xE1nica" }
-  ],
-  "Boutique & Retail": [
-    { nombre: "Camiseta Algod\xF3n Pima B\xE1sica", precio: 55e3, rubro: "Boutique & Retail", emoji: "\u{1F455}", stock: 65, descripcion: "100% algod\xF3n de fibra larga, tacto ultra suave" },
-    { nombre: "Jeans Slim Fit Denim Premium", precio: 12e4, rubro: "Boutique & Retail", emoji: "\u{1F456}", stock: 40, descripcion: "Denim el\xE1sticado con lavado \xEDndigo oscuro cl\xE1sico" },
-    { nombre: "Zapatillas Urbanas Streetwear", precio: 18e4, rubro: "Boutique & Retail", emoji: "\u{1F45F}", stock: 30, descripcion: "Suela ergon\xF3mica amortiguada con capellada en cuero ecol\xF3gico" },
-    { nombre: "Gorra Cl\xE1sica Ajustable", precio: 45e3, rubro: "Boutique & Retail", emoji: "\u{1F9E2}", stock: 55, descripcion: "Algod\xF3n drill con visera curva y hebilla met\xE1lica" },
-    { nombre: "Bolso Tote Bag Canvas Eco", precio: 35e3, rubro: "Boutique & Retail", emoji: "\u{1F6CD}\uFE0F", stock: 50, descripcion: "Lona resistente con asas reforzadas y bolsillo interno" }
-  ],
-  "Farmacia & Salud": [
-    { nombre: "Protector Solar Facial SPF 50+", precio: 65e3, rubro: "Farmacia & Salud", emoji: "\u{1F9F4}", stock: 90, descripcion: "Toque seco, amplio espectro UVA/UVB ultraligero" },
-    { nombre: "Complejo Multivitam\xEDnico Diario", precio: 48e3, rubro: "Farmacia & Salud", emoji: "\u{1F48A}", stock: 75, descripcion: "Frasco de 60 c\xE1psulas con zinc, vitamina C, D3 y magnesio" },
-    { nombre: "Kit de Primeros Auxilios Port\xE1til", precio: 34e3, rubro: "Farmacia & Salud", emoji: "\u{1FA79}", stock: 60, descripcion: "Gasa esterilizada, vendas, micropore y antis\xE9ptico" },
-    { nombre: "Term\xF3metro Digital Cl\xEDnico", precio: 22e3, rubro: "Farmacia & Salud", emoji: "\u{1F321}\uFE0F", stock: 45, descripcion: "Lectura ultra r\xE1pida en 10 segundos con alarma sonora" },
-    { nombre: "Crema Hidratante Reparadora", precio: 39e3, rubro: "Farmacia & Salud", emoji: "\u2728", stock: 80, descripcion: "Con ceramidas y \xE1cido hialur\xF3nico para piel sensible" }
-  ],
-  "Minimarket & Abarrotes": [
-    { nombre: "Pack Aguas Minerales (6u)", precio: 18e3, rubro: "Minimarket & Abarrotes", emoji: "\u{1F4A7}", stock: 100, descripcion: "Agua de manantial natural sin gas 600ml cada una" },
-    { nombre: "Caf\xE9 de Origen en Grano (500g)", precio: 32e3, rubro: "Minimarket & Abarrotes", emoji: "\u{1FAD8}", stock: 50, descripcion: "Variedad ar\xE1bica tueste medio, notas a caramelo" },
-    { nombre: "Aceite de Oliva Extra Virgen 500ml", precio: 42e3, rubro: "Minimarket & Abarrotes", emoji: "\u{1FAD2}", stock: 60, descripcion: "Prensado en fr\xEDo de primera extracci\xF3n, acidez 0.2%" },
-    { nombre: "Mix Frutos Secos Seleccionados", precio: 16500, rubro: "Minimarket & Abarrotes", emoji: "\u{1F95C}", stock: 85, descripcion: "Almendras, nueces, ar\xE1ndanos y mara\xF1ones horneados" },
-    { nombre: "Chocolate Amargo Org\xE1nico 70%", precio: 12e3, rubro: "Minimarket & Abarrotes", emoji: "\u{1F36B}", stock: 110, descripcion: "Cacao fino de aroma certificado libre de gluten" }
-  ]
-};
-function getDefaultProducts(businessType = "") {
-  const match = Object.keys(DEFAULT_CATALOGS_BY_RUBRO).find(
-    (k) => businessType.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(businessType.toLowerCase())
-  );
-  if (match) {
-    return DEFAULT_CATALOGS_BY_RUBRO[match];
-  }
-  return DEFAULT_CATALOGS_BY_RUBRO["Reposter\xEDa & Caf\xE9"];
-}
-
 // src/routes/authRoutes.js
 var router2 = express.Router();
 router2.post("/register-tenant", authLimiter, async (req, res) => {
@@ -867,13 +817,6 @@ router2.post("/register-tenant", authLimiter, async (req, res) => {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `);
-    const defaultProds = getDefaultProducts(finalType);
-    for (const p of defaultProds) {
-      await client.query(`
-        INSERT INTO "${schemaName}".productos (nombre, precio, rubro, emoji, stock, descripcion)
-        VALUES ($1, $2, $3, $4, $5, $6);
-      `, [p.nombre, p.precio, p.rubro, p.emoji, p.stock, p.descripcion]);
-    }
     await client.query(`
       CREATE TABLE IF NOT EXISTS "${schemaName}".usuarios (
         id SERIAL PRIMARY KEY,
@@ -1181,13 +1124,6 @@ async function provisionTenant(dto) {
       VALUES ($1, $2, $3, 'COP', 'Terminal POS Principal', TRUE)
       ON CONFLICT (numero_cuenta) DO NOTHING;
     `, [`CTA-${cleanId.toUpperCase()}-001`, titular, saldo]);
-    const defaultProds = getDefaultProducts();
-    for (const p of defaultProds) {
-      await client.query(`
-        INSERT INTO "${schemaName}".productos (nombre, precio, rubro, emoji, stock, descripcion)
-        VALUES ($1, $2, $3, $4, $5, $6);
-      `, [p.nombre, p.precio, p.rubro, p.emoji, p.stock, p.descripcion]);
-    }
     await client.query("COMMIT");
     invalidateTenantCache(cleanId);
     return {

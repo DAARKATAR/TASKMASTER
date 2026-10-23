@@ -6,9 +6,38 @@ import { DEFAULT_ACTIVE_MODULES } from '../config/modules';
  * Hook para la gestión del inquilino (tenant) activo, módulos a la carta y lista de comercios
  */
 export function useTenant(initialTenant = null) {
-  const [currentTenant, setCurrentTenant] = useState(initialTenant);
+  const [currentTenant, setCurrentTenantState] = useState(() => {
+    if (initialTenant) return initialTenant;
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('taskmaster_current_tenant');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch {}
+      }
+    }
+    return null;
+  });
+
   const [availableTenants, setAvailableTenants] = useState([]);
   const [loadingTenants, setLoadingTenants] = useState(true);
+
+  // Wrapper para asegurar que cada actualización de currentTenant se persista en localStorage
+  const setCurrentTenant = useCallback((tenantOrUpdater) => {
+    setCurrentTenantState((prev) => {
+      const nextTenant = typeof tenantOrUpdater === 'function' ? tenantOrUpdater(prev) : tenantOrUpdater;
+      if (typeof window !== 'undefined') {
+        if (nextTenant && nextTenant.id) {
+          localStorage.setItem('taskmaster_current_tenant', JSON.stringify(nextTenant));
+          localStorage.setItem('taskmaster_current_tenant_id', nextTenant.id);
+        } else if (nextTenant === null) {
+          localStorage.removeItem('taskmaster_current_tenant');
+          localStorage.removeItem('taskmaster_current_tenant_id');
+        }
+      }
+      return nextTenant;
+    });
+  }, []);
 
   const loadTenants = useCallback(async () => {
     setLoadingTenants(true);
@@ -21,14 +50,40 @@ export function useTenant(initialTenant = null) {
           if (Array.isArray(list)) {
             setAvailableTenants(list);
             if (list.length > 0) {
-              setCurrentTenant((prev) => {
+              setCurrentTenantState((prev) => {
+                // 1. Prioridad: Conservar el tenant actualmente activo o guardado en sesión
+                const targetId = prev?.id || (typeof window !== 'undefined' ? localStorage.getItem('taskmaster_current_tenant_id') : null);
+                if (targetId) {
+                  const found = list.find((t) => t.id === targetId);
+                  if (found) {
+                    const localMods = localStorage.getItem(`taskmaster_modules_${found.id}`);
+                    if (localMods) {
+                      try {
+                        found.active_modules = JSON.parse(localMods);
+                      } catch {}
+                    }
+                    if (typeof window !== 'undefined') {
+                      localStorage.setItem('taskmaster_current_tenant', JSON.stringify(found));
+                      localStorage.setItem('taskmaster_current_tenant_id', found.id);
+                    }
+                    return found;
+                  }
+                }
+
+                // 2. Si ya hay un tenant en memoria, no sobreescribir
                 if (prev) return prev;
+
+                // 3. Fallback: solo si no hay ningún tenant previo
                 const first = list[0];
                 const localMods = localStorage.getItem(`taskmaster_modules_${first.id}`);
                 if (localMods) {
                   try {
                     first.active_modules = JSON.parse(localMods);
                   } catch {}
+                }
+                if (typeof window !== 'undefined') {
+                  localStorage.setItem('taskmaster_current_tenant', JSON.stringify(first));
+                  localStorage.setItem('taskmaster_current_tenant_id', first.id);
                 }
                 return first;
               });
@@ -45,9 +100,18 @@ export function useTenant(initialTenant = null) {
 
   useEffect(() => {
     loadTenants();
-  }, []);
+  }, [loadTenants]);
 
-  const selectTenant = (tenantOrId) => {
+  const selectTenant = useCallback((tenantOrId) => {
+    if (tenantOrId === null) {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('taskmaster_current_tenant');
+        localStorage.removeItem('taskmaster_current_tenant_id');
+      }
+      setCurrentTenantState(null);
+      return;
+    }
+
     if (typeof tenantOrId === 'string') {
       const found = availableTenants.find((t) => t.id === tenantOrId);
       if (found) {
@@ -57,20 +121,26 @@ export function useTenant(initialTenant = null) {
             found.active_modules = JSON.parse(localMods);
           } catch {}
         }
-        setCurrentTenant(found);
-      }
-    } else {
-      if (tenantOrId?.id) {
-        const localMods = localStorage.getItem(`taskmaster_modules_${tenantOrId.id}`);
-        if (localMods) {
-          try {
-            tenantOrId.active_modules = JSON.parse(localMods);
-          } catch {}
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('taskmaster_current_tenant', JSON.stringify(found));
+          localStorage.setItem('taskmaster_current_tenant_id', found.id);
         }
+        setCurrentTenantState(found);
       }
-      setCurrentTenant(tenantOrId);
+    } else if (tenantOrId?.id) {
+      const localMods = localStorage.getItem(`taskmaster_modules_${tenantOrId.id}`);
+      if (localMods) {
+        try {
+          tenantOrId.active_modules = JSON.parse(localMods);
+        } catch {}
+      }
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('taskmaster_current_tenant', JSON.stringify(tenantOrId));
+        localStorage.setItem('taskmaster_current_tenant_id', tenantOrId.id);
+      }
+      setCurrentTenantState(tenantOrId);
     }
-  };
+  }, [availableTenants]);
 
   // Módulos activos para el tenant actual
   const activeModules = useMemo(() => {
