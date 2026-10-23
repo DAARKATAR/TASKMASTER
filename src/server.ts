@@ -91,7 +91,7 @@ app.use((req: Request, res: Response) => {
 app.use(globalErrorHandler);
 
 // 8. Inicialización del Servidor
-if (process.env.NODE_ENV !== 'test') {
+if (process.env.NODE_ENV !== "test" && !process.env.VERCEL) {
   app.listen(PORT, () => {
     console.log(`[TaskMaster Engine] Servidor escuchando en el puerto ${PORT} en modo ${process.env.NODE_ENV || 'development'}`);
     console.log(`[Endpoints] WSDL disponible en: http://localhost:${PORT}/ws/:tenantId?wsdl`);

@@ -12,13 +12,9 @@ export function getApiBaseUrl() {
   if (import.meta.env.VITE_API_URL) {
     return import.meta.env.VITE_API_URL;
   }
-  if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return '';
-    }
-  }
-  return PRODUCTION_RENDER_API;
+  // En Vercel o en desarrollo local (mismo origen), usamos rutas relativas ""
+  // para comunicarnos directamente con las Serverless Functions sin problemas de CORS ni caídas
+  return "";
 }
 
 export const API_BASE_URL = getApiBaseUrl();
