@@ -691,34 +691,44 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
                 <div
                   key={p.id}
                   onClick={() => !isOutOfStock && addToCart(p)}
-                  className={`p-4 rounded-2xl bg-white border transition-all duration-200 flex flex-col justify-between group ${
+                  className={`rounded-2xl bg-white border transition-all duration-200 flex flex-col justify-between overflow-hidden group shadow-flat-sm hover:shadow-flat ${
                     isOutOfStock
                       ? 'opacity-60 border-slate-200 cursor-not-allowed'
-                      : 'border-slate-200 hover:border-slate-400 hover:shadow-flat cursor-pointer'
+                      : 'border-slate-200 hover:border-slate-400 cursor-pointer'
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    {p.imagen_url ? (
+                  {/* ZONA SUPERIOR: IMAGEN O FALLBACK CON EMOJI */}
+                  {p.imagen_url ? (
+                    <div className="relative w-full h-40 bg-slate-100 overflow-hidden shrink-0">
                       <img
                         src={p.imagen_url}
                         alt={p.name}
-                        className="w-13 h-13 object-cover rounded-xl border border-slate-200 group-hover:scale-105 transition-transform shadow-2xs shrink-0"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
-                    ) : (
-                      <span className="text-3xl p-2 rounded-xl bg-slate-50 border border-slate-100 group-hover:scale-105 transition-transform shrink-0">
-                        {p.emoji}
+                      {/* Badges de Categoría y Stock superpuestos con Glassmorphism */}
+                      <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between gap-2 pointer-events-none">
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/90 backdrop-blur-xs text-slate-800 font-bold shadow-xs border border-white/40">
+                          {p.rubro}
+                        </span>
+                        <span
+                          className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold shadow-xs backdrop-blur-xs border ${
+                            isOutOfStock
+                              ? 'bg-red-50/95 text-red-700 border-red-200'
+                              : isLowStock
+                              ? 'bg-amber-50/95 text-amber-800 border-amber-300'
+                              : 'bg-emerald-50/95 text-emerald-700 border-emerald-200'
+                          }`}
+                        >
+                          {isOutOfStock ? 'Agotado' : `Stock: ${p.stock}`}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-4 pb-2 flex items-start justify-between gap-2">
+                      <span className="text-3xl p-2.5 rounded-2xl bg-slate-50 border border-slate-100 group-hover:scale-105 transition-transform shrink-0">
+                        {p.emoji || '📦'}
                       </span>
-                    )}
-                    <div className="text-right">
-                      <span
-                        className="font-mono text-sm font-black font-display block"
-                        style={{ color: brandColor }}
-                      >
-                        $ {p.price.toLocaleString('es-CO')}
-                      </span>
-
-                      {/* Stock Badge con Alerta de Stock Bajo */}
-                      <div className="flex flex-col items-end gap-1 mt-0.5">
+                      <div className="flex flex-col items-end gap-1">
                         <span
                           className={`text-[10px] font-mono px-2 py-0.5 rounded-full inline-block ${
                             isOutOfStock
@@ -730,33 +740,45 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
                         >
                           {isOutOfStock ? 'Agotado' : `Stock: ${p.stock}`}
                         </span>
-
                         {isLowStock && (
                           <span className="inline-flex items-center gap-1 text-[9px] font-bold text-amber-600">
-                            <AlertTriangle className="w-2.5 h-2.5" /> ¡Últimas unidades!
+                            <AlertTriangle className="w-2.5 h-2.5" /> ¡Bajo stock!
                           </span>
                         )}
                       </div>
                     </div>
-                  </div>
+                  )}
 
-                  <div>
-                    <h4 className="font-display font-bold text-sm text-slate-900 transition-colors">
-                      {p.name}
-                    </h4>
-                    {p.desc && (
-                      <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">{p.desc}</p>
-                    )}
-                  </div>
+                  {/* CUERPO DEL PRODUCTO CON INFORMACIÓN Y PRECIO BIEN ALINEADOS */}
+                  <div className="p-4 flex-1 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-start justify-between gap-2">
+                        <h4 className="font-display font-bold text-sm text-slate-900 line-clamp-1 group-hover:text-indigo-600 transition-colors">
+                          {p.name}
+                        </h4>
+                        <span
+                          className="font-mono text-base font-black font-display shrink-0 ml-1.5"
+                          style={{ color: brandColor }}
+                        >
+                          $ {p.price.toLocaleString('es-CO')}
+                        </span>
+                      </div>
+                      {p.desc && (
+                        <p className="text-[11px] text-slate-500 mt-1 line-clamp-1">{p.desc}</p>
+                      )}
+                    </div>
 
-                  <div
-                    className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-semibold"
-                    style={{ color: isOutOfStock ? '#94A3B8' : brandColor }}
-                  >
-                    <span className="text-[10px] text-slate-400 uppercase font-mono">{p.rubro}</span>
-                    <span className="flex items-center gap-1 group-hover:underline">
-                      <Plus className="w-3.5 h-3.5" /> {isOutOfStock ? 'Sin existencias' : 'Agregar'}
-                    </span>
+                    <div
+                      className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs font-semibold"
+                      style={{ color: isOutOfStock ? '#94A3B8' : brandColor }}
+                    >
+                      <span className="text-[10px] text-slate-400 uppercase font-mono truncate max-w-[130px]">
+                        {p.rubro}
+                      </span>
+                      <span className="flex items-center gap-1 group-hover:translate-x-0.5 transition-transform font-bold">
+                        <Plus className="w-3.5 h-3.5" /> {isOutOfStock ? 'Sin existencias' : 'Agregar'}
+                      </span>
+                    </div>
                   </div>
                 </div>
               );
