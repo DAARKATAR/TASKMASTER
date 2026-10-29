@@ -179,3 +179,23 @@ npx vitest run --coverage
 | **Content-Negotiation Errores**| `tests/errorHandler.test.ts` | 2 | ✅ APROBADO |
 | **Endpoints Core API** | `tests/apiEndpoints.test.ts` | 13 | ✅ APROBADO |
 | **TOTAL** | **9 Archivos de Prueba** | **44** | **100% PASS** |
+
+
+---
+
+## 6. Galería de Evidencias Gráficas de Ejecución (Capturas de Terminal)
+
+Todas las capturas de ejecución se encuentran almacenadas en formato vectorial de alta resolución en la carpeta [`docs/evidence/`](./evidence/):
+
+| Suite de Prueba | Archivo de Captura | Estado y Casos |
+| :--- | :--- | :---: |
+| **Resumen General de la Suite (44 Tests)** | [`summary-all-tests.svg`](./evidence/summary-all-tests.svg) | ![Resumen](./evidence/summary-all-tests.svg) |
+| **1. Autenticación & JWT** | [`suite-auth.svg`](./evidence/suite-auth.svg) | 6 Casos (100% PASS) |
+| **2. Resolución Multi-Inquilino** | [`suite-tenant-resolver.svg`](./evidence/suite-tenant-resolver.svg) | 5 Casos (100% PASS) |
+| **3. Generador de Contratos WSDL 1.1** | [`suite-wsdl-generator.svg`](./evidence/suite-wsdl-generator.svg) | 4 Casos (100% PASS) |
+| **4. Caché L1 en Memoria con TTL** | [`suite-cache-service.svg`](./evidence/suite-cache-service.svg) | 4 Casos (100% PASS) |
+| **5. Catálogos por Rubro Comercial** | [`suite-default-products.svg`](./evidence/suite-default-products.svg) | 3 Casos (100% PASS) |
+| **6. Resiliencia y Contingencia Offline** | [`suite-offline-queue.svg`](./evidence/suite-offline-queue.svg) | 4 Casos (100% PASS) |
+| **7. Seguridad SOAP & Mitigación XXE** | [`suite-soap-security.svg`](./evidence/suite-soap-security.svg) | 3 Casos (100% PASS) |
+| **8. Content-Negotiation de Errores** | [`suite-error-handler.svg`](./evidence/suite-error-handler.svg) | 2 Casos (100% PASS) |
+| **9. Endpoints Core de la API** | [`suite-core-api.svg`](./evidence/suite-core-api.svg) | 13 Casos (100% PASS) |
