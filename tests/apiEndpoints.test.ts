@@ -1,6 +1,64 @@
-import { describe, it, expect } from 'vitest';
-import request from 'supertest';
-import app from '../src/server.js';
+import { describe, it, expect, vi } from "vitest";
+
+// Mock global de la librería PostgreSQL ("pg") para pruebas desacopladas de red
+vi.mock("pg", () => {
+  const mockClient = {
+    query: vi.fn().mockImplementation((sql, params) => {
+      const s = String(sql).toLowerCase();
+      if (s.includes("begin") || s.includes("commit") || s.includes("set local")) {
+        return Promise.resolve({ rows: [] });
+      }
+      if (s.includes("from public.tenants") || s.includes("from tenants")) {
+        return Promise.resolve({
+          rows: [
+            { id: "pasteleratest", nombre: "Pastelería Test", name: "Pastelería Test", schema_name: "tenant_pasteleratest", brand_color: "#F97316", active_modules: ["pos", "inventory", "invoices", "kpis"] }
+          ]
+        });
+      }
+      if (s.includes("from productos")) {
+        return Promise.resolve({
+          rows: [
+            { id: 1, nombre: "Croissant Francés", precio: 8500, stock: 20, rubro: "Cafetería", emoji: "🥐" }
+          ]
+        });
+      }
+      if (s.includes("sum(total)") || s.includes("total_ventas") || s.includes("group by metodo_pago") || s.includes("group by to_char") || s.includes("ticket_promedio")) {
+        return Promise.resolve({
+          rows: [{ total_ventas: "150000", total_comprobantes: 10, ticket_promedio: "15000", total_iva: "28500", metodo: "Efectivo", transacciones: 10, total: "150000", dia: "2026-10-29", label: "Hoy" }]
+        });
+      }
+      if (s.includes("count(*)") && s.includes("facturas")) {
+        return Promise.resolve({ rows: [{ total: 1 }] });
+      }
+      if (s.includes("from facturas") || s.includes(".facturas")) {
+        return Promise.resolve({
+          rows: [
+            { id: 1001, numero_factura: "FAC-1001", cliente: "Cliente Test", subtotal: 10000, impuestos: 1900, total: 11900, estado: "TIMBRADA / APROBADA", folio_fiscal: "CUFE-TEST-123", items_count: 1 }
+          ]
+        });
+      }
+      return Promise.resolve({ rows: [] });
+    }),
+    release: vi.fn()
+  };
+
+  class MockPool {
+    connect(cb) {
+      if (cb) cb(null, mockClient, vi.fn());
+      return Promise.resolve(mockClient);
+    }
+    query(sql, params) {
+      return mockClient.query(sql, params);
+    }
+  }
+
+  return {
+    default: { Pool: MockPool },
+    Pool: MockPool
+  };
+});
+import request from "supertest";
+import app from "../src/server.js";
 
 describe('TaskMaster Core API Endpoints Debug Test Suite', () => {
   it('GET / and /api should return system status', async () => {
