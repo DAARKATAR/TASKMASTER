@@ -1,18 +1,27 @@
+import validator from 'validator';
+import { escapeXml } from '../utils/xmlSecurity.js';
+
 /**
  * Genera dinámicamente un documento WSDL 1.1 adaptado para servicios POS y Facturación Electrónica de Marca Blanca.
+ * Incorpora saneamiento estricto contra inyecciones XML y Reflected XSS (SonarQube jssecurity:S5131 / CWE-79).
  *
  * @param {object} tenant - Objeto con los metadatos del inquilino POS (id, nombre, brand_color, schema_name)
  * @param {string} host - Host HTTP del servidor
- * @returns {string} Definición WSDL 1.1 en formato XML
+ * @returns {string} Definición WSDL 1.1 en formato XML seguro
  */
 export function generateWsdl(tenant, host) {
-  const tenantId = tenant.id;
-  const tenantName = tenant.nombre || tenant.name || tenantId;
-  const targetNamespace = `https://${tenantId}.pos-billing.com/wsdl`;
-  const schemaNamespace = `https://${tenantId}.pos-billing.com/schema`;
-  const endpointLocation = `http://${host}/ws/${tenantId}`;
+  const rawId = String(tenant?.id || 'default');
+  const safeTenantId = validator.escape(rawId.replace(/[^a-zA-Z0-9_-]/g, ''));
+  const rawName = String(tenant?.nombre || tenant?.name || safeTenantId);
+  const safeTenantName = escapeXml(rawName);
+  const tenantName = safeTenantName;
+  const cleanServiceName = validator.escape(rawName.replace(/[^a-zA-Z0-9_]/g, '')) || 'PosService';
+  const rawHost = String(host || 'localhost');
+  const safeHost = validator.escape(rawHost.replace(/[^a-zA-Z0-9.:_-]/g, ''));
 
-  const cleanServiceName = tenantName.replace(/[^a-zA-Z0-9_]/g, '');
+  const targetNamespace = `https://${safeTenantId}.pos-billing.com/wsdl`;
+  const schemaNamespace = `https://${safeTenantId}.pos-billing.com/schema`;
+  const endpointLocation = `http://${safeHost}/ws/${safeTenantId}`;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <definitions name="${cleanServiceName}Service"
@@ -23,7 +32,7 @@ export function generateWsdl(tenant, host) {
   xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
   xmlns:schema="${schemaNamespace}">
 
-  <documentation>Servicio SOAP White-Label de Facturación Electrónica y POS para ${tenantName} (Tenant ID: ${tenantId})</documentation>
+  <documentation>Servicio SOAP White-Label de Facturación Electrónica y POS para ${safeTenantName} (Tenant ID: ${safeTenantId})</documentation>
 
   <types>
     <xsd:schema targetNamespace="${schemaNamespace}" elementFormDefault="qualified">

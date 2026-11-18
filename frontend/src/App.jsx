@@ -126,7 +126,7 @@ export default function App() {
   // Sincronizar el tenant activo si la sesión autenticada especifica uno diferente
   useEffect(() => {
     if (authTenant?.id && (!currentTenant || currentTenant.id !== authTenant.id)) {
-      selectTenant(authTenant);
+      selectTenant(authTenant.id);
     }
   }, [authTenant, currentTenant, selectTenant]);
 

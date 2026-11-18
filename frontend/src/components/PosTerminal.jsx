@@ -54,26 +54,20 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
   const [quickName, setQuickName] = useState("");
   const [quickPrice, setQuickPrice] = useState("");
   const [quickEmoji, setQuickEmoji] = useState("⚡");
-  const [sessionButtons, setSessionButtons] = useState(() => {
-    const saved = typeof window !== "undefined" ? sessionStorage.getItem(`taskmaster_fast_pos_${tenant?.id || "default"}`) : null;
-    if (saved) {
-      try { return JSON.parse(saved); } catch {}
-    }
-    return [
-      { id: "sb-1", name: "Café / Bebida", price: 3000, emoji: "☕" },
-      { id: "sb-2", name: "Panadería / Snack", price: 2500, emoji: "🥐" },
-      { id: "sb-3", name: "Menú / Almuerzo", price: 14000, emoji: "🍽️" },
-      { id: "sb-4", name: "Servicio / Extra", price: 10000, emoji: "⚡" },
-      { id: "sb-5", name: "Venta Mostrador", price: 5000, emoji: "🏷️" },
-      { id: "sb-6", name: "Postre / Dulce", price: 4500, emoji: "🍰" }
-    ];
-  });
+  const [sessionButtons, setSessionButtons] = useState([
+    { id: "sb-1", name: "Café / Bebida", price: 3000, emoji: "☕" },
+    { id: "sb-2", name: "Panadería / Snack", price: 2500, emoji: "🥐" },
+    { id: "sb-3", name: "Menú / Almuerzo", price: 14000, emoji: "🍽️" },
+    { id: "sb-4", name: "Servicio / Extra", price: 10000, emoji: "⚡" },
+    { id: "sb-5", name: "Venta Mostrador", price: 5000, emoji: "🏷️" },
+    { id: "sb-6", name: "Postre / Dulce", price: 4500, emoji: "🍰" }
+  ]);
 
   const handleAddQuickSale = (e) => {
     e.preventDefault();
     const priceNum = parseFloat(quickPrice);
     if (!priceNum || priceNum <= 0) return;
-    const itemName = (quickName || "Venta Libre").trim();
+    const itemName = (quickName || "Venta Libre").trim().slice(0, 50);
     addToCart({
       id: `quick-${Date.now()}`,
       name: itemName,
@@ -90,19 +84,14 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
   const handleSaveQuickButton = () => {
     const priceNum = parseFloat(quickPrice);
     if (!priceNum || priceNum <= 0) return;
-    const itemName = (quickName || "Ítem Rápido").trim();
+    const itemName = (quickName || "Ítem Rápido").trim().slice(0, 50);
     const newBtn = {
       id: `sb-${Date.now()}`,
       name: itemName,
       price: priceNum,
       emoji: quickEmoji
     };
-    const updated = [...sessionButtons, newBtn];
-    setSessionButtons(updated);
-    if (typeof window !== "undefined") {
-      const safeTenantKey = String(tenant?.id || "default").replace(/[^a-zA-Z0-9_-]/g, "");
-      sessionStorage.setItem(`taskmaster_fast_pos_${safeTenantKey}`, JSON.stringify(updated));
-    }
+    setSessionButtons((prev) => [...prev, newBtn]);
     addToCart({
       id: newBtn.id,
       name: newBtn.name,
@@ -117,12 +106,7 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
   };
 
   const handleDeleteSessionButton = (btnId) => {
-    const updated = sessionButtons.filter((b) => b.id !== btnId);
-    setSessionButtons(updated);
-    if (typeof window !== "undefined") {
-      const safeTenantKey = String(tenant?.id || "default").replace(/[^a-zA-Z0-9_-]/g, "");
-      sessionStorage.setItem(`taskmaster_fast_pos_${safeTenantKey}`, JSON.stringify(updated));
-    }
+    setSessionButtons((prev) => prev.filter((b) => b.id !== btnId));
   };
 
 

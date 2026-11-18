@@ -112,35 +112,31 @@ export function useTenant(initialTenant = null) {
       return;
     }
 
-    if (typeof tenantOrId === 'string') {
-      const found = availableTenants.find((t) => t.id === tenantOrId);
-      if (found) {
-        const localMods = localStorage.getItem(`taskmaster_modules_${found.id}`);
-        if (localMods) {
-          try {
-            found.active_modules = JSON.parse(localMods);
-          } catch {}
-        }
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('taskmaster_current_tenant', JSON.stringify(found));
-          localStorage.setItem('taskmaster_current_tenant_id', found.id);
-        }
-        setCurrentTenantState(found);
-      }
-    } else if (tenantOrId?.id) {
-      const localMods = localStorage.getItem(`taskmaster_modules_${tenantOrId.id}`);
-      if (localMods) {
-        try {
-          tenantOrId.active_modules = JSON.parse(localMods);
-        } catch {}
-      }
-      if (typeof window !== 'undefined') {
-        const safeTenantId = String(tenantOrId.id || '').replace(/[^a-zA-Z0-9_-]/g, '');
-        localStorage.setItem('taskmaster_current_tenant', JSON.stringify(tenantOrId));
-        localStorage.setItem('taskmaster_current_tenant_id', safeTenantId);
-      }
-      setCurrentTenantState(tenantOrId);
+    const targetId = typeof tenantOrId === 'string' ? tenantOrId : tenantOrId?.id;
+    if (!targetId) return;
+
+    const safeTenantId = String(targetId).replace(/[^a-zA-Z0-9_-]/g, '');
+    const found = availableTenants.find((t) => t.id === safeTenantId);
+    const activeTenant = found || (typeof tenantOrId === 'object' ? {
+      id: safeTenantId,
+      nombre: String(tenantOrId.nombre || tenantOrId.name || safeTenantId).slice(0, 50),
+      brand_color: String(tenantOrId.brand_color || '#3b82f6').slice(0, 10),
+      schema_name: String(tenantOrId.schema_name || `tenant_${safeTenantId}`).replace(/[^a-zA-Z0-9_]/g, '')
+    } : null);
+
+    if (!activeTenant) return;
+
+    const localMods = typeof window !== 'undefined' ? localStorage.getItem(`taskmaster_modules_${safeTenantId}`) : null;
+    if (localMods) {
+      try {
+        activeTenant.active_modules = JSON.parse(localMods);
+      } catch {}
     }
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('taskmaster_current_tenant_id', safeTenantId);
+    }
+    setCurrentTenantState(activeTenant);
   }, [availableTenants]);
 
   // Módulos activos para el tenant actual

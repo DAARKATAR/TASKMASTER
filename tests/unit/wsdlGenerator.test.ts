@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { generateWsdl } from '../../src/services/wsdlGenerator.js';
+import { escapeXml } from '../../src/utils/xmlSecurity.js';
 
 describe('Unidad: Generador Dinámico de Contratos SOAP WSDL 1.1', () => {
   const mockTenant = {
@@ -27,7 +28,7 @@ describe('Unidad: Generador Dinámico de Contratos SOAP WSDL 1.1', () => {
     expect(wsdl).toContain(`targetNamespace="${expectedTargetNs}"`);
     expect(wsdl).toContain(`xmlns:tns="${expectedTargetNs}"`);
     expect(wsdl).toContain(`xmlns:schema="${expectedSchemaNs}"`);
-    expect(wsdl).toContain(mockTenant.nombre);
+    expect(wsdl).toContain(escapeXml(mockTenant.nombre));
   });
 
   it('9. generateWsdl debe definir los tipos de datos fiscales (subtotal, impuestos, total, folio)', () => {
@@ -50,5 +51,21 @@ describe('Unidad: Generador Dinámico de Contratos SOAP WSDL 1.1', () => {
     expect(wsdl).toContain('style="document"');
     expect(wsdl).toContain('use="literal"');
     expect(wsdl).toContain(`<soap:address location="${expectedLocation}"/>`);
+  });
+
+  it('11. generateWsdl debe sanear inyecciones maliciosas XSS y caracteres XML especiales', () => {
+    const maliciousTenant = {
+      id: 'tenant<script>alert(1)</script>',
+      nombre: 'Empresa "Segura" & <script>alert("xss")</script>',
+      schema_name: 'schema_xss'
+    };
+    const maliciousHost = 'evil.com"><script>alert(2)</script>';
+    const wsdl = generateWsdl(maliciousTenant, maliciousHost);
+
+    expect(wsdl).not.toContain('<script>');
+    expect(wsdl).not.toContain('</script>');
+    expect(wsdl).not.toContain('alert(1)');
+    expect(wsdl).toContain('&amp;');
+    expect(wsdl).toContain('&quot;');
   });
 });

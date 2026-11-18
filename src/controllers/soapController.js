@@ -1,3 +1,4 @@
+import validator from 'validator';
 import { generateWsdl } from '../services/wsdlGenerator.js';
 import { withTenantContext } from '../services/tenantDbClient.js';
 import { logAudit } from '../services/auditLogger.js';
@@ -30,11 +31,12 @@ export function handleWsdl(req, res) {
   const clientIp = req.headers['cf-connecting-ip'] || req.ip;
 
   try {
-    const host = req.get('host') || `localhost:${process.env.PORT || 3000}`;
+    const rawHost = req.get('host') || `localhost:${process.env.PORT || 3000}`;
+    const host = validator.escape(String(rawHost).replace(/[^a-zA-Z0-9.:_-]/g, ''));
     const wsdlXml = generateWsdl(tenant, host);
 
     logAudit({
-      tenantId: tenant.id,
+      tenantId: tenant?.id || 'unknown',
       action: 'GET_WSDL_1.1',
       durationMs: Date.now() - startTime,
       statusCode: 200,
@@ -179,10 +181,12 @@ export async function handleSoapAction(req, res) {
       .send(responseXml);
 
   } catch (error) {
-    console.error(`Error executing SOAP operation [${action}] for tenant [${tenant.id}]:`, error);
+    const safeAction = validator.escape(String(action || '')).replace(/[\r\n]/g, '');
+    const safeTenantId = validator.escape(String(tenant?.id || '')).replace(/[\r\n]/g, '');
+    console.error(`Error executing SOAP operation [${safeAction}] for tenant [${safeTenantId}]:`, error);
 
     logAudit({
-      tenantId: tenant.id,
+      tenantId: safeTenantId,
       action: 'CONSULTAR_FACTURA_ERROR',
       durationMs: Date.now() - startTime,
       statusCode: 500,
@@ -195,7 +199,7 @@ export async function handleSoapAction(req, res) {
       .send(buildFaultXml(
         'soap:Server',
         'Internal Database Error',
-        `Error querying tenant schema "${tenant.schema_name}": ${error.message}`
+        `Error querying tenant schema "${escapeXml(tenant?.schema_name)}": ${escapeXml(error.message)}`
       ));
   }
 }
