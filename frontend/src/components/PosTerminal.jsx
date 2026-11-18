@@ -100,7 +100,8 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
     const updated = [...sessionButtons, newBtn];
     setSessionButtons(updated);
     if (typeof window !== "undefined") {
-      sessionStorage.setItem(`taskmaster_fast_pos_${tenant?.id || "default"}`, JSON.stringify(updated));
+      const safeTenantKey = String(tenant?.id || "default").replace(/[^a-zA-Z0-9_-]/g, "");
+      sessionStorage.setItem(`taskmaster_fast_pos_${safeTenantKey}`, JSON.stringify(updated));
     }
     addToCart({
       id: newBtn.id,
@@ -119,7 +120,8 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
     const updated = sessionButtons.filter((b) => b.id !== btnId);
     setSessionButtons(updated);
     if (typeof window !== "undefined") {
-      sessionStorage.setItem(`taskmaster_fast_pos_${tenant?.id || "default"}`, JSON.stringify(updated));
+      const safeTenantKey = String(tenant?.id || "default").replace(/[^a-zA-Z0-9_-]/g, "");
+      sessionStorage.setItem(`taskmaster_fast_pos_${safeTenantKey}`, JSON.stringify(updated));
     }
   };
 

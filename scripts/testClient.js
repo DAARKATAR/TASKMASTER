@@ -16,7 +16,8 @@ async function runTests() {
     body: xmlInvoiceRequest
   });
   console.log('Status:', resGourmet.status);
-  console.log(await resGourmet.text());
+  const text1 = await resGourmet.text();
+  console.log(text1.replace(/[\r\n\t]+/g, ' '));
 
   console.log('\n--- TEST 2: RETAILX SMART POS (/ws/retailx) ---');
   const resRetail = await fetch('http://localhost:3000/ws/retailx', {
@@ -25,7 +26,8 @@ async function runTests() {
     body: xmlInvoiceRequest
   });
   console.log('Status:', resRetail.status);
-  console.log(await resRetail.text());
+  const text2 = await resRetail.text();
+  console.log(text2.replace(/[\r\n\t]+/g, ' '));
 }
 
 runTests();

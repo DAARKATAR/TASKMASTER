@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script src="https://cdn.tailwindcss.com" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js" crossorigin="anonymous"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -143,7 +143,7 @@
 
       <!-- Buscador -->
       <div class="relative w-full sm:w-64">
-        <input 
+        <input aria-label="Buscar en diagrama" 
           type="text" 
           id="search-input" 
           onkeyup="searchDiagrams()" 
@@ -3721,10 +3721,10 @@ flowchart TD
         const foreignObjects = svgCopy.querySelectorAll("foreignObject");
         foreignObjects.forEach(fo => {
           const textContent = (fo.textContent || "").trim();
-          const x = parseFloat(fo.getAttribute("x") || 0);
-          const y = parseFloat(fo.getAttribute("y") || 0);
-          const w = parseFloat(fo.getAttribute("width") || 100);
-          const h = parseFloat(fo.getAttribute("height") || 30);
+          const x = Number.parseFloat(fo.getAttribute("x") || 0);
+          const y = Number.parseFloat(fo.getAttribute("y") || 0);
+          const w = Number.parseFloat(fo.getAttribute("width") || 100);
+          const h = Number.parseFloat(fo.getAttribute("height") || 30);
 
           const textEl = document.createElementNS("http://www.w3.org/2000/svg", "text");
           textEl.setAttribute("x", x + w / 2);

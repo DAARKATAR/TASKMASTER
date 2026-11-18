@@ -2,17 +2,17 @@ import { getTenantById } from '../services/tenantService.js';
 import { escapeXml } from '../utils/xmlSecurity.js';
 
 /**
- * Genera una respuesta SOAP 1.1 Fault XML estándar con escape seguro de entidades.
+ * Genera una respuesta SOAP 1.1 Fault XML estándar.
  */
 function buildSoapFaultXml(faultCode, faultString, detailMessage) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
   <soap:Body>
     <soap:Fault>
-      <faultcode>${escapeXml(faultCode)}</faultcode>
-      <faultstring>${escapeXml(faultString)}</faultstring>
+      <faultcode>${faultCode}</faultcode>
+      <faultstring>${faultString}</faultstring>
       <detail>
-        <message>${escapeXml(detailMessage)}</message>
+        <message>${detailMessage}</message>
       </detail>
     </soap:Fault>
   </soap:Body>
@@ -74,11 +74,12 @@ export async function tenantResolver(req, res, next) {
     const tenant = await getTenantById(tenantId);
 
     if (!tenant) {
+      const safeTenantId = escapeXml(tenantId);
       res.status(404)
         .type('text/xml; charset=utf-8')
         .send(buildSoapFaultXml(
           'soap:Client',
-          `Tenant '${tenantId}' not found`,
+          `Tenant '${safeTenantId}' not found`,
           'The specified tenant does not exist or is inactive in the system.'
         ));
       return;

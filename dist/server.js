@@ -155,15 +155,12 @@ async function invalidateTenantCache(tenantId) {
 }
 
 // src/utils/xmlSecurity.js
-function escapeXml(unsafe, forAttribute = false) {
+import validator from "validator";
+function escapeXml(unsafe) {
   if (unsafe === null || unsafe === void 0) {
     return "";
   }
-  const escaped = String(unsafe).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  if (forAttribute) {
-    return escaped.replace(/"/g, "&quot;").replace(/'/g, "&apos;");
-  }
-  return escaped;
+  return validator.escape(String(unsafe));
 }
 
 // src/middlewares/tenantResolver.js
@@ -172,10 +169,10 @@ function buildSoapFaultXml(faultCode, faultString, detailMessage) {
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
   <soap:Body>
     <soap:Fault>
-      <faultcode>${escapeXml(faultCode)}</faultcode>
-      <faultstring>${escapeXml(faultString)}</faultstring>
+      <faultcode>${faultCode}</faultcode>
+      <faultstring>${faultString}</faultstring>
       <detail>
-        <message>${escapeXml(detailMessage)}</message>
+        <message>${detailMessage}</message>
       </detail>
     </soap:Fault>
   </soap:Body>
@@ -213,9 +210,10 @@ async function tenantResolver(req, res, next) {
     }
     const tenant = await getTenantById(tenantId);
     if (!tenant) {
+      const safeTenantId = escapeXml(tenantId);
       res.status(404).type("text/xml; charset=utf-8").send(buildSoapFaultXml(
         "soap:Client",
-        `Tenant '${tenantId}' not found`,
+        `Tenant '${safeTenantId}' not found`,
         "The specified tenant does not exist or is inactive in the system."
       ));
       return;

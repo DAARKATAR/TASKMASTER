@@ -5,14 +5,14 @@ describe('Unidad: Seguridad y Saneamiento XML (xmlSecurity Utility)', () => {
   it('debe neutralizar caracteres XML peligrosos para evitar Reflected XSS', () => {
     const maliciousInput = '<script>alert("XSS")</script>&foo';
     const result = escapeXml(maliciousInput);
-    expect(result).toBe('&lt;script&gt;alert("XSS")&lt;/script&gt;&amp;foo');
+    expect(result).toBe('&lt;script&gt;alert(&quot;XSS&quot;)&lt;&#x2F;script&gt;&amp;foo');
     expect(result).not.toContain('<script>');
   });
 
-  it('debe escapar comillas cuando se especifica forAttribute = true', () => {
+  it('debe escapar comillas simples y dobles de forma segura', () => {
     const attributeInput = 'val"ue\'test';
-    const result = escapeXml(attributeInput, true);
-    expect(result).toBe('val&quot;ue&apos;test');
+    const result = escapeXml(attributeInput);
+    expect(result).toBe('val&quot;ue&#x27;test');
   });
 
   it('debe manejar entradas nulas o indefinidas de forma segura', () => {

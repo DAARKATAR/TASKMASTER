@@ -15,7 +15,8 @@ async function run() {
     body: xmlTysRequest
   });
   console.log('Status:', res.status);
-  console.log(await res.text());
+  const respText = await res.text();
+  console.log(respText.replace(/[\r\n\t]+/g, ' '));
 }
 
 run();

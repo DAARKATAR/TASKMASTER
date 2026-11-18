@@ -135,8 +135,9 @@ export function useTenant(initialTenant = null) {
         } catch {}
       }
       if (typeof window !== 'undefined') {
+        const safeTenantId = String(tenantOrId.id || '').replace(/[^a-zA-Z0-9_-]/g, '');
         localStorage.setItem('taskmaster_current_tenant', JSON.stringify(tenantOrId));
-        localStorage.setItem('taskmaster_current_tenant_id', tenantOrId.id);
+        localStorage.setItem('taskmaster_current_tenant_id', safeTenantId);
       }
       setCurrentTenantState(tenantOrId);
     }
