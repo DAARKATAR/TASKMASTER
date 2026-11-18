@@ -12,6 +12,9 @@ dotenv.config();
 
 const app = express();
 
+// Hardening de seguridad: Evitar divulgación de framework Express (SonarQube typescript:S5689)
+app.disable('x-powered-by');
+
 // 1. CORS Inmediato & Preflight OPTIONS Handler
 app.use((req: Request, res: Response, next) => {
   res.header("Access-Control-Allow-Origin", "*");

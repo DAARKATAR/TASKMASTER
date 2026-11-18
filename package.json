@@ -10,6 +10,8 @@
     "tunnel": "node scripts/startTunnel.js",
     "seed": "tsx scripts/runSeed.js",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage --coverage.reporter=lcov --coverage.reporter=text",
+    "sonar": "sonar-scanner-npm",
     "build:server": "tsup src/server.ts --format esm --out-dir dist",
     "compile": "tsup src/server.ts --format esm --out-dir dist"
   },
@@ -38,6 +40,8 @@
     "@types/node": "^26.6.3",
     "@types/pg": "^8.23.1",
     "@types/supertest": "^7.2.1",
+    "@vitest/coverage-v8": "^5.1.1",
+    "sonarqube-scanner": "^5.1.0",
     "supertest": "^7.3.0",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",

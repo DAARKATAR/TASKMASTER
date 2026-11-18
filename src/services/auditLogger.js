@@ -42,6 +42,14 @@ function appendLog(category, data) {
 }
 
 /**
+ * Sanea entradas de log contra ataques de Log Injection / Log Forging (SonarQube jssecurity:S5145 / CWE-117).
+ */
+function sanitizeLogEntry(val) {
+  if (val === null || val === undefined) return '';
+  return String(val).replace(/[\r\n\t]/g, '_');
+}
+
+/**
  * Registra un evento de auditoría de negocio / SOAP / facturación.
  */
 export function logAudit({ tenantId, action, durationMs, statusCode, clientIp, metadata = {} }) {
@@ -54,8 +62,11 @@ export function logAudit({ tenantId, action, durationMs, statusCode, clientIp, m
     ...metadata
   };
 
-  // 1. Consola estructurada
-  console.log(`[AUDIT][${entry.tenant_id.toUpperCase()}][${entry.action}] ${entry.status_code} (${entry.duration_ms}ms) - IP: ${entry.client_ip}`);
+  // 1. Consola estructurada con saneamiento contra inyección de caracteres de control
+  const safeTenant = sanitizeLogEntry(entry.tenant_id).toUpperCase();
+  const safeAction = sanitizeLogEntry(entry.action);
+  const safeIp = sanitizeLogEntry(entry.client_ip);
+  console.log(`[AUDIT][${safeTenant}][${safeAction}] ${entry.status_code} (${entry.duration_ms}ms) - IP: ${safeIp}`);
 
   // 2. Archivo persistente clasificado en logs/audit/
   appendLog('audit', entry);

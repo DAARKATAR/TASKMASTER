@@ -154,16 +154,28 @@ async function invalidateTenantCache(tenantId) {
   }
 }
 
+// src/utils/xmlSecurity.js
+function escapeXml(unsafe, forAttribute = false) {
+  if (unsafe === null || unsafe === void 0) {
+    return "";
+  }
+  const escaped = String(unsafe).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  if (forAttribute) {
+    return escaped.replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+  }
+  return escaped;
+}
+
 // src/middlewares/tenantResolver.js
 function buildSoapFaultXml(faultCode, faultString, detailMessage) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
   <soap:Body>
     <soap:Fault>
-      <faultcode>${faultCode}</faultcode>
-      <faultstring>${faultString}</faultstring>
+      <faultcode>${escapeXml(faultCode)}</faultcode>
+      <faultstring>${escapeXml(faultString)}</faultstring>
       <detail>
-        <message>${detailMessage}</message>
+        <message>${escapeXml(detailMessage)}</message>
       </detail>
     </soap:Fault>
   </soap:Body>
@@ -430,6 +442,10 @@ function appendLog(category, data) {
     console.error(`[Logger Exception] Fallo escribiendo log en ${category}:`, err.message);
   }
 }
+function sanitizeLogEntry(val) {
+  if (val === null || val === void 0) return "";
+  return String(val).replace(/[\r\n\t]/g, "_");
+}
 function logAudit({ tenantId, action, durationMs, statusCode, clientIp, metadata = {} }) {
   const entry = {
     tenant_id: tenantId || "system",
@@ -439,7 +455,10 @@ function logAudit({ tenantId, action, durationMs, statusCode, clientIp, metadata
     client_ip: clientIp || "unknown",
     ...metadata
   };
-  console.log(`[AUDIT][${entry.tenant_id.toUpperCase()}][${entry.action}] ${entry.status_code} (${entry.duration_ms}ms) - IP: ${entry.client_ip}`);
+  const safeTenant = sanitizeLogEntry(entry.tenant_id).toUpperCase();
+  const safeAction = sanitizeLogEntry(entry.action);
+  const safeIp = sanitizeLogEntry(entry.client_ip);
+  console.log(`[AUDIT][${safeTenant}][${safeAction}] ${entry.status_code} (${entry.duration_ms}ms) - IP: ${safeIp}`);
   appendLog("audit", entry);
   if (hasBetterStack) {
     try {
@@ -514,10 +533,10 @@ function buildFaultXml2(faultCode, faultString, detail) {
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
   <soap:Body>
     <soap:Fault>
-      <faultcode>${faultCode}</faultcode>
-      <faultstring>${faultString}</faultstring>
+      <faultcode>${escapeXml(faultCode)}</faultcode>
+      <faultstring>${escapeXml(faultString)}</faultstring>
       <detail>
-        <message>${detail}</message>
+        <message>${escapeXml(detail)}</message>
       </detail>
     </soap:Fault>
   </soap:Body>
@@ -610,26 +629,26 @@ async function handleSoapAction(req, res) {
     }
     const targetNamespace = `https://${tenant.id}.pos-billing.com/wsdl`;
     const responseXml = `<?xml version="1.0" encoding="UTF-8"?>
-<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="${targetNamespace}">
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tns="${escapeXml(targetNamespace)}">
   <soap:Header>
     <tns:FiscalBrandContext>
-      <tns:emisor>${tenantName}</tns:emisor>
-      <tns:tenantId>${tenant.id}</tns:tenantId>
-      <tns:brandColor>${brandColor}</tns:brandColor>
+      <tns:emisor>${escapeXml(tenantName)}</tns:emisor>
+      <tns:tenantId>${escapeXml(tenant.id)}</tns:tenantId>
+      <tns:brandColor>${escapeXml(brandColor)}</tns:brandColor>
       <tns:status>VALIDADA_DIAN_SAT</tns:status>
     </tns:FiscalBrandContext>
   </soap:Header>
   <soap:Body>
     <tns:ConsultarFacturaResponse>
-      <tns:numero_factura>${factura.numero_factura}</tns:numero_factura>
-      <tns:cliente>${factura.cliente}</tns:cliente>
+      <tns:numero_factura>${escapeXml(factura.numero_factura)}</tns:numero_factura>
+      <tns:cliente>${escapeXml(factura.cliente)}</tns:cliente>
       <tns:subtotal>${Number(factura.subtotal).toFixed(2)}</tns:subtotal>
       <tns:impuestos>${Number(factura.impuestos).toFixed(2)}</tns:impuestos>
       <tns:total>${Number(factura.total).toFixed(2)}</tns:total>
-      <tns:estado>${factura.estado}</tns:estado>
-      <tns:folio_fiscal>${factura.folio_fiscal}</tns:folio_fiscal>
-      <tns:items_count>${factura.items_count || 1}</tns:items_count>
-      <tns:emisor>${tenantName}</tns:emisor>
+      <tns:estado>${escapeXml(factura.estado)}</tns:estado>
+      <tns:folio_fiscal>${escapeXml(factura.folio_fiscal)}</tns:folio_fiscal>
+      <tns:items_count>${Number(factura.items_count) || 1}</tns:items_count>
+      <tns:emisor>${escapeXml(tenantName)}</tns:emisor>
     </tns:ConsultarFacturaResponse>
   </soap:Body>
 </soap:Envelope>`.trim();
@@ -1636,6 +1655,7 @@ function globalErrorHandler(err, req, res, next) {
 // src/server.ts
 dotenv2.config();
 var app = express2();
+app.disable("x-powered-by");
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");

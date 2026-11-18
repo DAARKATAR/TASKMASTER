@@ -144,7 +144,8 @@ body {
   }
 
   @page {
-    size: 80mm auto;
+    /* Mitigación SonarQube css:S8775 (Blocker): '80mm auto' no es sintaxis válida en CSS Paged Media. Usar dimensión única 80mm */
+    size: 80mm;
     margin: 0;
   }
 

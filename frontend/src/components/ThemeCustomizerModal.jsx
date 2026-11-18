@@ -668,9 +668,10 @@ export default function ThemeCustomizerModal({
               </div>
               <div className="grid grid-cols-2 gap-2 mt-2">
                 {PRESET_MODULAR_PROFILES.map((preset) => {
+                  // Mitigación SonarQube javascript:S2871 (Critical): Evitar mutación de preset.modules y usar comparador localeCompare
                   const isActive =
-                    JSON.stringify(preset.modules.sort()) ===
-                    JSON.stringify([...selectedModules].sort());
+                    JSON.stringify([...preset.modules].sort((a, b) => a.localeCompare(b))) ===
+                    JSON.stringify([...selectedModules].sort((a, b) => a.localeCompare(b)));
                   return (
                     <button
                       key={preset.id}

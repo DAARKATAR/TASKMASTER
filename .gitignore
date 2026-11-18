@@ -23,6 +23,9 @@ logs/
 .DS_Store
 Thumbs.db
 .cache/
+coverage/
+.~lock.*
+.scannerwork/
 
 # IDE
 .idea/

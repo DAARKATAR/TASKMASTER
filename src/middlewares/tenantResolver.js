@@ -1,17 +1,18 @@
 import { getTenantById } from '../services/tenantService.js';
+import { escapeXml } from '../utils/xmlSecurity.js';
 
 /**
- * Genera una respuesta SOAP 1.1 Fault XML estándar.
+ * Genera una respuesta SOAP 1.1 Fault XML estándar con escape seguro de entidades.
  */
 function buildSoapFaultXml(faultCode, faultString, detailMessage) {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
   <soap:Body>
     <soap:Fault>
-      <faultcode>${faultCode}</faultcode>
-      <faultstring>${faultString}</faultstring>
+      <faultcode>${escapeXml(faultCode)}</faultcode>
+      <faultstring>${escapeXml(faultString)}</faultstring>
       <detail>
-        <message>${detailMessage}</message>
+        <message>${escapeXml(detailMessage)}</message>
       </detail>
     </soap:Fault>
   </soap:Body>
