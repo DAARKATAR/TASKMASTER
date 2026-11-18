@@ -1,49 +1,13 @@
+const createModule = (id, name, shortName, description, iconName, badge, color) => ({
+  id, name, shortName, description, iconName, badge, color
+});
+
 export const AVAILABLE_MODULES = [
-  {
-    id: "pos",
-    name: "Punto de Venta & Caja",
-    shortName: "Terminal POS",
-    description: "Terminal de cobro ágil en mostrador, emisión de tickets y medios de pago",
-    iconName: "ShoppingBag",
-    badge: "Esencial",
-    color: "#10B981"
-  },
-  {
-    id: "inventory",
-    name: "Inventario & Stock en BD",
-    shortName: "Inventario",
-    description: "Control de catálogo con stock en Neon DB, precios y alertas de existencias",
-    iconName: "Boxes",
-    badge: "Almacén",
-    color: "#6366F1"
-  },
-  {
-    id: "invoices",
-    name: "Libro de Ventas & Comprobantes",
-    shortName: "Comprobantes",
-    description: "Historial de transacciones de control interno y exportación CSV",
-    iconName: "FileText",
-    badge: "Auditoría",
-    color: "#0EA5E9"
-  },
-  {
-    id: "kpis",
-    name: "Analítica & Desglose de Caja",
-    shortName: "Métricas",
-    description: "Estadísticas de facturación, medios de pago y rendimiento del negocio",
-    iconName: "BarChart3",
-    badge: "Negocio",
-    color: "#F59E0B"
-  },
-  {
-    id: "console",
-    name: "Consola Fiscal SOAP / WSDL",
-    shortName: "Consola SOAP",
-    description: "Inspección de contratos WSDL 1.1, pruebas de timbrado y consultas XML en tiempo real",
-    iconName: "Terminal",
-    badge: "Fiscal",
-    color: "#8B5CF6"
-  }
+  createModule("pos", "Punto de Venta & Caja", "Terminal POS", "Terminal de cobro ágil en mostrador, emisión de tickets y medios de pago", "ShoppingBag", "Esencial", "#10B981"),
+  createModule("inventory", "Inventario & Stock en BD", "Inventario", "Control de catálogo con stock en Neon DB, precios y alertas de existencias", "Boxes", "Almacén", "#6366F1"),
+  createModule("invoices", "Libro de Ventas & Comprobantes", "Comprobantes", "Historial de transacciones de control interno y exportación CSV", "FileText", "Auditoría", "#0EA5E9"),
+  createModule("kpis", "Analítica & Desglose de Caja", "Métricas", "Estadísticas de facturación, medios de pago y rendimiento del negocio", "BarChart3", "Negocio", "#F59E0B"),
+  createModule("console", "Consola Fiscal SOAP / WSDL", "Consola SOAP", "Inspección de contratos WSDL 1.1, pruebas de timbrado y consultas XML en tiempo real", "Terminal", "Fiscal", "#8B5CF6")
 ];
 
 export const PRESET_MODULAR_PROFILES = [

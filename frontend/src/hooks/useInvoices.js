@@ -96,6 +96,21 @@ export function useInvoices(tenantId, authToken) {
     }
   }, [tenantId]);
 
+  const buildOfflineInvoiceRecord = (offlineItem, orderData, tenant) => ({
+    numero_factura: offlineItem.simulatedInvoiceNumber,
+    cliente: orderData.cliente || 'Cliente POS (Offline)',
+    subtotal: Number.parseFloat(orderData.subtotal || 0).toFixed(2),
+    impuestos: Number.parseFloat(orderData.impuestos || 0).toFixed(2),
+    total: Number.parseFloat(orderData.total || 0).toFixed(2),
+    estado: 'PENDIENTE DE SINCRONIZACIÓN',
+    folio_fiscal: `OFFLINE-${Date.now().toString(36).toUpperCase()}`,
+    items_count: orderData.items?.length || 1,
+    metodo_pago: orderData.metodoPago || 'Efectivo',
+    emisor: tenant.nombre,
+    items: orderData.items || [],
+    isOffline: true
+  });
+
   /**
    * Emite comprobante con soporte resiliente Offline (fallback automático a cola local)
    */
@@ -106,20 +121,7 @@ export function useInvoices(tenantId, authToken) {
     if (!isOnline && !skipOfflineFallback) {
       const offlineItem = enqueueOfflineSale(tenant.id, orderData);
       refreshOfflineCount();
-      const mockInvoice = {
-        numero_factura: offlineItem.simulatedInvoiceNumber,
-        cliente: orderData.cliente || 'Cliente POS (Offline)',
-        subtotal: Number.parseFloat(orderData.subtotal || 0).toFixed(2),
-        impuestos: Number.parseFloat(orderData.impuestos || 0).toFixed(2),
-        total: Number.parseFloat(orderData.total || 0).toFixed(2),
-        estado: 'PENDIENTE DE SINCRONIZACIÓN',
-        folio_fiscal: `OFFLINE-${Date.now().toString(36).toUpperCase()}`,
-        items_count: orderData.items?.length || 1,
-        metodo_pago: orderData.metodoPago || 'Efectivo',
-        emisor: tenant.nombre,
-        items: orderData.items || [],
-        isOffline: true
-      };
+      const mockInvoice = buildOfflineInvoiceRecord(offlineItem, orderData, tenant);
       setInvoiceData(mockInvoice);
       setInvoices((prev) => [mockInvoice, ...prev]);
       return mockInvoice;
@@ -175,20 +177,7 @@ export function useInvoices(tenantId, authToken) {
         console.warn('Fallo de red detectado. Guardando venta en cola offline local...', networkErr);
         const offlineItem = enqueueOfflineSale(tenant.id, orderData);
         refreshOfflineCount();
-        const fallbackInvoice = {
-          numero_factura: offlineItem.simulatedInvoiceNumber,
-          cliente: orderData.cliente || 'Cliente POS (Offline)',
-          subtotal: Number.parseFloat(orderData.subtotal || 0).toFixed(2),
-          impuestos: Number.parseFloat(orderData.impuestos || 0).toFixed(2),
-          total: Number.parseFloat(orderData.total || 0).toFixed(2),
-          estado: 'PENDIENTE DE SINCRONIZACIÓN',
-          folio_fiscal: `OFFLINE-${Date.now().toString(36).toUpperCase()}`,
-          items_count: orderData.items?.length || 1,
-          metodo_pago: orderData.metodoPago || 'Efectivo',
-          emisor: tenant.nombre,
-          items: orderData.items || [],
-          isOffline: true
-        };
+        const fallbackInvoice = buildOfflineInvoiceRecord(offlineItem, orderData, tenant);
         setInvoiceData(fallbackInvoice);
         setInvoices((prev) => [fallbackInvoice, ...prev]);
         return fallbackInvoice;
