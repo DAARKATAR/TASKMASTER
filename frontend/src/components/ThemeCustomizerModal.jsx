@@ -233,6 +233,7 @@ export default function ThemeCustomizerModal({
       case 'kpis':
         return <TrendingUp className="w-4 h-4" />;
       case 'soap':
+      case 'console':
         return <Terminal className="w-4 h-4" />;
       default:
         return <Sliders className="w-4 h-4" />;

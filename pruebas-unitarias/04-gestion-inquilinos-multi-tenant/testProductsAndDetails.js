@@ -1,5 +1,5 @@
-import pool from '../src/config/database.js';
-import { getDefaultProducts } from '../src/config/defaultProducts.js';
+import pool from '../../src/config/database.js';
+import { getDefaultProducts } from '../../src/config/defaultProducts.js';
 
 async function testProductsAndDetails() {
   const client = await pool.connect();

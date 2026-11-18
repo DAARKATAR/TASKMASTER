@@ -34,6 +34,15 @@ export const AVAILABLE_MODULES = [
     iconName: "BarChart3",
     badge: "Negocio",
     color: "#F59E0B"
+  },
+  {
+    id: "console",
+    name: "Consola Fiscal SOAP / WSDL",
+    shortName: "Consola SOAP",
+    description: "Inspección de contratos WSDL 1.1, pruebas de timbrado y consultas XML en tiempo real",
+    iconName: "Terminal",
+    badge: "Fiscal",
+    color: "#8B5CF6"
   }
 ];
 
@@ -63,9 +72,9 @@ export const PRESET_MODULAR_PROFILES = [
     id: "all",
     name: "Suite Completa de Control Interno",
     description: "Todas las herramientas comerciales activas para máxima gestión.",
-    modules: ["pos", "inventory", "invoices", "kpis"],
+    modules: ["pos", "inventory", "invoices", "kpis", "console"],
     emoji: "💎"
   }
 ];
 
-export const DEFAULT_ACTIVE_MODULES = ["pos", "inventory", "invoices", "kpis"];
+export const DEFAULT_ACTIVE_MODULES = ["pos", "inventory", "invoices", "kpis", "console"];

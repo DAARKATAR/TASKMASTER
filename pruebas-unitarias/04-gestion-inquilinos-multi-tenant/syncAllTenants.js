@@ -1,6 +1,6 @@
 import pg from 'pg';
 import dotenv from 'dotenv';
-import { getDefaultProducts } from '../src/config/defaultProducts.js';
+import { getDefaultProducts } from '../../src/config/defaultProducts.js';
 dotenv.config();
 
 const { Pool } = pg;
