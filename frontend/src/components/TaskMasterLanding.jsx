@@ -156,10 +156,11 @@ export default function TaskMasterLanding({ onGoToLogin, onStartRegistration, on
             {/* Grid de Plantillas Genéricas */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
               {presets.map((p, idx) => (
-                <div 
+                <button 
+                  type="button"
                   key={idx} 
                   onClick={() => p.tenantId === 'tortasysnacks' ? onQuickLaunchDemo() : onStartRegistration()}
-                  className="p-5 rounded-2xl bg-white border border-slate-200 hover:border-slate-400 hover:shadow-md transition-all cursor-pointer group"
+                  className="text-left p-5 rounded-2xl bg-white border border-slate-200 hover:border-slate-400 hover:shadow-md transition-all cursor-pointer group"
                 >
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-3xl p-2 rounded-xl bg-slate-100 border border-slate-200 group-hover:scale-110 transition-transform">
@@ -178,7 +179,7 @@ export default function TaskMasterLanding({ onGoToLogin, onStartRegistration, on
                     <span>{p.tenantId === 'tortasysnacks' ? 'Abrir Demostración' : 'Crear con este rubro'}</span>
                     <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
                   </div>
-                </div>
+                </button>
               ))}
             </div>
 

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import request from 'supertest';
 import express from 'express';
-import { soapSecurity } from '../src/middlewares/soapSecurity.js';
+import { soapSecurity } from '../../src/middlewares/soapSecurity.js';
 
 describe('SOAP Security & XXE Protection Middleware', () => {
   const app = express();

@@ -58,7 +58,7 @@ vi.mock("pg", () => {
   };
 });
 import request from "supertest";
-import app from "../src/server.js";
+import app from "../../src/server.js";
 
 describe('TaskMaster Core API Endpoints Debug Test Suite', () => {
   it('GET / and /api should return system status', async () => {

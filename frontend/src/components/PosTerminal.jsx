@@ -65,7 +65,7 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
 
   const handleAddQuickSale = (e) => {
     e.preventDefault();
-    const priceNum = parseFloat(quickPrice);
+    const priceNum = Number.parseFloat(quickPrice);
     if (!priceNum || priceNum <= 0) return;
     const itemName = (quickName || "Venta Libre").trim().slice(0, 50);
     addToCart({
@@ -82,7 +82,7 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
   };
 
   const handleSaveQuickButton = () => {
-    const priceNum = parseFloat(quickPrice);
+    const priceNum = Number.parseFloat(quickPrice);
     if (!priceNum || priceNum <= 0) return;
     const itemName = (quickName || "Ítem Rápido").trim().slice(0, 50);
     const newBtn = {
@@ -204,7 +204,7 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
     try {
       await syncOfflineQueue(tenant, onEmitInvoice);
       checkOfflineQueue();
-      loadProducts();
+      await loadProducts();
     } catch (err) {
       console.error('Error sincronizando cola offline:', err);
     } finally {
@@ -234,12 +234,12 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
           id: p.id,
           name: p.nombre,
           nombre: p.nombre,
-          price: parseFloat(p.precio || 0),
-          precio: parseFloat(p.precio || 0),
+          price: Number.parseFloat(p.precio || 0),
+          precio: Number.parseFloat(p.precio || 0),
           rubro: p.rubro || 'General',
           emoji: p.emoji || '📦',
           desc: p.descripcion || '',
-          stock: parseInt(p.stock, 10) || 0,
+          stock: Number.parseInt(p.stock, 10) || 0,
           imagen_url: p.imagen_url || null
         }));
         setProducts(normalized);
@@ -253,7 +253,7 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
 
   useEffect(() => {
     if (tenant?.id) {
-      loadProducts();
+      void loadProducts();
     }
   }, [tenant?.id]);
 
@@ -273,7 +273,7 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
 
   const handleEmit = async () => {
     if (cart.length === 0) return;
-    const finalCashReceived = paymentMethod === "Efectivo" ? (parseFloat(cashReceived) || total) : total;
+    const finalCashReceived = paymentMethod === "Efectivo" ? (Number.parseFloat(cashReceived) || total) : total;
     const finalChange = paymentMethod === "Efectivo" ? Math.max(0, finalCashReceived - total) : 0;
 
     await onEmitInvoice({
@@ -292,7 +292,7 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
     clearCart();
     setCashReceived("");
     checkOfflineQueue();
-    loadProducts();
+    await loadProducts();
   };
 
   return (
@@ -548,6 +548,22 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
                   {sessionButtons.map((btn) => (
                     <div
                       key={btn.id}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          addToCart({
+                            id: btn.id,
+                            name: btn.name,
+                            nombre: btn.name,
+                            price: btn.price,
+                            precio: btn.price,
+                            emoji: btn.emoji,
+                            stock: 9999
+                          });
+                        }
+                      }}
                       onClick={() => addToCart({
                         id: btn.id,
                         name: btn.name,
@@ -676,6 +692,14 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
               return (
                 <div
                   key={p.id}
+                  role="button"
+                  tabIndex={isOutOfStock ? -1 : 0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      if (!isOutOfStock) addToCart(p);
+                    }
+                  }}
                   onClick={() => !isOutOfStock && addToCart(p)}
                   className={`rounded-2xl bg-white border transition-all duration-200 flex flex-col justify-between overflow-hidden group shadow-flat-sm hover:shadow-flat ${
                     isOutOfStock
@@ -921,10 +945,11 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
             {/* Formulario Cliente y Medio de Pago */}
             <div className="space-y-3 pt-3 border-t border-slate-100 text-xs">
               <div>
-                <label className="block text-slate-500 text-[11px] mb-1 font-medium font-mono">
+                <label htmlFor="pos-customer-name" className="block text-slate-500 text-[11px] mb-1 font-medium font-mono">
                   Nombre del Cliente:
                 </label>
                 <input
+                  id="pos-customer-name"
                   type="text"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
@@ -933,9 +958,9 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
                 />
               </div>
               <div>
-                <label className="block text-slate-500 text-[11px] mb-1 font-medium font-mono">
+                <span className="block text-slate-500 text-[11px] mb-1 font-medium font-mono">
                   Método de Pago:
-                </label>
+                </span>
                 <div className="grid grid-cols-3 gap-2">
                   {['Efectivo', 'Tarjeta', 'Transferencia'].map((method) => (
                     <button
@@ -964,7 +989,7 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-bold text-slate-700">Monto Recibido del Cliente:</span>
                   <span className="font-mono font-bold text-slate-900">
-                    ${(parseFloat(cashReceived) || total).toLocaleString("es-CO")} COP
+                    ${(Number.parseFloat(cashReceived) || total).toLocaleString("es-CO")} COP
                   </span>
                 </div>
 
@@ -1001,9 +1026,9 @@ export default function PosTerminal({ tenant, onEmitInvoice, loadingSoap, lastRe
                 <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-xs">
                   <span className="font-bold text-slate-600">Cambio / Vuelto a Entregar:</span>
                   <span className={`font-mono font-black text-sm ${
-                    (parseFloat(cashReceived) || total) >= total ? "text-emerald-600" : "text-amber-600"
+                    (Number.parseFloat(cashReceived) || total) >= total ? "text-emerald-600" : "text-amber-600"
                   }`}>
-                    ${Math.max(0, (parseFloat(cashReceived) || total) - total).toLocaleString("es-CO")} COP
+                    ${Math.max(0, (Number.parseFloat(cashReceived) || total) - total).toLocaleString("es-CO")} COP
                   </span>
                 </div>
               </div>

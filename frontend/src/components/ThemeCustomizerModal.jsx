@@ -34,10 +34,10 @@ const isColorDark = (hex) => {
   let c = hex.replace('#', '').trim();
   if (c.length === 3) c = c.split('').map((x) => x + x).join('');
   if (c.length !== 6) return false;
-  const r = parseInt(c.substring(0, 2), 16);
-  const g = parseInt(c.substring(2, 4), 16);
-  const b = parseInt(c.substring(4, 6), 16);
-  if (isNaN(r) || isNaN(g) || isNaN(b)) return false;
+  const r = Number.parseInt(c.substring(0, 2), 16);
+  const g = Number.parseInt(c.substring(2, 4), 16);
+  const b = Number.parseInt(c.substring(4, 6), 16);
+  if (Number.isNaN(r) || Number.isNaN(g) || Number.isNaN(b)) return false;
   const yiq = (r * 299 + g * 587 + b * 114) / 1000;
   return yiq < 140;
 };
@@ -396,11 +396,12 @@ export default function ThemeCustomizerModal({
                 {/* 1. Color Primario */}
                 <div className="flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-1.5 h-5">
-                    <label className="text-xs font-bold text-slate-700">Primario</label>
+                    <label htmlFor="theme-color-primary" className="text-xs font-bold text-slate-700">Primario</label>
                     <span className="text-[10px] text-slate-400 font-medium">Botones & Marca</span>
                   </div>
                   <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200 shadow-2xs hover:border-slate-300 focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all h-11">
                     <input
+                      id="theme-color-primary"
                       type="color"
                       value={primaryColor}
                       onChange={(e) => setPrimaryColor(e.target.value)}
@@ -421,11 +422,12 @@ export default function ThemeCustomizerModal({
                 {/* 2. Color Secundario / Acento */}
                 <div className="flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-1.5 h-5">
-                    <label className="text-xs font-bold text-slate-700">Secundario</label>
+                    <label htmlFor="theme-color-secondary" className="text-xs font-bold text-slate-700">Secundario</label>
                     <span className="text-[10px] text-slate-400 font-medium">Acentos & Badges</span>
                   </div>
                   <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200 shadow-2xs hover:border-slate-300 focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all h-11">
                     <input
+                      id="theme-color-secondary"
                       type="color"
                       value={accentColor}
                       onChange={(e) => setAccentColor(e.target.value)}
@@ -446,11 +448,12 @@ export default function ThemeCustomizerModal({
                 {/* 3. Color de Fondo */}
                 <div className="flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-1.5 h-5">
-                    <label className="text-xs font-bold text-slate-700">Fondo</label>
+                    <label htmlFor="theme-color-bg" className="text-xs font-bold text-slate-700">Fondo</label>
                     <span className="text-[10px] text-slate-400 font-medium">Pantalla / POS</span>
                   </div>
                   <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200 shadow-2xs hover:border-slate-300 focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all h-11">
                     <input
+                      id="theme-color-bg"
                       type="color"
                       value={bgColor}
                       onChange={(e) => setBgColor(e.target.value)}
@@ -704,10 +707,11 @@ export default function ThemeCustomizerModal({
                 {AVAILABLE_MODULES.map((mod) => {
                   const isChecked = selectedModules.includes(mod.id);
                   return (
-                    <div
+                    <button
+                      type="button"
                       key={mod.id}
                       onClick={() => handleToggleModule(mod.id)}
-                      className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                      className={`w-full text-left p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
                         isChecked
                           ? 'border-slate-300 bg-white shadow-xs'
                           : 'border-slate-100 bg-slate-50/70 opacity-60 hover:opacity-80'
@@ -745,7 +749,7 @@ export default function ThemeCustomizerModal({
                       >
                         {isChecked && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                       </div>
-                    </div>
+                    </button>
                   );
                 })}
               </div>

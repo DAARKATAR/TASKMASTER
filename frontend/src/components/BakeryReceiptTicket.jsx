@@ -172,7 +172,7 @@ export default function BakeryReceiptTicket({ tenant, invoiceData, cartItems }) 
     navigator.clipboard.writeText(textLines).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    });
+    }).catch(() => {});
   };
 
   return (
@@ -266,7 +266,7 @@ export default function BakeryReceiptTicket({ tenant, invoiceData, cartItems }) 
           </div>
           <div className="flex justify-between">
             <span>IVA / IMPUESTOS:</span>
-            <span>{parseFloat(invoiceData?.impuestos || 0) > 0 ? `$${impuestos}` : '0 (Exento)'}</span>
+            <span>{Number.parseFloat(invoiceData?.impuestos || 0) > 0 ? `$${impuestos}` : '0 (Exento)'}</span>
           </div>
           
           <div className="flex justify-between text-sm font-bold pt-1.5 border-t border-black border-dotted">

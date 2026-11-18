@@ -12,7 +12,11 @@ export function getApiBaseUrl() {
   const url = import.meta.env.VITE_API_URL;
   if (url && typeof url === "string" && url.trim() !== "") {
     // Eliminar barra final para evitar doble slash //api
-    return url.trim().replace(/\/+$/, "");
+    let cleaned = url.trim();
+    while (cleaned.endsWith("/")) {
+      cleaned = cleaned.slice(0, -1);
+    }
+    return cleaned;
   }
   if (typeof window !== "undefined") {
     const hostname = window.location.hostname;

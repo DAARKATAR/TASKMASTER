@@ -43,15 +43,17 @@ export default function SoapConsole({
 
   const handleCopy = () => {
     if (!lastResponse?.raw) return;
-    navigator.clipboard.writeText(lastResponse.raw);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    navigator.clipboard.writeText(lastResponse.raw).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }).catch(() => {});
   };
 
   const handleWsdlCopy = () => {
-    navigator.clipboard.writeText(wsdlText);
-    setWsdlCopied(true);
-    setTimeout(() => setWsdlCopied(false), 2000);
+    navigator.clipboard.writeText(wsdlText).then(() => {
+      setWsdlCopied(true);
+      setTimeout(() => setWsdlCopied(false), 2000);
+    }).catch(() => {});
   };
 
   const handleExecute = () => {

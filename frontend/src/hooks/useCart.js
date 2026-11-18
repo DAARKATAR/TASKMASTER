@@ -55,7 +55,7 @@ export function useCart(defaultTaxRate = 0.19, initialApplyTax = false) {
 
   const { subtotal, impuestos, total, itemsCount } = useMemo(() => {
     const rawSubtotal = cart.reduce(
-      (acc, item) => acc + (parseFloat(item.precio || item.price || 0) * item.qty),
+      (acc, item) => acc + (Number.parseFloat(item.precio || item.price || 0) * item.qty),
       0
     );
     const rawTax = applyTax ? rawSubtotal * taxRate : 0;
@@ -63,9 +63,9 @@ export function useCart(defaultTaxRate = 0.19, initialApplyTax = false) {
     const totalCount = cart.reduce((acc, item) => acc + item.qty, 0);
 
     return {
-      subtotal: parseFloat(rawSubtotal.toFixed(2)),
-      impuestos: parseFloat(rawTax.toFixed(2)),
-      total: parseFloat(rawTotal.toFixed(2)),
+      subtotal: Number.parseFloat(rawSubtotal.toFixed(2)),
+      impuestos: Number.parseFloat(rawTax.toFixed(2)),
+      total: Number.parseFloat(rawTotal.toFixed(2)),
       itemsCount: totalCount
     };
   }, [cart, applyTax, taxRate]);

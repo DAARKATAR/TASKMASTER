@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import request from 'supertest';
 import express from 'express';
-import { globalErrorHandler } from '../src/middlewares/errorHandler.middleware.js';
+import { globalErrorHandler } from '../../src/middlewares/errorHandler.middleware.js';
 
 describe('Global Error Handler Content-Negotiation', () => {
   const app = express();

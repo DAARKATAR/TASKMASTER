@@ -8,8 +8,8 @@ export async function listInvoices(req: Request, res: Response, next: NextFuncti
   const cleanId = String(tenantId).trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
   const schemaName = `tenant_${cleanId}`;
 
-  const page = Math.max(1, parseInt(String(req.query.page || '1'), 10));
-  const limit = Math.min(100, Math.max(1, parseInt(String(req.query.limit || '50'), 10)));
+  const page = Math.max(1, Number.parseInt(String(req.query.page || '1'), 10));
+  const limit = Math.min(100, Math.max(1, Number.parseInt(String(req.query.limit || '50'), 10)));
   const offset = (page - 1) * limit;
   const search = req.query.search ? String(req.query.search).trim() : null;
   const wantsPaginatedWrapper = req.query.paginated === 'true';
@@ -96,10 +96,10 @@ export async function createInvoice(req: Request, res: Response, next: NextFunct
   const { cliente, subtotal, impuestos, total, items_count, metodo_pago, items } = req.body as CreateInvoiceDTO;
 
   const clientName = (cliente || 'Cliente General').trim();
-  const subtotalNum = parseFloat(String(subtotal)) || 0;
-  const impuestosNum = parseFloat(String(impuestos)) || 0;
-  const totalNum = parseFloat(String(total)) || (subtotalNum + impuestosNum);
-  const itemsCount = parseInt(String(items_count), 10) || (Array.isArray(items) ? items.reduce((acc, i) => acc + (i.qty || 1), 0) : 1);
+  const subtotalNum = Number.parseFloat(String(subtotal)) || 0;
+  const impuestosNum = Number.parseFloat(String(impuestos)) || 0;
+  const totalNum = Number.parseFloat(String(total)) || (subtotalNum + impuestosNum);
+  const itemsCount = Number.parseInt(String(items_count), 10) || (Array.isArray(items) ? items.reduce((acc, i) => acc + (i.qty || 1), 0) : 1);
   const paymentMethod = (metodo_pago || 'Efectivo').trim();
 
   try {
@@ -122,8 +122,8 @@ export async function createInvoice(req: Request, res: Response, next: NextFunct
       // 3. Insertar detalle por cada producto y descontar stock
       if (Array.isArray(items) && items.length > 0) {
         for (const item of items) {
-          const itemQty = parseInt(String(item.qty || item.cantidad || 1), 10);
-          const itemPrice = parseFloat(String(item.price || item.precio || 0));
+          const itemQty = Number.parseInt(String(item.qty || item.cantidad || 1), 10);
+          const itemPrice = Number.parseFloat(String(item.price || item.precio || 0));
           const itemSubtotal = itemPrice * itemQty;
           const itemName = (item.name || item.nombre || 'Artículo POS').trim();
           const prodId = item.id && Number.isInteger(Number(item.id)) ? Number(item.id) : null;

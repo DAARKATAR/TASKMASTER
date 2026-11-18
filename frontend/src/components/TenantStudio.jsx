@@ -64,8 +64,8 @@ export default function TenantStudio({ onTenantCreated }) {
   const previewInvoice = {
     numero_factura: 'FAC-1001',
     cliente: titular || 'Cliente Preview',
-    subtotal: (parseFloat(saldo || '0') * 0.84).toFixed(2),
-    impuestos: (parseFloat(saldo || '0') * 0.16).toFixed(2),
+    subtotal: (Number.parseFloat(saldo || '0') * 0.84).toFixed(2),
+    impuestos: (Number.parseFloat(saldo || '0') * 0.16).toFixed(2),
     total: saldo || '0.00',
     estado: 'TIMBRADA / APROBADA',
     folio_fiscal: `CUFE-${(slug || 'PREVIEW').toUpperCase()}-9921-2026`,
@@ -89,10 +89,11 @@ export default function TenantStudio({ onTenantCreated }) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label htmlFor="studio-tenant-name" className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
               Razón Social / Marca de la Empresa POS:
             </label>
             <input
+              id="studio-tenant-name"
               type="text"
               value={nombre}
               onChange={(e) => {
@@ -106,7 +107,7 @@ export default function TenantStudio({ onTenantCreated }) {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label htmlFor="studio-tenant-slug" className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
               Identificador Único del Negocio:
             </label>
             <div className="flex items-center">
@@ -114,6 +115,7 @@ export default function TenantStudio({ onTenantCreated }) {
                 id:
               </span>
               <input
+                id="studio-tenant-slug"
                 type="text"
                 value={slug}
                 onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
@@ -127,11 +129,12 @@ export default function TenantStudio({ onTenantCreated }) {
 
           {/* Color Picker & Presets */}
           <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+            <label htmlFor="studio-tenant-color" className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
               Color de Marca del Ticket POS:
             </label>
             <div className="flex items-center gap-3">
               <input
+                id="studio-tenant-color"
                 type="color"
                 value={brandColor}
                 onChange={(e) => setBrandColor(e.target.value)}
@@ -160,10 +163,11 @@ export default function TenantStudio({ onTenantCreated }) {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+              <label htmlFor="studio-tenant-titular" className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
                 Cliente de Factura Inicial (FAC-1001):
               </label>
               <input
+                id="studio-tenant-titular"
                 type="text"
                 value={titular}
                 onChange={(e) => setTitular(e.target.value)}
@@ -173,10 +177,11 @@ export default function TenantStudio({ onTenantCreated }) {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+              <label htmlFor="studio-tenant-saldo" className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
                 Total Facturado (COP/USD):
               </label>
               <input
+                id="studio-tenant-saldo"
                 type="number"
                 step="0.01"
                 value={saldo}

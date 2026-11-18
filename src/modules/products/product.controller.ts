@@ -70,10 +70,10 @@ export async function createProduct(req: Request, res: Response, next: NextFunct
         RETURNING *;
       `, [
         nombre.trim(),
-        parseFloat(precio) || 0,
+        Number.parseFloat(precio) || 0,
         (rubro || 'General').trim(),
         (emoji || '📦').trim(),
-        parseInt(stock, 10) || 50,
+        Number.parseInt(stock, 10) || 50,
         (descripcion || '').trim(),
         imagen_url ? String(imagen_url).trim() : null
       ]);
@@ -93,7 +93,7 @@ export async function updateProduct(req: Request, res: Response, next: NextFunct
   const { tenantId, productId } = req.params;
   const cleanId = String(tenantId).trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
   const schemaName = `tenant_${cleanId}`;
-  const prodId = parseInt(String(productId), 10);
+  const prodId = Number.parseInt(String(productId), 10);
   if (!prodId) {
     return res.status(400).json({ error: "ID de producto inválido" });
   }
@@ -108,11 +108,11 @@ export async function updateProduct(req: Request, res: Response, next: NextFunct
 
       if (stock !== undefined) {
         fields.push(`stock = $${idx++}`);
-        values.push(Math.max(0, parseInt(String(stock), 10) || 0));
+        values.push(Math.max(0, Number.parseInt(String(stock), 10) || 0));
       }
       if (precio !== undefined) {
         fields.push(`precio = $${idx++}`);
-        values.push(parseFloat(String(precio)) || 0);
+        values.push(Number.parseFloat(String(precio)) || 0);
       }
       if (nombre !== undefined) {
         fields.push(`nombre = $${idx++}`);
@@ -163,7 +163,7 @@ export async function deleteProduct(req: Request, res: Response, next: NextFunct
   const { tenantId, productId } = req.params;
   const cleanId = String(tenantId).trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
   const schemaName = `tenant_${cleanId}`;
-  const prodId = parseInt(String(productId), 10);
+  const prodId = Number.parseInt(String(productId), 10);
   if (!prodId) {
     return res.status(400).json({ error: "ID de producto inválido" });
   }

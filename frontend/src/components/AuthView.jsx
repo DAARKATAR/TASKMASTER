@@ -173,12 +173,13 @@ export default function AuthView({
           )}
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 font-mono">
+            <label htmlFor="login-email" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 font-mono">
               Correo Electrónico:
             </label>
             <div className="relative">
               <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
               <input
+                id="login-email"
                 type="email"
                 value={loginEmail}
                 onChange={(e) => setLoginEmail(e.target.value)}
@@ -190,12 +191,13 @@ export default function AuthView({
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 font-mono">
+            <label htmlFor="login-password" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 font-mono">
               Contraseña:
             </label>
             <div className="relative">
               <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
               <input
+                id="login-password"
                 type="password"
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
@@ -255,12 +257,13 @@ export default function AuthView({
           )}
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 font-mono">
+            <label htmlFor="register-business-name" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 font-mono">
               Nombre de tu Negocio:
             </label>
             <div className="relative">
               <Store className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
               <input
+                id="register-business-name"
                 type="text"
                 value={businessName}
                 onChange={(e) => setBusinessName(e.target.value)}
@@ -272,12 +275,13 @@ export default function AuthView({
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 font-mono">
+            <label htmlFor="register-owner-name" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 font-mono">
               Nombre del Administrador:
             </label>
             <div className="relative">
               <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
               <input
+                id="register-owner-name"
                 type="text"
                 value={ownerName}
                 onChange={(e) => setOwnerName(e.target.value)}
@@ -289,12 +293,13 @@ export default function AuthView({
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 font-mono">
+            <label htmlFor="register-email" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 font-mono">
               Correo Electrónico del Administrador:
             </label>
             <div className="relative">
               <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
               <input
+                id="register-email"
                 type="email"
                 value={registerEmail}
                 onChange={(e) => setRegisterEmail(e.target.value)}
@@ -306,12 +311,13 @@ export default function AuthView({
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 font-mono">
+            <label htmlFor="register-password" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 font-mono">
               Contraseña de Acceso (mín. 6 caracteres):
             </label>
             <div className="relative">
               <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
               <input
+                id="register-password"
                 type="password"
                 value={registerPassword}
                 onChange={(e) => setRegisterPassword(e.target.value)}

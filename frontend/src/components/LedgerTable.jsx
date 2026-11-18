@@ -175,7 +175,7 @@ export default function LedgerTable({ tenant, invoices = [], onConsultSoap, load
                           </span>
                         </td>
                         <td className="py-3 text-right font-mono font-bold text-slate-900">
-                          ${parseFloat(inv.total || 0).toLocaleString('es-CO')}
+                          ${Number.parseFloat(inv.total || 0).toLocaleString('es-CO')}
                         </td>
                         <td className="py-3 text-center">
                           <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -259,9 +259,9 @@ export default function LedgerTable({ tenant, invoices = [], onConsultSoap, load
             invoiceData={selectedInvoice ? {
               numero_factura: selectedInvoice.numero_factura,
               cliente: selectedInvoice.cliente,
-              subtotal: parseFloat(selectedInvoice.subtotal || 0).toFixed(2),
-              impuestos: parseFloat(selectedInvoice.impuestos || 0).toFixed(2),
-              total: parseFloat(selectedInvoice.total || 0).toFixed(2),
+              subtotal: Number.parseFloat(selectedInvoice.subtotal || 0).toFixed(2),
+              impuestos: Number.parseFloat(selectedInvoice.impuestos || 0).toFixed(2),
+              total: Number.parseFloat(selectedInvoice.total || 0).toFixed(2),
               estado: selectedInvoice.estado || 'TIMBRADA / APROBADA',
               folio_fiscal: selectedInvoice.folio_fiscal,
               items_count: selectedInvoice.items_count || 1,

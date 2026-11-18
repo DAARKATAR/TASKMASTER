@@ -112,7 +112,7 @@ export async function provisionTenant(dto: ProvisionTenantDTO): Promise<Tenant> 
     `, [`CTA-${cleanId.toUpperCase()}-001`, titular, saldo]);
 
     await client.query('COMMIT');
-    invalidateTenantCache(cleanId);
+    await invalidateTenantCache(cleanId);
 
     return {
       id: cleanId,

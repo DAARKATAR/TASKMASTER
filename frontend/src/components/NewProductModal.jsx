@@ -105,9 +105,9 @@ function compressImageFile(file, maxWidth = 800, maxHeight = 800, quality = 0.85
         const dataUrl = canvas.toDataURL('image/jpeg', quality);
         resolve(dataUrl);
       };
-      img.onerror = (err) => reject(err);
+      img.onerror = (err) => reject(new Error(err?.message || 'Error cargando imagen'));
     };
-    reader.onerror = (err) => reject(err);
+    reader.onerror = (err) => reject(new Error(err?.message || 'Error leyendo archivo'));
   });
 }
 
@@ -200,10 +200,10 @@ export default function NewProductModal({ isOpen, onClose, tenant, onProductCrea
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           nombre: nombre.trim(),
-          precio: parseFloat(precio),
+          precio: Number.parseFloat(precio),
           rubro,
           emoji,
-          stock: parseInt(stock, 10) || 0,
+          stock: Number.parseInt(stock, 10) || 0,
           descripcion: desc.trim(),
           imagen_url: imagenUrl.trim() || null
         })
@@ -231,8 +231,8 @@ export default function NewProductModal({ isOpen, onClose, tenant, onProductCrea
   };
 
   // Valores computados para el preview
-  const numPrice = parseFloat(precio) || 0;
-  const numStock = parseInt(stock, 10) || 0;
+  const numPrice = Number.parseFloat(precio) || 0;
+  const numStock = Number.parseInt(stock, 10) || 0;
   const isOutOfStock = numStock <= 0;
   const isLowStock = numStock > 0 && numStock <= 10;
 
@@ -277,10 +277,11 @@ export default function NewProductModal({ isOpen, onClose, tenant, onProductCrea
           <form onSubmit={handleSubmit} className="lg:col-span-7 space-y-4">
             {/* Nombre del Producto */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase font-mono mb-1">
+              <label htmlFor="prod-nombre" className="block text-xs font-bold text-slate-700 uppercase font-mono mb-1">
                 Nombre del Producto: *
               </label>
               <input
+                id="prod-nombre"
                 type="text"
                 required
                 value={nombre}
@@ -293,10 +294,11 @@ export default function NewProductModal({ isOpen, onClose, tenant, onProductCrea
             {/* Precio y Stock */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase font-mono mb-1">
+                <label htmlFor="prod-precio" className="block text-xs font-bold text-slate-700 uppercase font-mono mb-1">
                   Precio de Venta ($): *
                 </label>
                 <input
+                  id="prod-precio"
                   type="number"
                   step="0.01"
                   min="0.01"
@@ -309,10 +311,11 @@ export default function NewProductModal({ isOpen, onClose, tenant, onProductCrea
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase font-mono mb-1">
+                <label htmlFor="prod-stock" className="block text-xs font-bold text-slate-700 uppercase font-mono mb-1">
                   Stock Inicial:
                 </label>
                 <input
+                  id="prod-stock"
                   type="number"
                   min="0"
                   value={stock}
@@ -325,10 +328,11 @@ export default function NewProductModal({ isOpen, onClose, tenant, onProductCrea
 
             {/* Rubro / Categoría */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase font-mono mb-1">
+              <label htmlFor="prod-rubro" className="block text-xs font-bold text-slate-700 uppercase font-mono mb-1">
                 Categoría / Rubro:
               </label>
               <select
+                id="prod-rubro"
                 value={rubro}
                 onChange={(e) => setRubro(e.target.value)}
                 className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 focus:ring-2 focus:ring-slate-900 focus:outline-none bg-white"
@@ -510,10 +514,11 @@ export default function NewProductModal({ isOpen, onClose, tenant, onProductCrea
 
             {/* Descripción Opcional */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase font-mono mb-1">
+              <label htmlFor="prod-desc" className="block text-xs font-bold text-slate-700 uppercase font-mono mb-1">
                 Descripción Breve (Opcional):
               </label>
               <input
+                id="prod-desc"
                 type="text"
                 value={desc}
                 onChange={(e) => setDesc(e.target.value)}

@@ -27,7 +27,7 @@ export async function createTenant(req: Request, res: Response, next: NextFuncti
       businessType: business_type,
       logo,
       initialTitular: initial_titular,
-      initialSaldo: parseFloat(initial_saldo) || 50000.00,
+      initialSaldo: Number.parseFloat(initial_saldo) || 50000.00,
       activeModules: Array.isArray(active_modules) ? active_modules : ['pos', 'inventory', 'invoices', 'kpis']
     });
 
@@ -156,20 +156,20 @@ export async function getTenantMetrics(req: Request, res: Response, next: NextFu
 
     const summary = aggRows[0];
     res.json({
-      total_ventas: parseFloat(summary.total_ventas),
+      total_ventas: Number.parseFloat(summary.total_ventas),
       total_comprobantes: summary.total_comprobantes,
-      ticket_promedio: Math.round(parseFloat(summary.ticket_promedio)),
-      total_iva: parseFloat(summary.total_iva),
+      ticket_promedio: Math.round(Number.parseFloat(summary.ticket_promedio)),
+      total_iva: Number.parseFloat(summary.total_iva),
       desglose_pagos: paymentRows.map((r: any) => ({
         metodo: r.metodo,
         transacciones: r.transacciones,
-        total: parseFloat(r.total)
+        total: Number.parseFloat(r.total)
       })),
       ventas_por_dia: dailyRows.map((r: any) => ({
         dia: r.dia,
         label: r.label,
         transacciones: r.transacciones,
-        total: parseFloat(r.total)
+        total: Number.parseFloat(r.total)
       }))
     });
   } catch (error) {

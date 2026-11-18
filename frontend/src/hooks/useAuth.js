@@ -65,7 +65,7 @@ export function useAuth() {
       }
     };
 
-    restoreSession();
+    void restoreSession();
   }, []);
 
   const login = (token, user, tenant = null) => {

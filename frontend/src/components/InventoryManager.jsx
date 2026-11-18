@@ -61,12 +61,12 @@ export default function InventoryManager({ tenant }) {
   };
 
   useEffect(() => {
-    loadProducts();
+    void loadProducts();
   }, [tenant?.id]);
 
   // Modificar stock rápido (+ / -) con persistencia real en Neon DB
   const handleQuickStockChange = async (product, delta) => {
-    const newStock = Math.max(0, (parseInt(product.stock, 10) || 0) + delta);
+    const newStock = Math.max(0, (Number.parseInt(product.stock, 10) || 0) + delta);
     setUpdatingStockId(product.id);
 
     // Optimistic UI update
@@ -88,7 +88,7 @@ export default function InventoryManager({ tenant }) {
     } catch (err) {
       console.error('Error actualizando stock en Neon:', err);
       notifyError('No se pudo actualizar el stock en Neon DB', 'Fallo al Actualizar');
-      loadProducts();
+      void loadProducts();
     } finally {
       setUpdatingStockId(null);
     }
@@ -116,7 +116,7 @@ export default function InventoryManager({ tenant }) {
     } catch (err) {
       console.error('Error eliminando producto:', err);
       notifyError('No se pudo eliminar el producto de Neon DB', 'Error de Base de Datos');
-      loadProducts();
+      void loadProducts();
     }
   };
 
@@ -137,8 +137,8 @@ export default function InventoryManager({ tenant }) {
     setSavingEdit(true);
     const updatedPayload = {
       nombre: editName.trim(),
-      precio: parseFloat(editPrice) || 0,
-      stock: parseInt(editStock, 10) || 0,
+      precio: Number.parseFloat(editPrice) || 0,
+      stock: Number.parseInt(editStock, 10) || 0,
       imagen_url: editImage.trim() || null
     };
 
@@ -166,13 +166,13 @@ export default function InventoryManager({ tenant }) {
 
   // Métricas del inventario
   const totalItems = products.length;
-  const outOfStockCount = products.filter((p) => (parseInt(p.stock, 10) || 0) <= 0).length;
+  const outOfStockCount = products.filter((p) => (Number.parseInt(p.stock, 10) || 0) <= 0).length;
   const lowStockCount = products.filter((p) => {
-    const s = parseInt(p.stock, 10) || 0;
+    const s = Number.parseInt(p.stock, 10) || 0;
     return s > 0 && s <= 10;
   }).length;
   const totalValuation = products.reduce(
-    (acc, p) => acc + (parseFloat(p.precio || 0) * (parseInt(p.stock, 10) || 0)),
+    (acc, p) => acc + (Number.parseFloat(p.precio || 0) * (Number.parseInt(p.stock, 10) || 0)),
     0
   );
 
@@ -183,7 +183,7 @@ export default function InventoryManager({ tenant }) {
       (p.descripcion || '').toLowerCase().includes(searchQuery.toLowerCase());
     const matchesRubro =
       selectedRubro === 'Todos' || (p.rubro || '').toLowerCase() === selectedRubro.toLowerCase();
-    const stock = parseInt(p.stock, 10) || 0;
+    const stock = Number.parseInt(p.stock, 10) || 0;
     let matchesStock = true;
     if (stockFilter === 'low') matchesStock = stock > 0 && stock <= 10;
     if (stockFilter === 'out') matchesStock = stock <= 0;
@@ -355,8 +355,8 @@ export default function InventoryManager({ tenant }) {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredProducts.map((p) => {
-                  const stock = parseInt(p.stock, 10) || 0;
-                  const price = parseFloat(p.precio || 0);
+                  const stock = Number.parseInt(p.stock, 10) || 0;
+                  const price = Number.parseFloat(p.precio || 0);
                   const isOut = stock <= 0;
                   const isLow = stock > 0 && stock <= 10;
                   const itemValuation = stock * price;
@@ -488,7 +488,7 @@ export default function InventoryManager({ tenant }) {
         onClose={() => setShowNewProductModal(false)}
         tenant={tenant}
         onProductCreated={() => {
-          loadProducts();
+          void loadProducts();
         }}
       />
 
@@ -508,10 +508,11 @@ export default function InventoryManager({ tenant }) {
 
             <form onSubmit={handleSaveEdit} className="space-y-3">
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 uppercase font-mono mb-1">
+                <label htmlFor="edit-prod-name" className="block text-[11px] font-bold text-slate-600 uppercase font-mono mb-1">
                   Nombre del Producto:
                 </label>
                 <input
+                  id="edit-prod-name"
                   type="text"
                   required
                   value={editName}
@@ -522,10 +523,11 @@ export default function InventoryManager({ tenant }) {
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase font-mono mb-1">
+                  <label htmlFor="edit-prod-price" className="block text-[11px] font-bold text-slate-600 uppercase font-mono mb-1">
                     Precio ($):
                   </label>
                   <input
+                    id="edit-prod-price"
                     type="number"
                     step="0.01"
                     min="0"
@@ -536,10 +538,11 @@ export default function InventoryManager({ tenant }) {
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 uppercase font-mono mb-1">
+                  <label htmlFor="edit-prod-stock" className="block text-[11px] font-bold text-slate-600 uppercase font-mono mb-1">
                     Existencias:
                   </label>
                   <input
+                    id="edit-prod-stock"
                     type="number"
                     min="0"
                     required
@@ -551,10 +554,11 @@ export default function InventoryManager({ tenant }) {
               </div>
 
               <div>
-                <label className="block text-[11px] font-bold text-slate-600 uppercase font-mono mb-1">
+                <label htmlFor="edit-prod-image" className="block text-[11px] font-bold text-slate-600 uppercase font-mono mb-1">
                   URL de Imagen (Opcional):
                 </label>
                 <input
+                  id="edit-prod-image"
                   type="url"
                   value={editImage}
                   onChange={(e) => setEditImage(e.target.value)}

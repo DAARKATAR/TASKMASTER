@@ -99,7 +99,7 @@ export async function handleSoapAction(req, res) {
   // Extraer número de factura o ID
   const rawQuery = params.numero_factura || params.numeroFactura || params.id || '';
   const queryStr = String(rawQuery).trim();
-  const numericId = parseInt(queryStr.replace(/\D/g, ''), 10) || 0;
+  const numericId = Number.parseInt(queryStr.replace(/\D/g, ''), 10) || 0;
 
   try {
     // Consulta a la tabla `facturas` aislada dentro del search_path del tenant

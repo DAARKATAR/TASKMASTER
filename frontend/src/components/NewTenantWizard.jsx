@@ -208,10 +208,11 @@ export default function NewTenantWizard({ initialData, onComplete, onCancel }) {
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 font-mono">
+                  <label htmlFor="wizard-business-name" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 font-mono">
                     Nombre de tu Negocio: *
                   </label>
                   <input
+                    id="wizard-business-name"
                     type="text"
                     value={businessName}
                     onChange={(e) => {
@@ -224,10 +225,11 @@ export default function NewTenantWizard({ initialData, onComplete, onCancel }) {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 font-mono">
+                  <label htmlFor="wizard-business-type" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 font-mono">
                     Giro / Categoría:
                   </label>
                   <input
+                    id="wizard-business-type"
                     type="text"
                     value={businessType}
                     onChange={(e) => setBusinessType(e.target.value)}
@@ -239,10 +241,11 @@ export default function NewTenantWizard({ initialData, onComplete, onCancel }) {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-200/60">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 font-mono">
+                  <label htmlFor="wizard-owner-name" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 font-mono">
                     Administrador: *
                   </label>
                   <input
+                    id="wizard-owner-name"
                     type="text"
                     value={ownerName}
                     onChange={(e) => {
@@ -255,10 +258,11 @@ export default function NewTenantWizard({ initialData, onComplete, onCancel }) {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 font-mono">
+                  <label htmlFor="wizard-email" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 font-mono">
                     Correo Electrónico: *
                   </label>
                   <input
+                    id="wizard-email"
                     type="email"
                     value={email}
                     onChange={(e) => {
@@ -271,10 +275,11 @@ export default function NewTenantWizard({ initialData, onComplete, onCancel }) {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 font-mono">
+                  <label htmlFor="wizard-password" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1 font-mono">
                     Contraseña (mín 6 car.): *
                   </label>
                   <input
+                    id="wizard-password"
                     type="password"
                     value={password}
                     onChange={(e) => {
@@ -291,9 +296,9 @@ export default function NewTenantWizard({ initialData, onComplete, onCancel }) {
 
             {/* Selector de Fondos Planos */}
             <div className="space-y-2">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 font-mono">
+              <span className="block text-xs font-bold uppercase tracking-wider text-slate-600 font-mono">
                 Color de Fondo Limpio (6 Opciones a elección):
-              </label>
+              </span>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {bgOptions.map((opt) => {
                   const isSelected = bgTheme === opt.id;
@@ -325,9 +330,9 @@ export default function NewTenantWizard({ initialData, onComplete, onCancel }) {
 
             {/* Selector de Color de Marca para cuando inicie sesión */}
             <div className="space-y-2 pt-2 border-t border-slate-100">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 font-mono">
+              <span className="block text-xs font-bold uppercase tracking-wider text-slate-600 font-mono">
                 Color de Acento que tendrán tus botones tras iniciar sesión:
-              </label>
+              </span>
               <div className="flex flex-wrap items-center gap-3">
                 {brandOptions.map((brand) => {
                   const isSelected = brandColor === brand.hex;
@@ -381,9 +386,10 @@ export default function NewTenantWizard({ initialData, onComplete, onCancel }) {
                   <Upload className="w-4 h-4 text-slate-400" />
                 </div>
 
-                <div 
+                <button
+                  type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all ${
+                  className={`w-full border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all ${
                     logoType === 'upload' && uploadedLogo 
                       ? 'border-slate-900 bg-slate-50' 
                       : 'border-slate-300 hover:border-slate-400 hover:bg-slate-50'
@@ -430,7 +436,7 @@ export default function NewTenantWizard({ initialData, onComplete, onCancel }) {
                       <span className="text-[11px] text-slate-400 block">Arrastra una imagen o haz clic aquí</span>
                     </div>
                   )}
-                </div>
+                </button>
               </div>
 
               {/* Opción B: Colección de Logos / Emojis de Tienda */}
@@ -536,9 +542,10 @@ export default function NewTenantWizard({ initialData, onComplete, onCancel }) {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               
               {/* Esqueleto 1: Navbar Arriba (Top) */}
-              <div 
+              <button 
+                type="button"
                 onClick={() => setNavbarPosition('top')}
-                className={`p-4 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between ${
+                className={`text-left p-4 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between ${
                   navbarPosition === 'top' 
                     ? 'border-slate-900 ring-2 ring-slate-900/15 bg-slate-50/50 shadow-sm' 
                     : 'border-slate-200 bg-white hover:border-slate-300'
@@ -583,12 +590,13 @@ export default function NewTenantWizard({ initialData, onComplete, onCancel }) {
                 <span className="text-[11px] text-slate-500 mt-2 block">
                   Recomendado para computadoras y monitores amplios.
                 </span>
-              </div>
+              </button>
 
               {/* Esqueleto 2: Navbar Izquierda (Sidebar Left) */}
-              <div 
+              <button 
+                type="button"
                 onClick={() => setNavbarPosition('left')}
-                className={`p-4 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between ${
+                className={`text-left p-4 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between ${
                   navbarPosition === 'left' 
                     ? 'border-slate-900 ring-2 ring-slate-900/15 bg-slate-50/50 shadow-sm' 
                     : 'border-slate-200 bg-white hover:border-slate-300'
@@ -626,12 +634,13 @@ export default function NewTenantWizard({ initialData, onComplete, onCancel }) {
                 <span className="text-[11px] text-slate-500 mt-2 block">
                   Formato tipo panel administrativo lateral.
                 </span>
-              </div>
+              </button>
 
               {/* Esqueleto 3: Navbar Derecha (Sidebar Right) */}
-              <div 
+              <button 
+                type="button"
                 onClick={() => setNavbarPosition('right')}
-                className={`p-4 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between ${
+                className={`text-left p-4 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between ${
                   navbarPosition === 'right' 
                     ? 'border-slate-900 ring-2 ring-slate-900/15 bg-slate-50/50 shadow-sm' 
                     : 'border-slate-200 bg-white hover:border-slate-300'
@@ -668,12 +677,13 @@ export default function NewTenantWizard({ initialData, onComplete, onCancel }) {
                 <span className="text-[11px] text-slate-500 mt-2 block">
                   Ideal para cajeros con pantalla táctil a la derecha.
                 </span>
-              </div>
+              </button>
 
               {/* Esqueleto 4: Navbar Abajo (Bottom) */}
-              <div 
+              <button 
+                type="button"
                 onClick={() => setNavbarPosition('bottom')}
-                className={`p-4 rounded-2xl border transition-all flex flex-col justify-between cursor-pointer ${
+                className={`text-left p-4 rounded-2xl border transition-all flex flex-col justify-between cursor-pointer ${
                   navbarPosition === 'bottom'
                     ? 'border-slate-900 ring-2 ring-slate-900/15 bg-slate-50/50 shadow-sm'
                     : 'border-slate-200 bg-white hover:border-slate-300'
@@ -712,7 +722,7 @@ export default function NewTenantWizard({ initialData, onComplete, onCancel }) {
                 <span className="text-[11px] text-slate-500 mt-2 block">
                   Estilo app táctil para tabletas, celulares y terminales portátiles.
                 </span>
-              </div>
+              </button>
 
             </div>
 

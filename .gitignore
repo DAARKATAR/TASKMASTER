@@ -24,6 +24,8 @@ logs/
 Thumbs.db
 .cache/
 coverage/
+dist/
+frontend/dist/
 .~lock.*
 .scannerwork/
 
