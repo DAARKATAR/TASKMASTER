@@ -39,4 +39,6 @@ frontend/dist/
 *.sw?
 -e 
 
-frontend/dist/
+# Documentación editable (solo se versiona PDF oficial en el repositorio)
+TM-MAN-*.docx
+manuales/*.docx
